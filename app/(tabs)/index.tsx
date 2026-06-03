@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   Alert,
+  NativeModules,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -20,6 +21,8 @@ import { formatCurrency, formatSignedAmount } from '@/utils/currency';
 import { formatDate, getMonthLabel } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { syncSMSFromDevice, startSMSListener, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
+import { TransactionSkeleton } from '@/components/ui/Skeleton';
+import { AccountIcon } from '@/components/ui/BankLogo';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +41,7 @@ export default function DashboardScreen() {
     loadMonthlyStats,
     getTotalBalance,
     loadCategories,
+    isLoading,
   } = useTransactionStore();
 
   const loadData = useCallback(async () => {
@@ -59,8 +63,9 @@ export default function DashboardScreen() {
   }, [loadData]);
 
   // Prompt for SMS permission if not granted (catches users who skipped onboarding)
+  // Only runs on standard Android devices with the custom native build, bypassing Expo Go.
   useEffect(() => {
-    if (Platform.OS !== 'android') return;
+    if (Platform.OS !== 'android' || !NativeModules.RNExpoReadSms) return;
     (async () => {
       const granted = await checkSMSPermission();
       if (!granted) {
@@ -150,31 +155,102 @@ export default function DashboardScreen() {
           </View>
         </LinearGradient>
 
+        {/* Horizontal Accounts List */}
+        {accounts.length > 0 && (
+          <View style={styles.accountsSection}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.accountsScrollView}
+              contentContainerStyle={styles.accountsScrollContent}
+            >
+              {accounts.map((acc) => (
+                <View
+                  key={acc.id}
+                  style={[
+                    styles.accountCard,
+                    { backgroundColor: theme.card, borderColor: theme.border },
+                    acc.color ? { borderLeftColor: acc.color, borderLeftWidth: 4 } : null
+                  ]}
+                >
+                  <View style={styles.accountCardHeader}>
+                    <AccountIcon bankId={acc.bankId} accountType={acc.type} icon={acc.icon} color={acc.color} size={28} />
+                  </View>
+                  <Text style={[styles.accountName, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {acc.name}
+                  </Text>
+                  <Text style={[styles.accountBalance, { color: theme.text }]}>
+                    {formatCurrency(acc.balance)}
+                  </Text>
+                </View>
+              ))}
+
+              {/* Add Account Card */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.accountCard,
+                  {
+                    backgroundColor: theme.card,
+                    borderColor: theme.border,
+                    borderStyle: 'dashed',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 6,
+                  },
+                  pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+                ]}
+                onPress={() => router.push('/accounts' as any)}
+              >
+                <Text style={{ fontSize: 20 }}>➕</Text>
+                <Text style={[styles.accountName, { color: theme.textSecondary, marginBottom: 0 }]} numberOfLines={1}>
+                  Add Account
+                </Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        )}
+
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <Pressable
-            style={[styles.quickAction, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={({ pressed }) => [
+              styles.quickAction,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+            ]}
             onPress={() => router.push('/add-transaction')}
           >
             <Text style={styles.quickActionEmoji}>➕</Text>
             <Text style={[styles.quickActionLabel, { color: theme.text }]}>Add</Text>
           </Pressable>
           <Pressable
-            style={[styles.quickAction, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={({ pressed }) => [
+              styles.quickAction,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+            ]}
             onPress={() => router.push('/(tabs)/transactions')}
           >
             <Text style={styles.quickActionEmoji}>📋</Text>
             <Text style={[styles.quickActionLabel, { color: theme.text }]}>History</Text>
           </Pressable>
           <Pressable
-            style={[styles.quickAction, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={({ pressed }) => [
+              styles.quickAction,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+            ]}
             onPress={() => router.push('/(tabs)/analytics')}
           >
             <Text style={styles.quickActionEmoji}>📊</Text>
             <Text style={[styles.quickActionLabel, { color: theme.text }]}>Insights</Text>
           </Pressable>
           <Pressable
-            style={[styles.quickAction, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={({ pressed }) => [
+              styles.quickAction,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+            ]}
           >
             <Text style={styles.quickActionEmoji}>🎯</Text>
             <Text style={[styles.quickActionLabel, { color: theme.text }]}>Goals</Text>
@@ -221,7 +297,7 @@ export default function DashboardScreen() {
         )}
 
         {/* Recent Transactions */}
-        <View style={styles.section}>
+        <View style={[styles.section, { marginBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>
               Recent Transactions
@@ -233,7 +309,9 @@ export default function DashboardScreen() {
             )}
           </View>
 
-          {recentTransactions.length === 0 ? (
+          {isLoading ? (
+            <TransactionSkeleton />
+          ) : recentTransactions.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <Text style={styles.emptyEmoji}>📝</Text>
               <Text style={[styles.emptyTitle, { color: theme.text }]}>
@@ -243,7 +321,11 @@ export default function DashboardScreen() {
                 Add your first transaction or enable SMS parsing to get started.
               </Text>
               <Pressable
-                style={[styles.emptyButton, { borderColor: theme.primary }]}
+                style={({ pressed }) => [
+                  styles.emptyButton,
+                  { borderColor: theme.primary },
+                  pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+                ]}
                 onPress={() => router.push('/add-transaction')}
               >
                 <Text style={[styles.emptyButtonText, { color: theme.primary }]}>
@@ -257,7 +339,11 @@ export default function DashboardScreen() {
               return (
                 <Pressable
                   key={tx.id}
-                  style={[styles.transactionRow, { borderBottomColor: theme.border }]}
+                  style={({ pressed }) => [
+                    styles.transactionRow,
+                    { borderBottomColor: theme.border },
+                    pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+                  ]}
                   onPress={() => router.push(`/transaction/${tx.id}`)}
                 >
                   <View style={[styles.txIcon, { backgroundColor: category.color + '20' }]}>
@@ -287,28 +373,6 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        {/* Accounts */}
-        {accounts.length > 0 && (
-          <View style={[styles.section, { marginBottom: 100 }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Accounts</Text>
-            <View style={styles.accountsGrid}>
-              {accounts.map((acc) => (
-                <View
-                  key={acc.id}
-                  style={[styles.accountCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                >
-                  <Text style={styles.accountEmoji}>{acc.icon || '🏦'}</Text>
-                  <Text style={[styles.accountName, { color: theme.textSecondary }]}>
-                    {acc.name}
-                  </Text>
-                  <Text style={[styles.accountBalance, { color: theme.text }]}>
-                    {formatCurrency(acc.balance)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
 
       {/* FAB */}
@@ -316,12 +380,14 @@ export default function DashboardScreen() {
         style={styles.fabWrapper}
         onPress={() => router.push('/add-transaction')}
       >
-        <LinearGradient
-          colors={theme.gradientPrimary}
-          style={styles.fab}
-        >
-          <Text style={styles.fabIcon}>+</Text>
-        </LinearGradient>
+        {({ pressed }) => (
+          <LinearGradient
+            colors={theme.gradientPrimary}
+            style={[styles.fab, pressed && { opacity: 0.9, transform: [{ scale: 0.96 }] }]}
+          >
+            <Text style={styles.fabIcon}>+</Text>
+          </LinearGradient>
+        )}
       </Pressable>
     </View>
   );
@@ -565,27 +631,47 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
   },
 
-  // Accounts
-  accountsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  // Accounts Horizontal Section
+  accountsSection: {
+    marginBottom: 20,
+  },
+  accountsScrollView: {
+    marginHorizontal: -20,
+  },
+  accountsScrollContent: {
+    paddingHorizontal: 20,
     gap: 12,
   },
   accountCard: {
-    width: (width - 52) / 2,
-    padding: 16,
+    width: 140,
+    padding: 12,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
   },
-  accountEmoji: { fontSize: 24, marginBottom: 8 },
+  accountCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  accountEmoji: { fontSize: 20 },
+  bankBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+  },
+  bankBadgeText: {
+    fontSize: 9,
+    fontFamily: typography.fontFamily.bold,
+  },
   accountName: {
     fontFamily: typography.fontFamily.regular,
     fontSize: typography.sizes.xs,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   accountBalance: {
-    fontFamily: typography.fontFamily.mono,
-    fontSize: typography.sizes.md,
+    fontFamily: typography.fontFamily.monoBold,
+    fontSize: typography.sizes.sm,
   },
 
   // FAB

@@ -110,7 +110,7 @@ export default function SettingsScreen() {
             onToggle={toggleTheme}
           />
           <SettingsRow icon="💱" label="Currency" value={currency} />
-          <SettingsRow icon="🏦" label="Manage Accounts" />
+          <SettingsRow icon="🏦" label="Manage Accounts" onPress={() => router.push('/accounts' as any)} />
           <SettingsRow icon="🏷️" label="Categories" onPress={() => router.push('/categories' as any)} />
         </View>
 

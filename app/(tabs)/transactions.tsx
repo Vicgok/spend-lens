@@ -17,6 +17,7 @@ import { formatCurrency, formatSignedAmount } from '@/utils/currency';
 import { formatDate } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { Transaction, TransactionType } from '@/types';
+import { TransactionSkeleton } from '@/components/ui/Skeleton';
 
 const FILTERS: { label: string; value: TransactionType | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -41,7 +42,7 @@ export default function TransactionsScreen() {
   const [activeFilter, setActiveFilter] = useState<TransactionType | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { transactions, loadTransactions, deleteTransaction, setFilter } = useTransactionStore();
+  const { transactions, loadTransactions, deleteTransaction, setFilter, isLoading } = useTransactionStore();
 
   useEffect(() => {
     loadTransactions();
@@ -73,7 +74,11 @@ export default function TransactionsScreen() {
     const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
     return (
       <Pressable
-        style={[styles.txRow, { borderBottomColor: theme.border }]}
+        style={({ pressed }) => [
+          styles.txRow,
+          { borderBottomColor: theme.border },
+          pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+        ]}
         onPress={() => router.push(`/transaction/${tx.id}`)}
       >
         <View style={[styles.txIcon, { backgroundColor: category.color + '20' }]}>
@@ -125,12 +130,13 @@ export default function TransactionsScreen() {
         {FILTERS.map((f) => (
           <Pressable
             key={f.value}
-            style={[
+            style={({ pressed }) => [
               styles.filterChip,
               {
                 backgroundColor: activeFilter === f.value ? theme.primary : theme.surface,
                 borderColor: activeFilter === f.value ? theme.primary : theme.border,
               },
+              pressed && { opacity: 0.8 }
             ]}
             onPress={() => handleFilterChange(f.value)}
           >
@@ -147,23 +153,29 @@ export default function TransactionsScreen() {
       </View>
 
       {/* Transaction List */}
-      <FlatList
-        data={transactions}
-        renderItem={renderTransaction}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
-        }
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📭</Text>
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No transactions found
-            </Text>
-          </View>
-        }
-      />
+      {isLoading && transactions.length === 0 ? (
+        <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
+          <TransactionSkeleton />
+        </View>
+      ) : (
+        <FlatList
+          data={transactions}
+          renderItem={renderTransaction}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>📭</Text>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No transactions found
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }

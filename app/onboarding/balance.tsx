@@ -8,6 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
+  FlatList,
+  Alert,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -16,35 +20,76 @@ import { typography, spacing, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useOnboardingStore } from '@/stores/settings-store';
 import { AccountType } from '@/types';
+import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
+import { AccountIcon, BankLogo } from '@/components/ui/BankLogo';
+
+const { height } = Dimensions.get('window');
 
 interface AccountSetup {
   name: string;
   type: AccountType;
   balance: string;
   icon: string;
+  bankId?: string | null;
+  color?: string | null;
 }
 
-const ACCOUNT_PRESETS: { label: string; type: AccountType; icon: string }[] = [
-  { label: 'Bank Account', type: 'bank', icon: '🏦' },
-  { label: 'Cash', type: 'cash', icon: '💵' },
-  { label: 'Credit Card', type: 'credit_card', icon: '💳' },
-  { label: 'Digital Wallet', type: 'wallet', icon: '📱' },
+const ACCOUNT_PRESETS = [
+  { label: 'Bank Account', type: 'bank' as AccountType, icon: '🏦' },
+  { label: 'Cash', type: 'cash' as AccountType, icon: '💵' },
+  { label: 'Credit Card', type: 'credit_card' as AccountType, icon: '💳' },
+  { label: 'Digital Wallet', type: 'wallet' as AccountType, icon: '📱' },
 ];
 
 export default function BalanceSetup() {
   const { theme } = useTheme();
   const createAccount = useTransactionStore((s) => s.createAccount);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
+  
+  // Start with Cash as a sensible default
   const [accounts, setAccounts] = useState<AccountSetup[]>([
-    { name: 'Bank Account', type: 'bank', balance: '', icon: '🏦' },
+    { name: 'Cash', type: 'cash', balance: '', icon: '💵' },
   ]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pickerType, setPickerType] = useState<'bank' | 'wallet'>('bank');
 
-  const addAccount = (preset: typeof ACCOUNT_PRESETS[number]) => {
+  const addGenericAccount = (type: 'cash' | 'credit_card') => {
+    const name = type === 'cash' ? 'Cash' : 'Credit Card';
+    const icon = type === 'cash' ? '💵' : '💳';
+    
+    // Check duplicate generic types
+    if (accounts.some((a) => a.type === type && !a.bankId)) {
+      return;
+    }
+    
     setAccounts((prev) => [
       ...prev,
-      { name: preset.label, type: preset.type, balance: '', icon: preset.icon },
+      { name, type, balance: '', icon },
     ]);
+  };
+
+  const handleSelectBank = (bank: PredefinedBank) => {
+    // Double check uniqueness (no duplicate banks)
+    if (accounts.some((a) => a.bankId === bank.id)) {
+      Alert.alert('Duplicate Account', 'This bank has already been added.');
+      return;
+    }
+
+    setAccounts((prev) => [
+      ...prev,
+      {
+        name: bank.name,
+        type: bank.type === 'wallet' ? 'wallet' : 'bank',
+        balance: '',
+        icon: bank.icon,
+        bankId: bank.id,
+        color: bank.color,
+      },
+    ]);
+    setModalVisible(false);
   };
 
   const updateBalance = (index: number, balance: string) => {
@@ -61,6 +106,11 @@ export default function BalanceSetup() {
   };
 
   const handleFinish = async () => {
+    if (accounts.length === 0) {
+      Alert.alert('Add Account', 'Please add at least one account.');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       for (const acc of accounts) {
@@ -71,16 +121,27 @@ export default function BalanceSetup() {
           balance,
           currency: 'INR',
           icon: acc.icon,
+          color: acc.color || undefined,
+          bankId: acc.bankId || null,
         });
       }
       await completeOnboarding();
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Failed to create accounts:', error);
+      Alert.alert('Error', 'Failed to save accounts. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Filter predefined list based on search and exclusions (no same bank twice)
+  const filteredBanks = PREDEFINED_BANKS.filter(
+    (bank) =>
+      bank.type === pickerType &&
+      !accounts.some((acc) => acc.bankId === bank.id) &&
+      bank.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <KeyboardAvoidingView
@@ -107,17 +168,21 @@ export default function BalanceSetup() {
         {accounts.map((acc, index) => (
           <View
             key={index}
-            style={[styles.accountCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={[
+              styles.accountCard,
+              { backgroundColor: theme.card, borderColor: theme.border },
+              acc.color ? { borderLeftColor: acc.color, borderLeftWidth: 4 } : null
+            ]}
           >
             <View style={styles.accountHeader}>
               <View style={styles.accountInfo}>
-                <Text style={styles.accountIcon}>{acc.icon}</Text>
-                <Text style={[styles.accountName, { color: theme.text }]}>
+                <AccountIcon bankId={acc.bankId || null} accountType={acc.type} icon={acc.icon} color={acc.color || null} size={28} />
+                <Text style={[styles.accountName, { color: theme.text }]} numberOfLines={1}>
                   {acc.name}
                 </Text>
               </View>
               {accounts.length > 1 && (
-                <Pressable onPress={() => removeAccount(index)}>
+                <Pressable onPress={() => removeAccount(index)} style={styles.removeBtn}>
                   <Text style={[styles.removeText, { color: theme.expense }]}>Remove</Text>
                 </Pressable>
               )}
@@ -141,25 +206,40 @@ export default function BalanceSetup() {
           Add another account
         </Text>
         <View style={styles.presetRow}>
-          {ACCOUNT_PRESETS.filter(
-            (preset) => !accounts.some((a) => a.type === preset.type)
-          ).map((preset) => (
-            <Pressable
-              key={preset.type}
-              style={[styles.presetChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => addAccount(preset)}
-            >
-              <Text style={styles.presetIcon}>{preset.icon}</Text>
-              <Text style={[styles.presetLabel, { color: theme.textSecondary }]}>
-                {preset.label}
-              </Text>
-            </Pressable>
-          ))}
+          {ACCOUNT_PRESETS.map((preset) => {
+            const alreadyHasGeneric = accounts.some(
+              (a) => a.type === preset.type && !a.bankId
+            );
+            if ((preset.type === 'cash' || preset.type === 'credit_card') && alreadyHasGeneric) {
+              return null;
+            }
+
+            return (
+              <Pressable
+                key={preset.type}
+                style={[styles.presetChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => {
+                  if (preset.type === 'bank' || preset.type === 'wallet') {
+                    setPickerType(preset.type);
+                    setSearchQuery('');
+                    setModalVisible(true);
+                  } else {
+                    addGenericAccount(preset.type as 'cash' | 'credit_card');
+                  }
+                }}
+              >
+                <Text style={styles.presetIcon}>{preset.icon}</Text>
+                <Text style={[styles.presetLabel, { color: theme.textSecondary }]}>
+                  {preset.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View style={styles.bottomSection}>
+      <View style={[styles.bottomSection, { backgroundColor: theme.background }]}>
         <Pressable onPress={handleFinish} disabled={isSubmitting} style={styles.ctaWrapper}>
           <LinearGradient
             colors={theme.gradientPrimary}
@@ -173,6 +253,72 @@ export default function BalanceSetup() {
           </LinearGradient>
         </Pressable>
       </View>
+
+      {/* Searchable Bank / Wallet Picker Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>
+                Select {pickerType === 'bank' ? 'Bank Account' : 'Digital Wallet'}
+              </Text>
+              <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
+                <Text style={[styles.modalCloseText, { color: theme.textSecondary }]}>✕</Text>
+              </Pressable>
+            </View>
+
+            {/* Search Input */}
+            <View style={[styles.searchContainer, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+              <Text style={styles.searchEmoji}>🔍</Text>
+              <TextInput
+                style={[styles.searchInput, { color: theme.text }]}
+                placeholder={`Search ${pickerType === 'bank' ? 'banks' : 'wallets'}...`}
+                placeholderTextColor={theme.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus={true}
+              />
+            </View>
+
+            {/* Bank/Wallet List */}
+            {filteredBanks.length === 0 ? (
+              <View style={styles.modalEmptyState}>
+                <Text style={[styles.modalEmptyText, { color: theme.textSecondary }]}>
+                  No {pickerType === 'bank' ? 'banks' : 'wallets'} found or all already added.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredBanks}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.modalList}
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={[styles.bankItem, { borderBottomColor: theme.border }]}
+                    onPress={() => handleSelectBank(item)}
+                  >
+                    <View style={[styles.bankLogoBg, { backgroundColor: item.color + '15' }]}>
+                      <BankLogo bankId={item.id} size={30} />
+                    </View>
+                    <View style={styles.bankItemInfo}>
+                      <Text style={[styles.bankItemName, { color: theme.text }]}>{item.name}</Text>
+                      <Text style={[styles.bankItemType, { color: theme.textMuted }]}>
+                        {item.type === 'bank' ? 'Indian Bank' : 'Digital Wallet'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -182,15 +328,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 80,
-    paddingBottom: 120,
+    paddingBottom: 160,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   headerEmoji: {
     fontSize: 48,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
     fontFamily: typography.fontFamily.bold,
@@ -221,6 +367,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    flex: 1,
+    paddingRight: 8,
   },
   accountIcon: {
     fontSize: 24,
@@ -228,6 +376,11 @@ const styles = StyleSheet.create({
   accountName: {
     fontFamily: typography.fontFamily.semibold,
     fontSize: typography.sizes.base,
+    flexShrink: 1,
+  },
+  removeBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   removeText: {
     fontFamily: typography.fontFamily.medium,
@@ -304,5 +457,107 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.semibold,
     fontSize: typography.sizes.md,
     color: '#FFFFFF',
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    height: height * 0.75,
+    paddingTop: spacing.lg,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: typography.sizes.lg,
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+    marginHorizontal: 24,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.base,
+    height: 50,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchEmoji: {
+    fontSize: 16,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.sizes.base,
+    padding: 0,
+  },
+  modalList: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  bankItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 16,
+  },
+  bankLogoBg: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bankLogoEmoji: {
+    fontSize: 22,
+  },
+  bankItemInfo: {
+    flex: 1,
+  },
+  bankItemName: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: typography.sizes.base,
+  },
+  bankItemType: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.sizes.xs,
+    marginTop: 2,
+  },
+  modalEmptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  modalEmptyText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.sizes.sm,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

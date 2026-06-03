@@ -2,9 +2,15 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
+import { enableScreens } from 'react-native-screens';
+import {
+  ThemeProvider as NavigationProvider,
+  DarkTheme,
+  DefaultTheme,
+} from '@react-navigation/native';
 import {
   useFonts,
   Inter_400Regular,
@@ -17,7 +23,10 @@ import {
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/stores/settings-store';
+import { useOnboardingStore, useSettingsStore } from '@/stores/settings-store';
+
+// Optimize native screens behavior
+enableScreens(true);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,28 +46,47 @@ function RootNavigator() {
     configureAndroidNavbar();
   }, [isDark]);
 
+  const navTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      border: theme.border,
+    },
+  };
+
   return (
-    <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.background },
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
-        <Stack.Screen
-          name="add-transaction"
-          options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
+    <NavigationProvider value={navTheme}>
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.background },
+            animation: 'ios_from_right',
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
           }}
-        />
-      </Stack>
-    </>
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+          <Stack.Screen
+            name="add-transaction"
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+              gestureEnabled: true,
+              gestureDirection: 'vertical',
+            }}
+          />
+          <Stack.Screen name="categories" />
+          <Stack.Screen name="accounts" />
+        </Stack>
+      </View>
+    </NavigationProvider>
   );
 }
 
@@ -72,19 +100,34 @@ export default function RootLayout() {
     'JetBrainsMono-Bold': JetBrainsMono_700Bold,
   });
 
+  const [isStoreLoaded, setIsStoreLoaded] = React.useState(false);
+
   const checkOnboarding = useOnboardingStore((s) => s.checkOnboardingStatus);
+  const loadSettings = useSettingsStore((s) => s.loadSettings);
 
   useEffect(() => {
-    checkOnboarding();
+    async function prepare() {
+      try {
+        await Promise.all([
+          checkOnboarding(),
+          loadSettings(),
+        ]);
+      } catch (e) {
+        console.warn('Failed to load stores:', e);
+      } finally {
+        setIsStoreLoaded(true);
+      }
+    }
+    prepare();
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && isStoreLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, isStoreLoaded]);
 
-  if (!fontsLoaded && !fontError) {
+  if ((!fontsLoaded && !fontError) || !isStoreLoaded) {
     return null;
   }
 

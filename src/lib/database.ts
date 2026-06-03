@@ -21,16 +21,34 @@ import {
 } from '../types';
 import { DEFAULT_CATEGORIES } from '../features/categorizer/categories';
 
-let db: SQLite.SQLiteDatabase | null = null;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (db) return db;
-  db = await SQLite.openDatabaseAsync('spendlens.db');
-  await initializeDatabase(db);
-  return db;
+export function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (!dbPromise) {
+    dbPromise = (async () => {
+      const database = await SQLite.openDatabaseAsync('spendlens.db');
+      await initializeDatabase(database);
+      return database;
+    })();
+  }
+  return dbPromise;
 }
 
 async function initializeDatabase(database: SQLite.SQLiteDatabase) {
+  // Migration: Add bank_id column if the accounts table exists but lacks it
+  try {
+    const columns = await database.getAllAsync<{ name: string }>('PRAGMA table_info(accounts)');
+    if (columns.length > 0) {
+      const hasBankId = columns.some((col) => col.name === 'bank_id');
+      if (!hasBankId) {
+        await database.execAsync('ALTER TABLE accounts ADD COLUMN bank_id TEXT');
+        console.log('Database migration: Added bank_id to accounts table');
+      }
+    }
+  } catch (e) {
+    console.warn('Error running accounts migration:', e);
+  }
+
   await database.execAsync(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -43,6 +61,7 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
       currency TEXT NOT NULL DEFAULT 'INR',
       icon TEXT,
       color TEXT,
+      bank_id TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -132,14 +151,15 @@ export async function createAccount(input: AccountCreateInput): Promise<Account>
     currency: input.currency || 'INR',
     icon: input.icon || null,
     color: input.color || null,
+    bankId: input.bankId || null,
     createdAt: now,
     updatedAt: now,
   };
   await database.runAsync(
-    `INSERT INTO accounts (id, name, type, balance, currency, icon, color, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO accounts (id, name, type, balance, currency, icon, color, bank_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     account.id, account.name, account.type, account.balance,
-    account.currency, account.icon, account.color, account.createdAt, account.updatedAt
+    account.currency, account.icon, account.color, account.bankId, account.createdAt, account.updatedAt
   );
   return account;
 }
@@ -149,7 +169,7 @@ export async function getAccounts(): Promise<Account[]> {
   const rows = await database.getAllAsync<{
     id: string; name: string; type: string; balance: number;
     currency: string; icon: string | null; color: string | null;
-    created_at: string; updated_at: string;
+    bank_id: string | null; created_at: string; updated_at: string;
   }>('SELECT * FROM accounts ORDER BY created_at ASC');
   return rows.map((row) => ({
     id: row.id,
@@ -159,6 +179,7 @@ export async function getAccounts(): Promise<Account[]> {
     currency: row.currency,
     icon: row.icon,
     color: row.color,
+    bankId: row.bank_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }));
@@ -170,6 +191,11 @@ export async function updateAccountBalance(accountId: string, newBalance: number
     'UPDATE accounts SET balance = ?, updated_at = ? WHERE id = ?',
     newBalance, new Date().toISOString(), accountId
   );
+}
+
+export async function deleteAccount(id: string): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync('DELETE FROM accounts WHERE id = ?', id);
 }
 
 // ========== TRANSACTIONS ==========

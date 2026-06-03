@@ -22,6 +22,8 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      // @ts-ignore
+      sceneContainerStyle={{ backgroundColor: theme.background }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

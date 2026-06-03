@@ -8,9 +8,11 @@
     "scheme": "spendlens",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "backgroundColor": "#0D1117",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.spendlens.tracker"
+      "bundleIdentifier": "com.spendlens.tracker",
+      "backgroundColor": "#0D1117"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +22,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.spendlens.tracker",
-      "versionCode": 2,
+      "versionCode": 3,
+      "backgroundColor": "#0D1117",
       "permissions": [
         "android.permission.READ_SMS",
         "android.permission.RECEIVE_SMS"

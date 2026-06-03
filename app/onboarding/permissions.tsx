@@ -7,6 +7,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  NativeModules,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -40,6 +41,20 @@ export default function OnboardingPermissions() {
       Alert.alert(
         'SMS Reader',
         'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or sync via email (coming soon!).'
+      );
+      return;
+    }
+
+    // Check if running in Expo Go (which lacks the native module)
+    if (!NativeModules.RNExpoReadSms) {
+      Alert.alert(
+        'Expo Go Limitation',
+        'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',
+        [
+          { text: 'Try Demo Scan', onPress: () => handleSimulateScan() },
+          { text: 'Continue Manually', onPress: () => router.push('/onboarding/balance') },
+          { text: 'Cancel', style: 'cancel' }
+        ]
       );
       return;
     }

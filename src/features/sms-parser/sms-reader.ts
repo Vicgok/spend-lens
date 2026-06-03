@@ -1,4 +1,4 @@
-import { Platform, PermissionsAndroid } from 'react-native';
+import { Platform, PermissionsAndroid, NativeModules } from 'react-native';
 import { parseSMS, generateSMSHash } from './parser';
 import { useTransactionStore } from '../../stores/transaction-store';
 import { checkSMSHashExists } from '../../lib/database';
@@ -11,6 +11,9 @@ try {
 } catch (error) {
   // Graceful fallback for Expo Go, iOS, or environment without the library
 }
+
+// Detect if we actually have the native module linked (false in Expo Go/iOS/Simulators)
+const hasNativeModule = Platform.OS === 'android' && !!NativeModules.RNExpoReadSms;
 
 // Sample bank SMS messages for mock simulation
 const MOCK_SMS_MESSAGES = [
@@ -54,11 +57,11 @@ export async function checkSMSPermission(): Promise<boolean> {
     return false;
   }
 
-  // Use the library's check function if available
-  if (ExpoReadSms?.checkIfHasSMSPermission) {
+  // Use the library's check function if available and native module exists
+  if (hasNativeModule && ExpoReadSms?.checkIfHasSMSPermission) {
     try {
       const hasPermission = await ExpoReadSms.checkIfHasSMSPermission();
-      return !!hasPermission;
+      return !!(hasPermission?.hasReadSmsPermission && hasPermission?.hasReceiveSmsPermission);
     } catch (e) {
       console.warn('Failed to check permission using expo-read-sms:', e);
     }
@@ -66,7 +69,9 @@ export async function checkSMSPermission(): Promise<boolean> {
 
   // Fallback to standard react-native check
   try {
-    return await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
+    const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
+    const receiveGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
+    return readGranted && receiveGranted;
   } catch (error) {
     console.error('Error checking SMS permission:', error);
     return false;
@@ -82,18 +87,11 @@ export async function requestSMSPermission(): Promise<boolean> {
     return false;
   }
 
-  // Use the library's request function if available
-  if (ExpoReadSms?.requestReadSMSPermission) {
+  // Use the library's request function if available and native module exists
+  if (hasNativeModule && ExpoReadSms?.requestReadSMSPermission) {
     try {
       const result = await ExpoReadSms.requestReadSMSPermission();
-      if (result === 'authorized' || result === true) {
-        // Also request RECEIVE_SMS via standard API
-        try {
-          await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
-        } catch (_) {}
-        return true;
-      }
-      return false;
+      return result === 'authorized' || result === true;
     } catch (e) {
       console.warn('Failed to request permission using expo-read-sms:', e);
     }
@@ -192,7 +190,7 @@ export async function simulateSMSScan(): Promise<number> {
  * Start listening for incoming SMS messages (Android only).
  */
 export function startSMSListener(onNewTransactionAdded: (count: number) => void) {
-  if (Platform.OS !== 'android' || !ExpoReadSms) {
+  if (!hasNativeModule || !ExpoReadSms) {
     return () => {};
   }
 

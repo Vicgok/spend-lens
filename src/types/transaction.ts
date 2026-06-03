@@ -77,6 +77,7 @@ export interface Account {
   currency: string;
   icon: string | null;
   color: string | null;
+  bankId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,4 +89,5 @@ export interface AccountCreateInput {
   currency?: string;
   icon?: string;
   color?: string;
+  bankId?: string | null;
 }
