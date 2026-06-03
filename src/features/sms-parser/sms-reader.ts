@@ -75,6 +75,7 @@ export async function checkSMSPermission(): Promise<boolean> {
 
 /**
  * Request SMS reading permission from the user.
+ * Requests both READ_SMS and RECEIVE_SMS together.
  */
 export async function requestSMSPermission(): Promise<boolean> {
   if (Platform.OS !== 'android') {
@@ -85,27 +86,31 @@ export async function requestSMSPermission(): Promise<boolean> {
   if (ExpoReadSms?.requestReadSMSPermission) {
     try {
       const result = await ExpoReadSms.requestReadSMSPermission();
-      return result === 'authorized' || result === true;
+      if (result === 'authorized' || result === true) {
+        // Also request RECEIVE_SMS via standard API
+        try {
+          await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
+        } catch (_) {}
+        return true;
+      }
+      return false;
     } catch (e) {
       console.warn('Failed to request permission using expo-read-sms:', e);
     }
   }
 
-  // Fallback to standard react-native request
+  // Fallback to standard react-native request for both permissions
   try {
-    const granted = await PermissionsAndroid.request(
+    const results = await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.READ_SMS,
-      {
-        title: 'SMS Permission',
-        message: 'SpendLens needs access to read your SMS to automatically track and categorize transactions.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      }
+      PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+    ]);
+    return (
+      results[PermissionsAndroid.PERMISSIONS.READ_SMS] === PermissionsAndroid.RESULTS.GRANTED &&
+      results[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] === PermissionsAndroid.RESULTS.GRANTED
     );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
   } catch (error) {
-    console.error('Error requesting SMS permission:', error);
+    console.error('Error requesting SMS permissions:', error);
     return false;
   }
 }

@@ -7,6 +7,8 @@ import {
   Pressable,
   RefreshControl,
   Dimensions,
+  Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -17,7 +19,7 @@ import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency, formatSignedAmount } from '@/utils/currency';
 import { formatDate, getMonthLabel } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
-import { syncSMSFromDevice, startSMSListener } from '@/features/sms-parser/sms-reader';
+import { syncSMSFromDevice, startSMSListener, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
 
 const { width } = Dimensions.get('window');
 
@@ -55,6 +57,30 @@ export default function DashboardScreen() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Prompt for SMS permission if not granted (catches users who skipped onboarding)
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    (async () => {
+      const granted = await checkSMSPermission();
+      if (!granted) {
+        Alert.alert(
+          'Enable SMS Tracking',
+          'SpendLens can automatically track your expenses by reading bank SMS messages. All processing happens on your device.',
+          [
+            { text: 'Not Now', style: 'cancel' },
+            {
+              text: 'Enable',
+              onPress: async () => {
+                await requestSMSPermission();
+                loadData();
+              },
+            },
+          ]
+        );
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = startSMSListener((count) => {
