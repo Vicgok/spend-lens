@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.spendlens.app"
+      "bundleIdentifier": "com.spendlens.tracker"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.spendlens.app",
+      "package": "com.spendlens.tracker",
       "permissions": [
         "android.permission.READ_SMS",
         "android.permission.RECEIVE_SMS"
