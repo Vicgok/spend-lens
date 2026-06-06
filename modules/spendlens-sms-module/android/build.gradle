@@ -1,0 +1,33 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group = 'com.spendlens.smsmodule'
+version = '1.0.0'
+
+android {
+  namespace "com.spendlens.smsmodule"
+  compileSdkVersion SafeExtGet('compileSdkVersion', 34)
+
+  defaultConfig {
+    minSdkVersion SafeExtGet('minSdkVersion', 23)
+    targetSdkVersion SafeExtGet('targetSdkVersion', 34)
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  implementation "com.facebook.react:react-android"
+  
+  // Expo Kotlin Modules support
+  implementation project(':expo-modules-core')
+  
+  def kotlinVersion = SafeExtGet('kotlinVersion', '1.9.24')
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+}
+
+def SafeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}

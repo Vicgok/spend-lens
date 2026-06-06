@@ -1,0 +1,9 @@
+{
+  "name": "spendlens-sms-module",
+  "version": "1.0.0",
+  "description": "Custom SMS inbox scanner and notification local native module for SpendLens",
+  "main": "index.ts",
+  "types": "index.ts",
+  "author": "Vigneshwaraa",
+  "license": "MIT"
+}

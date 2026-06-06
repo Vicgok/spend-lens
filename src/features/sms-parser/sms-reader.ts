@@ -3,6 +3,7 @@ import { parseTransactionSMS, generateSMSHash } from './engine';
 import { useTransactionStore } from '../../stores/transaction-store';
 import { checkSMSHashExists } from '../../lib/database';
 import { TransactionCreateInput } from '../../types';
+import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 
 // Optional import for native read SMS library
 let ExpoReadSms: any = null;
@@ -122,16 +123,23 @@ export async function checkSMSPermission(): Promise<boolean> {
   try {
     const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
     const receiveGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
-    return readGranted && receiveGranted;
+    
+    // Check notification permission for Android 13+ (API 33+)
+    let notificationGranted = true;
+    if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
+      notificationGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    }
+    
+    return readGranted && receiveGranted && notificationGranted;
   } catch (error) {
-    console.error('Error checking SMS permission:', error);
+    console.error('Error checking SMS permissions:', error);
     return false;
   }
 }
 
 /**
  * Request SMS reading permission from the user.
- * Requests both READ_SMS and RECEIVE_SMS together.
+ * Requests READ_SMS, RECEIVE_SMS, and POST_NOTIFICATIONS together.
  */
 export async function requestSMSPermission(): Promise<boolean> {
   if (Platform.OS !== 'android') {
@@ -139,14 +147,26 @@ export async function requestSMSPermission(): Promise<boolean> {
   }
 
   try {
-    const results = await PermissionsAndroid.requestMultiple([
+    const permissions = [
       PermissionsAndroid.PERMISSIONS.READ_SMS,
       PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
-    ]);
-    return (
-      results[PermissionsAndroid.PERMISSIONS.READ_SMS] === PermissionsAndroid.RESULTS.GRANTED &&
-      results[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] === PermissionsAndroid.RESULTS.GRANTED
-    );
+    ];
+    
+    if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
+      permissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    }
+
+    const results = await PermissionsAndroid.requestMultiple(permissions);
+    
+    const readGranted = results[PermissionsAndroid.PERMISSIONS.READ_SMS] === PermissionsAndroid.RESULTS.GRANTED;
+    const receiveGranted = results[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] === PermissionsAndroid.RESULTS.GRANTED;
+    
+    let notificationGranted = true;
+    if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
+      notificationGranted = results[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS] === PermissionsAndroid.RESULTS.GRANTED;
+    }
+
+    return readGranted && receiveGranted && notificationGranted;
   } catch (error) {
     console.error('Error requesting SMS permissions:', error);
     return false;
@@ -161,20 +181,60 @@ export async function requestSMSPermission(): Promise<boolean> {
 export async function syncSMSFromDevice(): Promise<number> {
   const hasPermission = await checkSMSPermission();
   if (!hasPermission) {
-    console.log('Sync aborted: SMS permission not granted.');
+    console.log('Sync aborted: SMS permissions not fully granted.');
     return 0;
   }
 
   let newCount = 0;
-  // If we're on Android and have native package, query inbox (future implementation using custom modules or packages)
-  // For safety and compatibility with current state, we proceed if we can query native messages.
-  // In our current build, if native read package is not installed or throws, we log it.
-  console.log('Scanning Android SMS inbox...');
   
-  // Note: Since reading inbox requires direct content resolver query, which isn't standard in
-  // expo-read-sms (which primarily listens to INCOMING SMS), we stub actual query here.
-  // In a full native build, we would use a native module. For this version, we will
-  // mock the scan if there are no native functions to query the inbox.
+  if (Platform.OS === 'android' && SpendLensSmsModule) {
+    console.log('Scanning Android SMS inbox...');
+    try {
+      const messages = await SpendLensSmsModule.readSmsInbox();
+      if (messages && messages.length > 0) {
+        const store = useTransactionStore.getState();
+        
+        // Find default account (prefer Bank, fallback to first available account)
+        let targetAccount = store.accounts.find((a) => a.type === 'bank') || store.accounts[0];
+        if (!targetAccount) {
+          targetAccount = await store.createAccount({
+            name: 'Primary Bank Account',
+            type: 'bank',
+            balance: 50000,
+            currency: 'INR',
+            icon: '🏦',
+          });
+        }
+        
+        for (const sms of messages) {
+          const dateStr = new Date(sms.date).toISOString();
+          const hash = generateSMSHash(sms.body, dateStr);
+          const alreadyExists = await checkSMSHashExists(hash);
+          
+          if (!alreadyExists) {
+            const parsed = parseTransactionSMS(sms.body, dateStr, sms.address);
+            if (parsed && parsed.transaction.amount) {
+              const input: TransactionCreateInput = {
+                accountId: targetAccount.id,
+                type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
+                amount: parsed.transaction.amount,
+                merchant: parsed.transaction.merchant || undefined,
+                description: parsed.rawBody,
+                date: parsed.date || dateStr,
+                source: 'sms',
+                smsHash: hash,
+              };
+              await store.addTransaction(input);
+              newCount++;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to scan Android SMS inbox:', error);
+    }
+  }
+  
   return newCount;
 }
 
@@ -276,7 +336,7 @@ export function startSMSListener(onNewTransactionAdded: (count: number) => void)
               const store = useTransactionStore.getState();
               
               // Ensure we have an account
-              let targetAccount = store.accounts[0];
+              let targetAccount = store.accounts.find((a) => a.type === 'bank') || store.accounts[0];
               if (!targetAccount) {
                 targetAccount = await store.createAccount({
                   name: 'Primary Bank Account',
@@ -296,6 +356,18 @@ export function startSMSListener(onNewTransactionAdded: (count: number) => void)
                 source: 'sms',
                 smsHash: hash,
               });
+              
+              // Push local native notification
+              if (SpendLensSmsModule && typeof SpendLensSmsModule.showNotification === 'function') {
+                const amountFormatted = `₹${parsed.transaction.amount.toLocaleString('en-IN')}`;
+                const actionText = parsed.transaction.type === 'credit' ? 'credited to' : 'debited from';
+                const merchantText = parsed.transaction.merchant ? ` at ${parsed.transaction.merchant}` : '';
+                SpendLensSmsModule.showNotification(
+                  parsed.transaction.type === 'credit' ? 'Income Detected 💰' : 'Expense Detected 💸',
+                  `${amountFormatted} ${actionText} your account${merchantText}.`
+                ).catch((err: any) => console.warn('Failed to trigger native notification:', err));
+              }
+
               onNewTransactionAdded(1);
             }
           }

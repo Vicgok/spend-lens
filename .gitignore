@@ -50,3 +50,9 @@ docs/
 .continue/
 .claude/
 .antigravity/
+
+# creds
+credentials.json
+
+# ignore
+.continueignore
