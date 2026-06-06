@@ -119,17 +119,6 @@ export async function checkSMSPermission(): Promise<boolean> {
     return false;
   }
 
-  // Use the library's check function if available and native module exists
-  if (hasNativeModule && ExpoReadSms?.checkIfHasSMSPermission) {
-    try {
-      const hasPermission = await ExpoReadSms.checkIfHasSMSPermission();
-      return !!(hasPermission?.hasReadSmsPermission && hasPermission?.hasReceiveSmsPermission);
-    } catch (e) {
-      console.warn('Failed to check permission using expo-read-sms:', e);
-    }
-  }
-
-  // Fallback to standard react-native check
   try {
     const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
     const receiveGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
@@ -149,17 +138,6 @@ export async function requestSMSPermission(): Promise<boolean> {
     return false;
   }
 
-  // Use the library's request function if available and native module exists
-  if (hasNativeModule && ExpoReadSms?.requestReadSMSPermission) {
-    try {
-      const result = await ExpoReadSms.requestReadSMSPermission();
-      return result === 'authorized' || result === true;
-    } catch (e) {
-      console.warn('Failed to request permission using expo-read-sms:', e);
-    }
-  }
-
-  // Fallback to standard react-native request for both permissions
   try {
     const results = await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.READ_SMS,
@@ -260,11 +238,33 @@ export function startSMSListener(onNewTransactionAdded: (count: number) => void)
   
   try {
     ExpoReadSms.startReadSMS(
-      async (sms: any) => {
-        // sms is an object containing address and body, e.g. { address: string, body: string } or list
-        // Depending on platform package structure, let's extract body and address:
-        const address = sms.address || (Array.isArray(sms) ? sms[0] : '');
-        const body = sms.body || (Array.isArray(sms) ? sms[1] : '');
+      async (status: string, smsData: any, errorMsg?: any) => {
+        if (status === 'error') {
+          console.error('SMS Listener Error:', errorMsg);
+          return;
+        }
+
+        let address = '';
+        let body = '';
+
+        if (typeof smsData === 'object' && smsData !== null) {
+          address = smsData.address || (Array.isArray(smsData) ? smsData[0] : '');
+          body = smsData.body || (Array.isArray(smsData) ? smsData[1] : '');
+        } else if (typeof smsData === 'string') {
+          if (smsData.startsWith('[') && smsData.endsWith(']')) {
+            const content = smsData.slice(1, -1);
+            const firstCommaIndex = content.indexOf(', ');
+            if (firstCommaIndex !== -1) {
+              address = content.substring(0, firstCommaIndex).trim();
+              body = content.substring(firstCommaIndex + 2).trim();
+            } else {
+              body = content;
+            }
+          } else {
+            body = smsData;
+          }
+        }
+
         const date = new Date().toISOString();
 
         if (body) {
@@ -300,9 +300,6 @@ export function startSMSListener(onNewTransactionAdded: (count: number) => void)
             }
           }
         }
-      },
-      (error: any) => {
-        console.error('SMS Listener Error:', error);
       }
     );
 
