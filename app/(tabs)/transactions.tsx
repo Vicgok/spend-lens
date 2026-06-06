@@ -454,17 +454,17 @@ export default function TransactionsScreen() {
 
               {/* Dynamic Svg Analytics Chart */}
               <View style={styles.chartWrapperContainer}>
-                <Svg width="100%" height={180} viewBox="0 0 320 180">
-                  {/* Dashed Grid Lines (low contrast) */}
-                  {[30, 68, 106, 145].map((yVal, idx) => (
+                <Svg width="100%" height={200} viewBox="0 0 320 200">
+                  {/* Dashed Grid Lines (low contrast, in background) */}
+                  {[20, 63, 106, 150].map((yVal, idx) => (
                     <Line
                       key={idx}
-                      x1={30}
+                      x1={25}
                       y1={yVal}
-                      x2={290}
+                      x2={295}
                       y2={yVal}
                       stroke="#1F1F1F"
-                      strokeOpacity={0.08}
+                      strokeOpacity={0.05}
                       strokeDasharray="3 3"
                       strokeWidth={1}
                     />
@@ -474,41 +474,41 @@ export default function TransactionsScreen() {
                   {timelineData.map((d, idx) => {
                     const N = timelineData.length;
                     const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                    const yActual = 145 - (d.actual / maxAmount) * 115;
-                    const yBudget = 145 - (d.budget / maxAmount) * 115;
+                    const yActual = 150 - (d.actual / maxAmount) * 130;
+                    const yBudget = 150 - (d.budget / maxAmount) * 130;
                     const isSelected = selectedDayIndex === idx;
 
                     return (
                       <G key={idx}>
-                        {/* Background Budget Column */}
+                        {/* Background Budget Column (represented at 8% opacity) */}
                         <Rect
-                          x={x - 4}
+                          x={x - 6}
                           y={yBudget}
-                          width={8}
-                          height={145 - yBudget}
+                          width={12}
+                          height={150 - yBudget}
                           fill="#1F1F1F"
                           fillOpacity={0.08}
-                          rx={2.5}
-                          ry={2.5}
+                          rx={3}
+                          ry={3}
                         />
 
-                        {/* Foreground Actual Column */}
+                        {/* Foreground Actual Column (thin elegant appearance, enlarges when active) */}
                         <Rect
-                          x={x - (isSelected ? 3 : 2)}
+                          x={x - (isSelected ? 5 : 3)}
                           y={yActual}
-                          width={isSelected ? 6 : 4}
-                          height={145 - yActual}
+                          width={isSelected ? 10 : 6}
+                          height={150 - yActual}
                           fill={d.actual > d.budget ? '#C84B31' : '#A0C42C'}
-                          rx={1.5}
-                          ry={1.5}
+                          rx={2}
+                          ry={2}
                         />
 
-                        {/* Axis Text Label */}
+                        {/* Axis Text Label (Mon, Tue...) */}
                         <SvgText
                           x={x}
-                          y={162}
+                          y={172}
                           fill="#666666"
-                          fontSize={8}
+                          fontSize={9}
                           fontFamily="Poppins"
                           textAnchor="middle"
                         >
@@ -518,71 +518,17 @@ export default function TransactionsScreen() {
                     );
                   })}
 
-                  {/* Spline Trend Line */}
-                  {(() => {
-                    const N = timelineData.length;
-                    const pts = timelineData.map((d, idx) => {
-                      const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                      const yActual = 145 - (d.actual / maxAmount) * 115;
-                      return { x, yActual };
-                    });
-
-                    if (pts.length === 0) return null;
-                    let pathD = `M ${pts[0].x} ${pts[0].yActual}`;
-                    for (let i = 0; i < pts.length - 1; i++) {
-                      const p0 = pts[i];
-                      const p1 = pts[i + 1];
-                      const dx = (p1.x - p0.x) * 0.35;
-                      const cp1x = p0.x + dx;
-                      const cp1y = p0.yActual;
-                      const cp2x = p1.x - dx;
-                      const cp2y = p1.yActual;
-                      pathD += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.yActual}`;
-                    }
-
-                    return (
-                      <Path
-                        d={pathD}
-                        fill="none"
-                        stroke="#A0C42C"
-                        strokeWidth="1.5"
-                      />
-                    );
-                  })()}
-
-                  {/* Circular Indicator on Current Day/Interval */}
-                  {(() => {
-                    const N = timelineData.length;
-                    const activeIdx = selectedDayIndex !== null ? selectedDayIndex : (chartMode === 'day' ? N - 1 : null);
-                    if (activeIdx === null || activeIdx < 0 || activeIdx >= N) return null;
-
-                    const d = timelineData[activeIdx];
-                    const x = 30 + activeIdx * (260 / (N > 1 ? N - 1 : 1));
-                    const yActual = 145 - (d.actual / maxAmount) * 115;
-
-                    return (
-                      <Circle
-                        cx={x}
-                        cy={yActual}
-                        r={5}
-                        fill="#FDFCF8"
-                        stroke="#A0C42C"
-                        strokeWidth="2.5"
-                      />
-                    );
-                  })()}
-
-                  {/* Transparent Interactive Rect Overlays */}
+                  {/* Transparent Interactive Rect Overlays (accessible 44px width targets) */}
                   {timelineData.map((d, idx) => {
                     const N = timelineData.length;
                     const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
                     return (
                       <Rect
                         key={idx}
-                        x={x - 18}
-                        y={15}
-                        width={36}
-                        height={135}
+                        x={x - 22}
+                        y={10}
+                        width={44}
+                        height={150}
                         fill="transparent"
                         onPress={() => {
                           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -597,22 +543,23 @@ export default function TransactionsScreen() {
                     const N = timelineData.length;
                     const d = timelineData[selectedDayIndex];
                     const x = 30 + selectedDayIndex * (260 / (N > 1 ? N - 1 : 1));
-                    const yActual = 145 - (d.actual / maxAmount) * 115;
+                    const yActual = 150 - (d.actual / maxAmount) * 130;
 
-                    let tooltipX = x - 60;
+                    let tooltipX = x - 65;
                     if (tooltipX < 10) tooltipX = 10;
-                    if (tooltipX > 200) tooltipX = 200;
+                    if (tooltipX > 180) tooltipX = 180;
 
-                    let tooltipY = yActual - 52;
-                    if (tooltipY < 20) tooltipY = yActual + 12;
+                    let tooltipY = yActual - 56;
+                    if (tooltipY < 15) tooltipY = yActual + 15;
 
                     return (
                       <G pointerEvents="none">
+                        {/* Tooltip Card Box */}
                         <Rect
                           x={tooltipX}
                           y={tooltipY}
-                          width={120}
-                          height={44}
+                          width={130}
+                          height={48}
                           fill="#FDFCF8"
                           stroke="#1F1F1F"
                           strokeWidth="1"
@@ -620,30 +567,33 @@ export default function TransactionsScreen() {
                           rx={4}
                           ry={4}
                         />
+                        {/* Tooltip Title */}
                         <SvgText
                           x={tooltipX + 8}
-                          y={tooltipY + 13}
+                          y={tooltipY + 14}
                           fill="#1B1B1B"
-                          fontSize={8}
+                          fontSize={9}
                           fontWeight="bold"
                           fontFamily="Poppins"
                         >
                           {d.fullLabel}
                         </SvgText>
+                        {/* Spent value */}
                         <SvgText
                           x={tooltipX + 8}
-                          y={tooltipY + 25}
+                          y={tooltipY + 27}
                           fill="#1B1B1B"
-                          fontSize={8}
+                          fontSize={8.5}
                           fontFamily="Poppins"
                         >
-                          Spent: ₹{Math.round(d.actual)} (Budget: ₹{d.budget})
+                          Spent: ₹{Math.round(d.actual)} (Limit: ₹{d.budget})
                         </SvgText>
+                        {/* Spent Categories */}
                         <SvgText
                           x={tooltipX + 8}
-                          y={tooltipY + 35}
+                          y={tooltipY + 38}
                           fill="#666666"
-                          fontSize={6.5}
+                          fontSize={7}
                           fontFamily="Poppins"
                         >
                           {d.categories.length > 0 ? d.categories.join(', ') : 'No spending'}
