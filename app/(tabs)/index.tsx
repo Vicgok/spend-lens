@@ -11,18 +11,18 @@ import {
   Alert,
   NativeModules,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency, formatSignedAmount } from '@/utils/currency';
-import { formatDate, getMonthLabel } from '@/utils/date';
+import { formatDate } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { syncSMSFromDevice, startSMSListener, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
 import { TransactionSkeleton } from '@/components/ui/Skeleton';
-import { AccountIcon } from '@/components/ui/BankLogo';
+import { detectImpulseSpending } from '@/features/insights-engine/detector';
+import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -30,12 +30,12 @@ export default function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [selectedAccountId, setSelectedAccountId] = React.useState<string | null>(null);
 
   const {
     transactions,
     accounts,
     monthlyTotals,
-    categoryTotals,
     loadAccounts,
     loadTransactions,
     loadMonthlyStats,
@@ -62,8 +62,6 @@ export default function DashboardScreen() {
     loadData();
   }, [loadData]);
 
-  // Prompt for SMS permission if not granted (catches users who skipped onboarding)
-  // Only runs on standard Android devices with the custom native build, bypassing Expo Go.
   useEffect(() => {
     if (Platform.OS !== 'android' || !NativeModules.RNExpoReadSms) return;
     (async () => {
@@ -103,7 +101,69 @@ export default function DashboardScreen() {
   }, [loadData]);
 
   const totalBalance = getTotalBalance();
-  const recentTransactions = transactions.slice(0, 5);
+  
+  const displayedBalance = selectedAccountId
+    ? accounts.find((a) => a.id === selectedAccountId)?.balance || 0
+    : totalBalance;
+
+  const displayedTransactions = selectedAccountId
+    ? transactions.filter((t) => t.accountId === selectedAccountId)
+    : transactions;
+
+  const displayedIncome = selectedAccountId
+    ? displayedTransactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
+    : monthlyTotals.totalIncome;
+
+  const displayedExpense = selectedAccountId
+    ? displayedTransactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
+    : monthlyTotals.totalExpense;
+
+  const recentTransactions = displayedTransactions.slice(0, 10); // Latest 10 as specified in UI document
+
+  // Detect Impulse Spending activity
+  const impulseSpends = detectImpulseSpending(transactions);
+  const topImpulse = impulseSpends.length > 0 ? impulseSpends[0] : null;
+
+  // Generate Financial Pulse graph points (Cumulative daily expenses for the last 7 days)
+  const getPulseGraphPath = () => {
+    const expenses = transactions.filter((t) => t.type === 'expense');
+    if (expenses.length === 0) return '';
+
+    const dailyMap: { [dateStr: string]: number } = {};
+    const last7Days: string[] = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      last7Days.push(dateStr);
+      dailyMap[dateStr] = 0;
+    }
+
+    expenses.forEach((tx) => {
+      const dateStr = tx.date.split('T')[0];
+      if (dateStr in dailyMap) {
+        dailyMap[dateStr] += tx.amount;
+      }
+    });
+
+    const values = last7Days.map((d) => dailyMap[d]);
+    const maxVal = Math.max(...values, 1000); // minimum scale
+
+    // Map to width 300, height 60
+    const w = width - 64; // responsive width
+    const h = 60;
+    const points = values.map((val, idx) => {
+      const x = (idx / 6) * w;
+      // Invert Y axis for screen space
+      const y = h - (val / maxVal) * (h - 10) - 5;
+      return `${x},${y}`;
+    });
+
+    return `M ${points.join(' L ')}`;
+  };
+
+  const pulsePath = getPulseGraphPath();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
@@ -111,200 +171,246 @@ export default function DashboardScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: 16 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.text} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={[styles.greeting, { color: theme.textSecondary }]}>
-              {getGreeting()} 👋
+            <Text style={[styles.microHeader, { color: theme.textSecondary }]}>FINANCIAL NOTEBOOK</Text>
+            <Text style={[styles.mainHeader, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+              SpendLens
             </Text>
-            <Text style={[styles.appName, { color: theme.text }]}>SpendLens</Text>
           </View>
-          <Text style={[styles.monthLabel, { color: theme.textSecondary }]}>
-            {getMonthLabel()}
-          </Text>
+          <View style={styles.headerRight}>
+            <Text style={[styles.monthLabel, { color: theme.textSecondary, fontFamily: typography.fontFamily.medium, marginRight: 12 }]}>
+              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/add-transaction')}
+              style={({ pressed }) => [
+                styles.headerAddBtn,
+                { borderColor: theme.border, opacity: pressed ? 0.7 : 1 }
+              ]}
+            >
+              <Text style={[styles.headerAddBtnText, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>+</Text>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Balance Card */}
-        <LinearGradient
-          colors={theme.gradientCross}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.balanceCard}
-        >
-          <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>
-            {formatCurrency(totalBalance)}
+        {/* Section 1: Balance Overview Grid */}
+        <View style={[styles.balanceCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>
+            {selectedAccountId ? 'ACCOUNT BALANCE' : 'AVAILABLE BALANCE'}
           </Text>
-          <View style={styles.balanceRow}>
-            <View style={styles.balanceStat}>
-              <Text style={styles.balanceStatLabel}>↑ Income</Text>
-              <Text style={styles.balanceStatAmount}>
-                {formatCurrency(monthlyTotals.totalIncome)}
+          <Text style={[styles.balanceAmount, { color: theme.text, fontFamily: typography.fontFamily.monoBold }]}>
+            {formatCurrency(displayedBalance)}
+          </Text>
+ 
+          <View style={[styles.thinDivider, { backgroundColor: theme.borderLight }]} />
+ 
+          {/* 3-Column stats */}
+          <View style={styles.statsRow}>
+            <View style={[styles.statCol, { borderRightWidth: 1, borderRightColor: theme.borderLight }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>INCOME</Text>
+              <Text style={[styles.statValue, { color: theme.income, fontFamily: typography.fontFamily.monoBold }]}>
+                ₹{Math.round(displayedIncome)}
               </Text>
             </View>
-            <View style={[styles.balanceDivider, { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
-            <View style={styles.balanceStat}>
-              <Text style={styles.balanceStatLabel}>↓ Expense</Text>
-              <Text style={styles.balanceStatAmount}>
-                {formatCurrency(monthlyTotals.totalExpense)}
+            <View style={[styles.statCol, { borderRightWidth: 1, borderRightColor: theme.borderLight }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>EXPENSE</Text>
+              <Text style={[styles.statValue, { color: theme.expense, fontFamily: typography.fontFamily.monoBold }]}>
+                ₹{Math.round(displayedExpense)}
+              </Text>
+            </View>
+            <View style={styles.statCol}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>SAVINGS</Text>
+              <Text style={[styles.statValue, { color: theme.income, fontFamily: typography.fontFamily.monoBold }]}>
+                ₹{Math.round(Math.max(0, displayedIncome - displayedExpense))}
               </Text>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
-        {/* Horizontal Accounts List */}
-        {accounts.length > 0 && (
-          <View style={styles.accountsSection}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.accountsScrollView}
-              contentContainerStyle={styles.accountsScrollContent}
-            >
-              {accounts.map((acc) => (
-                <View
-                  key={acc.id}
+        {/* Section 1.5: Horizontal Scrollable Accounts */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.accountsScroll}
+          contentContainerStyle={styles.accountsScrollContent}
+        >
+          {accounts.map((acc) => {
+            const isSelected = selectedAccountId === acc.id;
+            return (
+              <Pressable
+                key={acc.id}
+                onPress={() => setSelectedAccountId(isSelected ? null : acc.id)}
+                style={({ pressed }) => [
+                  styles.accountCardSmall,
+                  {
+                    backgroundColor: isSelected ? theme.primary : theme.card,
+                    borderColor: theme.border,
+                  },
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <View style={styles.accountCardHeader}>
+                  <Text style={styles.accountCardTypeEmoji}>
+                    {getAccountTypeEmoji(acc.type)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.accountCardTypeLabel,
+                      { color: isSelected ? theme.textInverse : theme.textSecondary }
+                    ]}
+                  >
+                    {acc.type.replace('_', ' ').toUpperCase()}
+                  </Text>
+                </View>
+                <Text
                   style={[
-                    styles.accountCard,
-                    { backgroundColor: theme.card, borderColor: theme.border },
-                    acc.color ? { borderLeftColor: acc.color, borderLeftWidth: 4 } : null
+                    styles.accountCardName,
+                    {
+                      color: isSelected ? theme.textInverse : theme.text,
+                      fontFamily: typography.fontFamily.bold
+                    }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {acc.name}
+                </Text>
+                <Text
+                  style={[
+                    styles.accountCardBalance,
+                    {
+                      color: isSelected ? theme.textInverse : theme.text,
+                      fontFamily: typography.fontFamily.monoBold
+                    }
                   ]}
                 >
-                  <View style={styles.accountCardHeader}>
-                    <AccountIcon bankId={acc.bankId} accountType={acc.type} icon={acc.icon} color={acc.color} size={28} />
-                  </View>
-                  <Text style={[styles.accountName, { color: theme.textSecondary }]} numberOfLines={1}>
-                    {acc.name}
-                  </Text>
-                  <Text style={[styles.accountBalance, { color: theme.text }]}>
-                    {formatCurrency(acc.balance)}
-                  </Text>
-                </View>
-              ))}
-
-              {/* Add Account Card */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.accountCard,
-                  {
-                    backgroundColor: theme.card,
-                    borderColor: theme.border,
-                    borderStyle: 'dashed',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: 6,
-                  },
-                  pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
-                ]}
-                onPress={() => router.push('/accounts' as any)}
-              >
-                <Text style={{ fontSize: 20 }}>➕</Text>
-                <Text style={[styles.accountName, { color: theme.textSecondary, marginBottom: 0 }]} numberOfLines={1}>
-                  Add Account
+                  {formatCurrency(acc.balance)}
                 </Text>
               </Pressable>
-            </ScrollView>
-          </View>
-        )}
+            );
+          })}
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
+          {/* Add Account Card */}
           <Pressable
+            onPress={() => router.push('/accounts')}
             style={({ pressed }) => [
-              styles.quickAction,
-              { backgroundColor: theme.card, borderColor: theme.border },
-              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
-            ]}
-            onPress={() => router.push('/add-transaction')}
-          >
-            <Text style={styles.quickActionEmoji}>➕</Text>
-            <Text style={[styles.quickActionLabel, { color: theme.text }]}>Add</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.quickAction,
-              { backgroundColor: theme.card, borderColor: theme.border },
-              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
-            ]}
-            onPress={() => router.push('/(tabs)/transactions')}
-          >
-            <Text style={styles.quickActionEmoji}>📋</Text>
-            <Text style={[styles.quickActionLabel, { color: theme.text }]}>History</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.quickAction,
-              { backgroundColor: theme.card, borderColor: theme.border },
-              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
-            ]}
-            onPress={() => router.push('/(tabs)/analytics')}
-          >
-            <Text style={styles.quickActionEmoji}>📊</Text>
-            <Text style={[styles.quickActionLabel, { color: theme.text }]}>Insights</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.quickAction,
-              { backgroundColor: theme.card, borderColor: theme.border },
-              pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+              styles.accountCardSmall,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+                borderStyle: 'dashed',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 6,
+              },
+              pressed && { opacity: 0.8 },
             ]}
           >
-            <Text style={styles.quickActionEmoji}>🎯</Text>
-            <Text style={[styles.quickActionLabel, { color: theme.text }]}>Goals</Text>
-          </Pressable>
-        </View>
-
-        {/* Spending by Category */}
-        {categoryTotals.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Spending by Category
+            <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <Path d="M12 5v14" />
+              <Path d="M5 12h14" />
+            </Svg>
+            <Text style={{ fontSize: 10, color: theme.textSecondary, fontFamily: typography.fontFamily.bold, letterSpacing: 0.5 }}>
+              ADD ACCOUNT
             </Text>
-            {categoryTotals.slice(0, 5).map((cat) => (
-              <View key={cat.categoryId} style={[styles.categoryRow, { borderBottomColor: theme.border }]}>
-                <View style={styles.categoryLeft}>
-                  <View style={[styles.categoryDot, { backgroundColor: cat.categoryColor }]} />
-                  <Text style={[styles.categoryName, { color: theme.text }]}>
-                    {cat.categoryName}
-                  </Text>
-                </View>
-                <View style={styles.categoryRight}>
-                  <Text style={[styles.categoryAmount, { color: theme.text }]}>
-                    {formatCurrency(cat.total)}
-                  </Text>
-                  <Text style={[styles.categoryPercent, { color: theme.textSecondary }]}>
-                    {cat.percentage.toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-            ))}
-            {/* Category bar */}
-            <View style={[styles.categoryBar, { backgroundColor: theme.surfaceElevated }]}>
-              {categoryTotals.slice(0, 5).map((cat) => (
-                <View
-                  key={cat.categoryId}
-                  style={[styles.categoryBarSegment, {
-                    backgroundColor: cat.categoryColor,
-                    flex: cat.percentage,
-                  }]}
-                />
-              ))}
+          </Pressable>
+        </ScrollView>
+
+        {/* Section 2: Monthly Overview Connected Paper Card */}
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+            Monthly Overview Flow
+          </Text>
+          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
+            Summary showing cash flow pathways
+          </Text>
+
+          {/* Structural Line Flow Visualizer */}
+          <View style={styles.flowDiagram}>
+            <View style={styles.flowNode}>
+              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>INCOMING</Text>
+              <Text style={[styles.flowAmount, { color: theme.income, fontFamily: typography.fontFamily.monoBold }]}>
+                ₹{Math.round(monthlyTotals.totalIncome)}
+              </Text>
+            </View>
+
+            {/* Connecting thin vector line */}
+            <View style={styles.flowConnector}>
+              <View style={[styles.horizontalLine, { backgroundColor: theme.border }]} />
+              <View style={[styles.verticalDot, { backgroundColor: theme.primary }]} />
+            </View>
+
+            <View style={styles.flowNode}>
+              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>OUTGOING</Text>
+              <Text style={[styles.flowAmount, { color: theme.expense, fontFamily: typography.fontFamily.monoBold }]}>
+                ₹{Math.round(monthlyTotals.totalExpense)}
+              </Text>
             </View>
           </View>
+        </View>
+
+        {/* Section 4: Impulse Spending Detector */}
+        {topImpulse && (
+          <View style={[styles.card, styles.alertCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={styles.alertHeader}>
+              <Text style={[styles.alertBadge, { backgroundColor: theme.expense + '20', color: theme.expense, fontFamily: typography.fontFamily.bold }]}>
+                POSSIBLE IMPULSE DETECTED
+              </Text>
+              {topImpulse.metric && (
+                <Text style={[styles.alertMetric, { color: theme.textSecondary }]}>{topImpulse.metric}</Text>
+              )}
+            </View>
+            <Text style={[styles.alertTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+              {topImpulse.title}
+            </Text>
+            <Text style={[styles.alertDescription, { color: theme.textSecondary }]}>
+              {topImpulse.whatHappened}
+            </Text>
+            {topImpulse.impactAmount && (
+              <View style={[styles.impactBadge, { backgroundColor: theme.primary + '25' }]}>
+                <Text style={[styles.impactText, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+                  Potential Leak Impact: ₹{topImpulse.impactAmount}
+                </Text>
+              </View>
+            )}
+          </View>
         )}
 
-        {/* Recent Transactions */}
-        <View style={[styles.section, { marginBottom: 100 }]}>
+        {/* Section 5: Financial Pulse Sparkline */}
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+            Financial Pulse
+          </Text>
+          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
+            Daily spending trend (past 7 days)
+          </Text>
+
+          {pulsePath ? (
+            <View style={styles.pulseGraphContainer}>
+              <Svg height="60" width={width - 64}>
+                <Path d={pulsePath} fill="none" stroke={theme.border} strokeWidth="1.5" />
+              </Svg>
+            </View>
+          ) : (
+            <Text style={[styles.noPulseText, { color: theme.textSecondary }]}>No recent spending data</Text>
+          )}
+        </View>
+
+        {/* Section 3: Recent Transactions (Latest 10) */}
+        <View style={[styles.section, { marginBottom: 120 }]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>
-              Recent Transactions
+            <Text style={[styles.sectionTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+              Recent Activity
             </Text>
-            {transactions.length > 5 && (
+            {transactions.length > 10 && (
               <Pressable onPress={() => router.push('/(tabs)/transactions')}>
-                <Text style={[styles.seeAll, { color: theme.primary }]}>See All</Text>
+                <Text style={[styles.seeAll, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
+                  See All ➔
+                </Text>
               </Pressable>
             )}
           </View>
@@ -314,21 +420,15 @@ export default function DashboardScreen() {
           ) : recentTransactions.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <Text style={styles.emptyEmoji}>📝</Text>
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                No transactions yet
-              </Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>No transactions yet</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-                Add your first transaction or enable SMS parsing to get started.
+                SMS alerts or manual entries will create transaction cards here.
               </Text>
               <Pressable
-                style={({ pressed }) => [
-                  styles.emptyButton,
-                  { borderColor: theme.primary },
-                  pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
-                ]}
+                style={[styles.emptyButton, { borderColor: theme.border }]}
                 onPress={() => router.push('/add-transaction')}
               >
-                <Text style={[styles.emptyButtonText, { color: theme.primary }]}>
+                <Text style={[styles.emptyButtonText, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
                   + Add Transaction
                 </Text>
               </Pressable>
@@ -341,28 +441,28 @@ export default function DashboardScreen() {
                   key={tx.id}
                   style={({ pressed }) => [
                     styles.transactionRow,
-                    { borderBottomColor: theme.border },
-                    pressed && { opacity: 0.7, backgroundColor: theme.surfaceElevated }
+                    { borderBottomColor: theme.borderLight },
+                    pressed && { opacity: 0.7 }
                   ]}
                   onPress={() => router.push(`/transaction/${tx.id}`)}
                 >
-                  <View style={[styles.txIcon, { backgroundColor: category.color + '20' }]}>
+                  <View style={[styles.txIcon, { backgroundColor: theme.primary + '20', borderColor: theme.border }]}>
                     <Text style={styles.txIconText}>
                       {getCategoryEmoji(category.icon)}
                     </Text>
                   </View>
                   <View style={styles.txInfo}>
-                    <Text style={[styles.txMerchant, { color: theme.text }]} numberOfLines={1}>
+                    <Text style={[styles.txMerchant, { color: theme.text, fontFamily: typography.fontFamily.bold }]} numberOfLines={1}>
                       {tx.merchant || category.name}
                     </Text>
-                    <Text style={[styles.txDate, { color: theme.textMuted }]}>
+                    <Text style={[styles.txDate, { color: theme.textSecondary }]}>
                       {formatDate(tx.date, 'short')} · {tx.source.toUpperCase()}
                     </Text>
                   </View>
                   <Text
                     style={[
                       styles.txAmount,
-                      { color: tx.type === 'income' ? theme.income : theme.expense },
+                      { color: tx.type === 'income' ? theme.income : theme.expense, fontFamily: typography.fontFamily.monoBold },
                     ]}
                   >
                     {formatSignedAmount(tx.amount, tx.type)}
@@ -372,32 +472,9 @@ export default function DashboardScreen() {
             })
           )}
         </View>
-
       </ScrollView>
-
-      {/* FAB */}
-      <Pressable
-        style={styles.fabWrapper}
-        onPress={() => router.push('/add-transaction')}
-      >
-        {({ pressed }) => (
-          <LinearGradient
-            colors={theme.gradientPrimary}
-            style={[styles.fab, pressed && { opacity: 0.9, transform: [{ scale: 0.96 }] }]}
-          >
-            <Text style={styles.fabIcon}>+</Text>
-          </LinearGradient>
-        )}
-      </Pressable>
     </View>
   );
-}
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
 }
 
 function getCategoryEmoji(iconName: string): string {
@@ -418,279 +495,280 @@ function getCategoryEmoji(iconName: string): string {
   return emojiMap[iconName] || '💰';
 }
 
+function getAccountTypeEmoji(type: string): string {
+  const map: Record<string, string> = {
+    bank: '🏦',
+    cash: '💵',
+    credit_card: '💳',
+    wallet: '📱',
+  };
+  return map[type] || '💰';
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20 },
+  scrollContent: { paddingHorizontal: 16 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  greeting: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.sm,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerAddBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  headerAddBtnText: {
+    fontSize: 18,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  microHeader: {
+    fontSize: 11,
+    letterSpacing: 2,
     marginBottom: 4,
   },
-  appName: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: typography.sizes.xl,
+  mainHeader: {
+    fontSize: 28,
+    letterSpacing: -0.5,
   },
   monthLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
   },
-
-  // Balance Card
   balanceCard: {
-    borderRadius: borderRadius.xl,
-    padding: 24,
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 16,
     marginBottom: 20,
   },
   balanceLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 8,
-  },
-  balanceAmount: {
-    fontFamily: typography.fontFamily.monoBold,
-    fontSize: 36,
-    color: '#FFFFFF',
-    marginBottom: 20,
-  },
-  balanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  balanceStat: {
-    flex: 1,
-  },
-  balanceStatLabel: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 10,
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  balanceStatAmount: {
-    fontFamily: typography.fontFamily.mono,
-    fontSize: typography.sizes.md,
-    color: '#FFFFFF',
+  balanceAmount: {
+    fontSize: 32,
+    marginBottom: 16,
   },
-  balanceDivider: {
-    width: 1,
-    height: 36,
-    marginHorizontal: 16,
+  thinDivider: {
+    height: 1,
+    marginBottom: 16,
   },
-
-  // Quick Actions
-  quickActions: {
+  statsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 28,
   },
-  quickAction: {
+  statCol: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: borderRadius.lg,
+  },
+  statLabel: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 15,
+  },
+  card: {
     borderWidth: 1,
+    borderRadius: 4,
+    padding: 16,
+    marginBottom: 20,
   },
-  quickActionEmoji: { fontSize: 22, marginBottom: 6 },
-  quickActionLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.xs,
+  cardTitle: {
+    fontSize: 16,
+    marginBottom: 4,
   },
-
-  // Sections
-  section: { marginBottom: 28 },
+  cardSubtitle: {
+    fontSize: 12,
+    marginBottom: 16,
+  },
+  flowDiagram: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  flowNode: {
+    alignItems: 'center',
+  },
+  flowLabel: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  flowAmount: {
+    fontSize: 16,
+  },
+  flowConnector: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    height: 20,
+    marginHorizontal: 12,
+  },
+  horizontalLine: {
+    height: 1,
+    width: '100%',
+  },
+  verticalDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    position: 'absolute',
+  },
+  alertCard: {
+    gap: 8,
+  },
+  alertHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  alertBadge: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  alertMetric: {
+    fontSize: 12,
+  },
+  alertTitle: {
+    fontSize: 16,
+  },
+  alertDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  impactBadge: {
+    padding: 10,
+    borderRadius: 2,
+    alignSelf: 'flex-start',
+  },
+  impactText: {
+    fontSize: 12,
+  },
+  pulseGraphContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  noPulseText: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginVertical: 12,
+  },
+  section: {
+    marginTop: 10,
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    marginBottom: 12,
+    fontSize: 18,
   },
   seeAll: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
-    marginBottom: 12,
+    fontSize: 13,
   },
-
-  // Category breakdown
-  categoryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  categoryLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  categoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  categoryName: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.base,
-  },
-  categoryRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryAmount: {
-    fontFamily: typography.fontFamily.mono,
-    fontSize: typography.sizes.base,
-  },
-  categoryPercent: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
-    minWidth: 32,
-    textAlign: 'right',
-  },
-  categoryBar: {
-    flexDirection: 'row',
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginTop: 12,
-  },
-  categoryBarSegment: {
-    height: '100%',
-  },
-
-  // Transaction rows
   transactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1,
     gap: 12,
   },
   txIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   txIconText: { fontSize: 20 },
   txInfo: { flex: 1 },
   txMerchant: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.base,
+    fontSize: 15,
     marginBottom: 2,
   },
   txDate: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
+    fontSize: 11,
   },
   txAmount: {
-    fontFamily: typography.fontFamily.mono,
-    fontSize: typography.sizes.base,
+    fontSize: 15,
   },
-
-  // Empty State
   emptyState: {
     alignItems: 'center',
-    padding: 32,
-    borderRadius: borderRadius.lg,
+    padding: 24,
     borderWidth: 1,
+    borderRadius: 4,
   },
-  emptyEmoji: { fontSize: 40, marginBottom: 12 },
+  emptyEmoji: { fontSize: 36, marginBottom: 8 },
   emptyTitle: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    marginBottom: 8,
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   emptySubtitle: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
+    lineHeight: 18,
+    marginBottom: 16,
   },
   emptyButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: borderRadius.full,
-    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 4,
   },
   emptyButtonText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
   },
-
-  // Accounts Horizontal Section
-  accountsSection: {
+  accountsScroll: {
     marginBottom: 20,
   },
-  accountsScrollView: {
-    marginHorizontal: -20,
-  },
   accountsScrollContent: {
-    paddingHorizontal: 20,
     gap: 12,
+    paddingRight: 16,
   },
-  accountCard: {
+  accountCardSmall: {
     width: 140,
     padding: 12,
-    borderRadius: borderRadius.lg,
     borderWidth: 1,
+    borderRadius: 4,
+    gap: 8,
   },
   accountCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    gap: 6,
   },
-  accountEmoji: { fontSize: 20 },
-  bankBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
+  accountCardTypeEmoji: {
+    fontSize: 14,
   },
-  bankBadgeText: {
+  accountCardTypeLabel: {
     fontSize: 9,
-    fontFamily: typography.fontFamily.bold,
+    letterSpacing: 0.5,
   },
-  accountName: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
-    marginBottom: 2,
+  accountCardName: {
+    fontSize: 13,
   },
-  accountBalance: {
-    fontFamily: typography.fontFamily.monoBold,
-    fontSize: typography.sizes.sm,
-  },
-
-  // FAB
-  fabWrapper: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-  },
-  fab: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fabIcon: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '300',
-    marginTop: -2,
+  accountCardBalance: {
+    fontSize: 14,
   },
 });

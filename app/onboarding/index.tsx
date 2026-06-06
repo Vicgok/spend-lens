@@ -1,144 +1,105 @@
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Pressable,
-  ScrollView,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
-import { spacing, borderRadius } from '@/theme';
-import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
-
-const { width } = Dimensions.get('window');
-
-interface OnboardingSlide {
-  title: string;
-  subtitle: string;
-  emoji: string;
-}
-
-const slides: OnboardingSlide[] = [
-  {
-    emoji: '💸',
-    title: 'Track Every Rupee',
-    subtitle:
-      'Automatically read transactions from your SMS messages. No manual entry needed on Android.',
-  },
-  {
-    emoji: '🏷️',
-    title: 'Smart Categories',
-    subtitle:
-      'AI-powered categorization sorts your spending into Food, Transport, Shopping, and more — instantly.',
-  },
-  {
-    emoji: '📊',
-    title: 'Know Your Spending',
-    subtitle:
-      'Beautiful charts and insights show exactly where your money goes each month.',
-  },
-  {
-    emoji: '🎯',
-    title: 'Save Smarter',
-    subtitle:
-      'Set savings goals and get personalized tips on how to reduce spending and reach them faster.',
-  },
-];
+import { typography, spacing } from '@/theme';
 
 export default function OnboardingWelcome() {
   const { theme } = useTheme();
-  const scrollRef = useRef<ScrollView>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / width);
-    setActiveIndex(index);
-  };
 
   const handleNext = () => {
-    if (activeIndex < slides.length - 1) {
-      scrollRef.current?.scrollTo({ x: (activeIndex + 1) * width, animated: true });
-    } else {
-      router.push('/onboarding/permissions');
-    }
-  };
-
-  const handleSkip = () => {
     router.push('/onboarding/permissions');
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Skip button */}
-      <Pressable style={styles.skipButton} onPress={handleSkip}>
-        <Text style={[styles.skipText, { color: theme.textSecondary }]}>Skip</Text>
-      </Pressable>
-
-      {/* Slides */}
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={handleScroll}
-        style={styles.scrollView}
-      >
-        {slides.map((slide, index) => (
-          <View key={index} style={styles.slide}>
-            <View style={styles.emojiContainer}>
-              <Text style={styles.emoji}>{slide.emoji}</Text>
-            </View>
-            <Text style={[styles.title, { color: theme.text }]}>{slide.title}</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              {slide.subtitle}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Bottom section */}
-      <View style={styles.bottomSection}>
-        {/* Page indicators */}
-        <View style={styles.indicators}>
-          {slides.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.indicator,
-                {
-                  backgroundColor:
-                    index === activeIndex ? theme.primary : theme.border,
-                  width: index === activeIndex ? 28 : 8,
-                },
-              ]}
-            />
-          ))}
+      {/* Main Content Area */}
+      <View style={styles.mainContent}>
+        <View style={styles.branding}>
+          <Text style={[styles.observatoryText, { color: theme.textSecondary }]}>
+            FINANCIAL OBSERVATORY
+          </Text>
         </View>
 
-        {/* CTA Button */}
-        <Pressable onPress={handleNext} style={styles.ctaWrapper}>
-          <LinearGradient
-            colors={theme.gradientPrimary}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.ctaButton}
-          >
-            <Text style={styles.ctaText}>
-              {activeIndex === slides.length - 1 ? 'Get Started' : 'Next'}
-            </Text>
-          </LinearGradient>
+        <Text style={[styles.headline, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+          Manage Your Money{"\n"}Clearly
+        </Text>
+
+        <Text style={[styles.subtext, { color: theme.textSecondary }]}>
+          Automatically track transactions, detect money leaks, and understand your spending patterns.
+        </Text>
+
+        {/* Editorial Grid (Decorative swiss layout - centered) */}
+        <View style={[styles.editorialGrid, { borderColor: theme.border }]}>
+          <View style={styles.gridRow}>
+            <View style={[styles.gridCell, styles.limeFill, { borderColor: theme.border, backgroundColor: theme.primary }]}>
+              <Text style={[styles.gridTextLabel, { color: '#1B1B1B', fontFamily: typography.fontFamily.bold }]}>
+                SPENDLENS
+              </Text>
+            </View>
+            <View style={[styles.gridCell, { borderColor: theme.border }]}>
+              <Text style={[styles.gridText, { color: theme.textSecondary }]}>
+                SMS Tracker ➔
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.gridRow}>
+            <View style={[styles.gridCell, { borderColor: theme.border, flex: 1.3 }]}>
+              <Text style={[styles.gridTextMono, { color: theme.text, fontFamily: typography.fontFamily.mono }]}>
+                ₹ PROJECTED: 94.2% ACC
+              </Text>
+            </View>
+            <View style={[styles.gridCell, { borderColor: theme.border }]}>
+              <Text style={[styles.gridText, { color: theme.expense, fontFamily: typography.fontFamily.bold }]}>
+                LEAK DETECTED ⚠
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.gridRow}>
+            <View style={[styles.gridCell, { borderColor: theme.border }]}>
+              <Text style={[styles.gridText, { color: theme.textSecondary }]}>
+                [ 100% Local ]
+              </Text>
+            </View>
+            <View style={[styles.gridCell, { borderColor: theme.border, flex: 1.5 }]}>
+              <Text style={[styles.gridText, { color: theme.income, fontFamily: typography.fontFamily.bold }]}>
+                SAVINGS RATE: +32%
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom Section */}
+      <View style={styles.bottomSection}>
+        {/* Get Started CTA */}
+        <Pressable
+          onPress={handleNext}
+          style={({ pressed }) => [
+            styles.ctaButton,
+            {
+              backgroundColor: theme.text,
+              borderColor: theme.border,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            },
+          ]}
+        >
+          <Text style={[styles.ctaText, { color: theme.background, fontFamily: typography.fontFamily.bold }]}>
+            Get Started
+          </Text>
         </Pressable>
 
-        {/* Brand */}
-        <Text style={[styles.brandText, { color: theme.textMuted }]}>
-          {APP_NAME} · {APP_TAGLINE}
-        </Text>
+        {/* Privacy First Note */}
+        <View style={styles.privacyNote}>
+          <Text style={[styles.privacyText, { color: theme.textSecondary }]}>
+            🔒 Privacy First Guarantee
+          </Text>
+          <Text style={[styles.privacySubText, { color: theme.textMuted }]}>
+            All sms scans and financial calculations run locally. Your data never leaves your phone.
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -147,85 +108,88 @@ export default function OnboardingWelcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
   },
-  skipButton: {
-    position: 'absolute',
-    top: 60,
-    right: 24,
-    zIndex: 10,
+  editorialGrid: {
+    marginTop: 32,
+    borderWidth: 1,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  gridRow: {
+    flexDirection: 'row',
+    height: 48,
+  },
+  gridCell: {
+    flex: 1,
+    borderWidth: 0.5,
+    justifyContent: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 8,
   },
-  skipText: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 15,
+  limeFill: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
-  scrollView: {
-    flex: 1,
+  gridTextLabel: {
+    fontSize: 12,
+    letterSpacing: 2,
   },
-  slide: {
-    width,
+  gridText: {
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  gridTextMono: {
+    fontSize: 10,
+  },
+  mainContent: {
+    marginTop: 40,
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
   },
-  emojiContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(108, 92, 231, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
+  branding: {
+    marginBottom: 12,
   },
-  emoji: {
-    fontSize: 56,
+  observatoryText: {
+    fontSize: 11,
+    letterSpacing: 2,
   },
-  title: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: typography.sizes['2xl'],
-    textAlign: 'center',
+  headline: {
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -1,
     marginBottom: 16,
   },
-  subtitle: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.base,
-    lineHeight: 24,
-    textAlign: 'center',
-    maxWidth: 320,
+  subtext: {
+    fontSize: 16,
+    lineHeight: 22,
   },
   bottomSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 48,
-    alignItems: 'center',
-  },
-  indicators: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 32,
-  },
-  indicator: {
-    height: 8,
-    borderRadius: 4,
-  },
-  ctaWrapper: {
-    width: '100%',
-    marginBottom: 20,
+    marginBottom: 60,
+    gap: 20,
   },
   ctaButton: {
     height: 56,
-    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   ctaText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    color: '#FFFFFF',
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
-  brandText: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
+  privacyNote: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  privacyText: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  privacySubText: {
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 15,
   },
 });

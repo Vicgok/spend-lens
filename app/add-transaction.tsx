@@ -34,6 +34,27 @@ function getCategoryEmoji(iconName: string): string {
   return emojiMap[iconName] || '💰';
 }
 
+function formatIndianNumber(valStr: string): string {
+  if (!valStr) return '';
+  const parts = valStr.split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+  let cleanedInteger = integerPart.replace(/,/g, '');
+  // Strip leading zeros unless it's just '0'
+  cleanedInteger = cleanedInteger.replace(/^0+(?=\d)/, '');
+  if (!cleanedInteger) return decimalPart;
+
+  let lastThree = cleanedInteger.substring(cleanedInteger.length - 3);
+  const otherNumbers = cleanedInteger.substring(0, cleanedInteger.length - 3);
+  if (otherNumbers !== '') {
+    lastThree = ',' + lastThree;
+  }
+  const formattedOthers = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+  
+  return formattedOthers + lastThree + decimalPart;
+}
+
 export default function AddTransactionScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -66,11 +87,14 @@ export default function AddTransactionScreen() {
     const parts = cleaned.split('.');
     if (parts.length > 2) return;
     if (parts[1] && parts[1].length > 2) return;
-    setAmount(cleaned);
+    
+    // Format dynamically with Indian numbering delimiters
+    const formatted = formatIndianNumber(cleaned);
+    setAmount(formatted);
   };
 
   const handleSubmit = async () => {
-    const parsedAmount = parseFloat(amount);
+    const parsedAmount = parseFloat(amount.replace(/,/g, ''));
     if (!parsedAmount || parsedAmount <= 0) return;
     if (accounts.length === 0) return;
 
@@ -94,7 +118,7 @@ export default function AddTransactionScreen() {
     }
   };
 
-  const isValid = parseFloat(amount) > 0 && accounts.length > 0;
+  const isValid = parseFloat(amount.replace(/,/g, '')) > 0 && accounts.length > 0;
 
   return (
     <KeyboardAvoidingView

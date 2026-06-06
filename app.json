@@ -38,6 +38,12 @@
       "expo-font",
       "expo-secure-store",
       [
+        "expo-navigation-bar",
+        {
+          "hidden": true
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#0D1117",

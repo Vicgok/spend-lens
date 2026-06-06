@@ -1,0 +1,48 @@
+[
+  {
+    "sender": "HDFCBK",
+    "body": "Alert: Rs. 1,200.00 debited from A/c XX4321 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 45,670.00.",
+    "expected": {
+      "amount": 1200.00,
+      "balance": 45670.00,
+      "type": "debit",
+      "accountNumber": "4321",
+      "accountType": "ACCOUNT",
+      "merchant": "swiggy"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "body": "Your A/c XX1122 is credited with Rs. 75,000.00 on 01-May-26 by Salary. Avl Bal Rs. 1,20,000.00.",
+    "expected": {
+      "amount": 75000.00,
+      "balance": 120000.00,
+      "type": "credit",
+      "accountNumber": "1122",
+      "accountType": "ACCOUNT"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "body": "Dear Customer, your Acct XX9999 has been debited with INR 5,230.50 on 24-May-26. Avl Bal Rs. 12,450.00.",
+    "expected": {
+      "amount": 5230.50,
+      "balance": 12450.00,
+      "type": "debit",
+      "accountNumber": "9999",
+      "accountType": "ACCOUNT"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "body": "Rs. 2,500.00 paid to ZOMATO from A/c XX5566. Avl Bal: Rs 8,900.00.",
+    "expected": {
+      "amount": 2500.00,
+      "balance": 8900.00,
+      "type": "debit",
+      "accountNumber": "5566",
+      "accountType": "ACCOUNT",
+      "merchant": "zomato"
+    }
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "sender": "AXISBK",
+    "body": "Dear Customer, transaction of Rs 450.00 debited on card ending 9876 at UBER INDIA. AVL BAL Rs 12,450.00.",
+    "expected": {
+      "amount": 450.00,
+      "balance": 12450.00,
+      "type": "debit",
+      "accountNumber": "9876",
+      "accountType": "CARD",
+      "merchant": "uber india"
+    }
+  },
+  {
+    "sender": "AMEXIN",
+    "body": "Spent Rs.2,499.00 on American Express Card ending in 1002 at AMAZON INDIA. Outstanding Bal: Rs. 15,200.00.",
+    "expected": {
+      "amount": 2499.00,
+      "balance": null,
+      "outstanding": 15200.00,
+      "type": "debit",
+      "accountNumber": "1002",
+      "accountType": "CARD",
+      "merchant": "amazon india"
+    }
+  },
+  {
+    "sender": "CITIBK",
+    "body": "Thank you for using Citi Card 8831 for Rs 9,999.00 at Apple Store. Available Limit Rs. 85,000.00.",
+    "expected": {
+      "amount": 9999.00,
+      "balance": 85000.00,
+      "type": "debit",
+      "accountNumber": "8831",
+      "accountType": "CARD",
+      "merchant": "apple store"
+    }
+  }
+]

@@ -1,0 +1,127 @@
+import { ParsedTransaction } from './types';
+import { normalizeSMS } from './core/normalizer';
+import { isValidTransaction } from './core/validator';
+import { getTransactionAmount } from './extractors/amount';
+import { getAccount } from './extractors/account';
+import { getBalance } from './extractors/balance';
+import { getTransactionType } from './extractors/type';
+import { extractMerchantInfo } from './extractors/merchant';
+import { extractTransactionDate } from './extractors/date';
+import { getReferenceNumber } from './extractors/reference';
+import { identifyBankFromSender } from './enrichment/sender';
+import { getConfidenceScore } from './enrichment/confidence';
+
+/**
+ * Main SMS parsing entry point.
+ * Parses a raw SMS text body into a structured ParsedTransaction output.
+ * Returns null if the SMS does not qualify as a financial transaction.
+ */
+export function parseTransactionSMS(
+  body: string,
+  receivedDate: string,
+  sender?: string
+): ParsedTransaction | null {
+  if (!body || typeof body !== 'string' || body.trim() === '') {
+    return null;
+  }
+
+  // 1. Normalize and tokenize raw body once (FIX T13)
+  const tokens = normalizeSMS(body);
+  if (tokens.length === 0) {
+    return null;
+  }
+
+  // 2. Extract core fields
+  const account = getAccount(tokens);
+  const availableBalance = getBalance(tokens, 'AVAILABLE');
+  const amount = getTransactionAmount(tokens);
+
+  // 3. Extract merchant & reference info (runs on raw body, needed for validation)
+  const merchantInfo = extractMerchantInfo(body);
+  let merchant = merchantInfo.merchant;
+  let referenceNo = merchantInfo.referenceNo;
+
+  // Fallback reference number extractor (FIX T5)
+  if (!referenceNo) {
+    referenceNo = getReferenceNumber(body);
+  }
+
+  // 4. Validation Gate (mandatory amount + at least one other field) (FIX T2)
+  const isValid = isValidTransaction(amount, availableBalance, account.number, referenceNo, merchant);
+  if (!isValid) {
+    return null;
+  }
+
+  // 5. Extract transaction type (only valid transactions have type)
+  const type = getTransactionType(tokens);
+  if (!type) {
+    return null; // Ignore if it has no clear debit/credit classification (e.g. OTPs)
+  }
+
+  // 6. Extract outstanding balance (only for credit cards)
+  let outstandingBalance: number | null = null;
+  if (account.type === 'CARD') {
+    outstandingBalance = getBalance(tokens, 'OUTSTANDING');
+  }
+
+  // 7. Extract transaction date/time
+  const date = extractTransactionDate(body, receivedDate);
+
+  // 8. Enrich with sender bank metadata if sender is provided
+  let isKnownBank = false;
+  if (sender) {
+    const senderInfo = identifyBankFromSender(sender);
+    isKnownBank = senderInfo.isKnownBank;
+    
+    // Fill missing account fields from sender information
+    if (!account.name && senderInfo.bankName) {
+      account.name = senderInfo.bankName;
+    }
+    if (!account.type && senderInfo.accountType) {
+      account.type = senderInfo.accountType === 'wallet' ? 'WALLET' : 'ACCOUNT';
+    }
+  }
+
+  // 9. Score parse confidence
+  const confidence = getConfidenceScore(
+    amount,
+    availableBalance,
+    account.number,
+    type,
+    merchant,
+    date,
+    isKnownBank
+  );
+
+  // 10. Assemble structured output
+  return {
+    account,
+    balance: {
+      available: availableBalance,
+      outstanding: outstandingBalance,
+    },
+    transaction: {
+      type,
+      amount,
+      merchant,
+      referenceNo,
+    },
+    date,
+    confidence,
+    rawBody: body,
+  };
+}
+
+/**
+ * Generates a stable hash from SMS content for deduplication.
+ */
+export function generateSMSHash(body: string, date: string): string {
+  const content = `${body.trim().toLowerCase()}|${date}`;
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32-bit integer
+  }
+  return `sms_${Math.abs(hash).toString(36)}`;
+}

@@ -9,10 +9,9 @@ import {
   Alert,
   NativeModules,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing } from '@/theme';
 import {
   checkSMSPermission,
   requestSMSPermission,
@@ -40,12 +39,11 @@ export default function OnboardingPermissions() {
     if (Platform.OS !== 'android') {
       Alert.alert(
         'SMS Reader',
-        'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or sync via email (coming soon!).'
+        'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or simulate tracking via Demo Scan.'
       );
       return;
     }
 
-    // Check if running in Expo Go (which lacks the native module)
     if (!NativeModules.RNExpoReadSms) {
       Alert.alert(
         'Expo Go Limitation',
@@ -81,7 +79,6 @@ export default function OnboardingPermissions() {
 
   const handleSimulateScan = async () => {
     setIsScanning(true);
-    // Add artificial delay for premium look & feel
     setTimeout(async () => {
       try {
         const addedCount = await simulateSMSScan();
@@ -109,75 +106,113 @@ export default function OnboardingPermissions() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Title */}
+      {/* Editorial Header */}
       <View style={styles.header}>
-        <Text style={styles.emoji}>🔍</Text>
-        <Text style={[styles.title, { color: theme.text }]}>
+        <Text style={[styles.microHeader, { color: theme.textSecondary }]}>DATA PERMISSIONS</Text>
+        <Text style={[styles.title, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
           Smart Auto-Tracking
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          SpendLens can parse incoming SMS notifications from your bank or credit card to automatically record expenses in real-time.
+          SpendLens reads incoming bank SMS messages to automate expense tracking.
         </Text>
       </View>
 
-      {/* Info Card */}
+      {/* Horizontal Illustrated Flow */}
+      <View style={[styles.flowContainer, { borderColor: theme.border, backgroundColor: theme.card }]}>
+        <Text style={[styles.flowTitle, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
+          AUTOMATION FLOW
+        </Text>
+        <View style={styles.flowRow}>
+          <View style={[styles.flowStep, { borderColor: theme.border }]}>
+            <Text style={[styles.stepText, { color: theme.text }]}>SMS</Text>
+          </View>
+          <Text style={[styles.flowArrow, { color: theme.textSecondary }]}>➔</Text>
+          <View style={[styles.flowStep, { borderColor: theme.border }]}>
+            <Text style={[styles.stepText, { color: theme.text }]}>Tx</Text>
+          </View>
+          <Text style={[styles.flowArrow, { color: theme.textSecondary }]}>➔</Text>
+          <View style={[styles.flowStep, { borderColor: theme.border }]}>
+            <Text style={[styles.stepText, { color: theme.text }]}>Insights</Text>
+          </View>
+          <Text style={[styles.flowArrow, { color: theme.textSecondary }]}>➔</Text>
+          <View style={[styles.flowStep, { borderColor: theme.border, backgroundColor: theme.primary }]}>
+            <Text style={[styles.stepText, { color: '#1B1B1B', fontFamily: typography.fontFamily.bold }]}>Savings</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Privacy Guarantee List (Swiss Paper Card) */}
       <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-        <Text style={[styles.cardTitle, { color: theme.text }]}>🔒 Privacy First</Text>
+        <Text style={[styles.cardTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+          🔒 Your Privacy Manifest
+        </Text>
         <View style={styles.bulletRow}>
-          <Text style={[styles.bullet, { color: theme.primary }]}>•</Text>
+          <Text style={[styles.bullet, { color: theme.text }]}>■</Text>
           <Text style={[styles.bulletText, { color: theme.textSecondary }]}>
-            All parsing happens on your device.
+            Your financial data stays securely on your device.
           </Text>
         </View>
         <View style={styles.bulletRow}>
-          <Text style={[styles.bullet, { color: theme.primary }]}>•</Text>
+          <Text style={[styles.bullet, { color: theme.text }]}>■</Text>
           <Text style={[styles.bulletText, { color: theme.textSecondary }]}>
-            No messages are sent to any server.
+            No cloud backups or remote servers. Zero external uploads.
           </Text>
         </View>
         <View style={styles.bulletRow}>
-          <Text style={[styles.bullet, { color: theme.primary }]}>•</Text>
+          <Text style={[styles.bullet, { color: theme.text }]}>■</Text>
           <Text style={[styles.bulletText, { color: theme.textSecondary }]}>
-            Personal texts and OTPs are ignored.
+            No third-party trackers. No selling data. Ever.
           </Text>
         </View>
       </View>
 
-      {/* Actions */}
+      {/* Action CTA Buttons */}
       <View style={styles.bottomSection}>
         {isChecking ? (
-          <ActivityIndicator size="large" color={theme.primary} />
+          <ActivityIndicator size="large" color={theme.text} />
         ) : (
           <>
             {Platform.OS === 'android' && !hasPermission && (
-              <Pressable onPress={handleRequestPermission} style={styles.btnWrapper}>
-                <LinearGradient
-                  colors={theme.gradientPrimary}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.primaryButton}
-                >
-                  <Text style={styles.primaryBtnText}>Enable SMS Tracking</Text>
-                </LinearGradient>
+              <Pressable
+                onPress={handleRequestPermission}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  {
+                    backgroundColor: theme.text,
+                    borderColor: theme.border,
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
+                  },
+                ]}
+              >
+                <Text style={[styles.primaryBtnText, { color: theme.background, fontFamily: typography.fontFamily.bold }]}>
+                  Enable SMS Tracking
+                </Text>
               </Pressable>
             )}
 
             <Pressable
               onPress={handleSimulateScan}
               disabled={isScanning}
-              style={[styles.outlineButton, { borderColor: theme.primary }]}
+              style={({ pressed }) => [
+                styles.outlineButton,
+                {
+                  borderColor: theme.border,
+                  backgroundColor: theme.primary,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                },
+              ]}
             >
               {isScanning ? (
-                <ActivityIndicator size="small" color={theme.primary} />
+                <ActivityIndicator size="small" color="#1B1B1B" />
               ) : (
-                <Text style={[styles.outlineBtnText, { color: theme.primary }]}>
+                <Text style={[styles.outlineBtnText, { color: '#1B1B1B', fontFamily: typography.fontFamily.bold }]}>
                   {Platform.OS === 'ios' ? 'Try Demo Scan (Simulate)' : 'Try Demo Scan'}
                 </Text>
               )}
             </Pressable>
 
             <Pressable onPress={handleSkip} style={styles.skipButton}>
-              <Text style={[styles.skipText, { color: theme.textMuted }]}>
+              <Text style={[styles.skipText, { color: theme.textSecondary }]}>
                 {Platform.OS === 'ios' ? 'Skip & Continue' : "I'll do it manually"}
               </Text>
             </Pressable>
@@ -193,89 +228,108 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+    gap: 24,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 16,
+  microHeader: {
+    fontSize: 11,
+    letterSpacing: 2,
+    marginBottom: 4,
   },
   title: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: typography.sizes['2xl'],
-    textAlign: 'center',
-    marginBottom: 16,
+    fontSize: 28,
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
   subtitle: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.base,
-    textAlign: 'center',
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  flowContainer: {
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 16,
+  },
+  flowTitle: {
+    fontSize: 10,
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  flowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  flowStep: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepText: {
+    fontSize: 11,
+  },
+  flowArrow: {
+    fontSize: 12,
   },
   card: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
     borderWidth: 1,
-    marginBottom: 40,
+    borderRadius: 4,
+    padding: 16,
+    gap: 12,
   },
   cardTitle: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    marginBottom: spacing.sm,
+    fontSize: 15,
+    marginBottom: 4,
   },
   bulletRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-    gap: spacing.xs,
+    alignItems: 'flex-start',
+    gap: 8,
   },
   bullet: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 8,
+    marginTop: 4,
   },
   bulletText: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
+    lineHeight: 18,
     flex: 1,
   },
   bottomSection: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  btnWrapper: {
-    width: '100%',
+    gap: 12,
   },
   primaryButton: {
     height: 56,
-    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   primaryBtnText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    color: '#FFFFFF',
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   outlineButton: {
-    width: '100%',
     height: 56,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1.5,
+    borderWidth: 1,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   outlineBtnText: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   skipButton: {
+    alignItems: 'center',
     paddingVertical: 8,
   },
   skipText: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
   },
 });

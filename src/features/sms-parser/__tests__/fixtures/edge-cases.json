@@ -1,0 +1,22 @@
+[
+  {
+    "sender": "JIO",
+    "body": "Your Jio plan has expired. Recharge now to continue calling and data services.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "body": "OTP for transaction of Rs. 5,000.00 on your HDFC Bank Card ending 1234 is 987654. Do not share it with anyone.",
+    "expected": null
+  },
+  {
+    "sender": "INDUS",
+    "body": "Your request for taxi services is confirmed. Total fare Rs. 450.00.",
+    "expected": null
+  },
+  {
+    "sender": "SWIGGY",
+    "body": "Your Swiggy order has been delivered! Hope you enjoy your meal.",
+    "expected": null
+  }
+]

@@ -20,8 +20,10 @@ export function categorizeTransaction(
 
   if (!searchText) return 'cat_uncategorized';
 
+  const cats = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+
   // Filter categories by transaction type
-  const applicableCategories = categories.filter(
+  const applicableCategories = cats.filter(
     (cat) => cat.type === type || cat.type === 'both'
   );
 

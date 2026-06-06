@@ -1,0 +1,35 @@
+[
+  {
+    "sender": "PAYTM",
+    "body": "Rs. 150.00 paid to Chai Point using Paytm Wallet. Updated Paytm Balance: Rs. 420.00.",
+    "expected": {
+      "amount": 150.00,
+      "balance": 420.00,
+      "type": "debit",
+      "accountType": "WALLET",
+      "merchant": "chai point"
+    }
+  },
+  {
+    "sender": "AMAZON",
+    "body": "Rs. 299.00 debited from Amazon Pay balance for purchase at Kindle. New Balance Rs. 1,050.00.",
+    "expected": {
+      "amount": 299.00,
+      "balance": 1050.00,
+      "type": "debit",
+      "accountType": "WALLET",
+      "merchant": "kindle"
+    }
+  },
+  {
+    "sender": "LAZYPAY",
+    "body": "LazyPay purchase of Rs. 850.00 at Swiggy. Available limit: Rs. 4,150.00.",
+    "expected": {
+      "amount": 850.00,
+      "balance": 4150.00,
+      "type": "debit",
+      "accountType": "WALLET",
+      "merchant": "swiggy"
+    }
+  }
+]

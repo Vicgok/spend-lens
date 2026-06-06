@@ -41,6 +41,27 @@ const ACCOUNT_PRESETS = [
   { label: 'Digital Wallet', type: 'wallet' as AccountType, icon: '📱' },
 ];
 
+function formatIndianNumber(valStr: string): string {
+  if (!valStr) return '';
+  const parts = valStr.split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+  let cleanedInteger = integerPart.replace(/,/g, '');
+  // Strip leading zeros unless it's just '0'
+  cleanedInteger = cleanedInteger.replace(/^0+(?=\d)/, '');
+  if (!cleanedInteger) return decimalPart;
+
+  let lastThree = cleanedInteger.substring(cleanedInteger.length - 3);
+  const otherNumbers = cleanedInteger.substring(0, cleanedInteger.length - 3);
+  if (otherNumbers !== '') {
+    lastThree = ',' + lastThree;
+  }
+  const formattedOthers = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+  
+  return formattedOthers + lastThree + decimalPart;
+}
+
 export default function BalanceSetup() {
   const { theme } = useTheme();
   const createAccount = useTransactionStore((s) => s.createAccount);
@@ -95,8 +116,13 @@ export default function BalanceSetup() {
   const updateBalance = (index: number, balance: string) => {
     // Only allow numbers and decimal point
     const cleaned = balance.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 2) return;
+
+    const formatted = formatIndianNumber(cleaned);
     setAccounts((prev) =>
-      prev.map((acc, i) => (i === index ? { ...acc, balance: cleaned } : acc))
+      prev.map((acc, i) => (i === index ? { ...acc, balance: formatted } : acc))
     );
   };
 
@@ -114,7 +140,7 @@ export default function BalanceSetup() {
     setIsSubmitting(true);
     try {
       for (const acc of accounts) {
-        const balance = parseFloat(acc.balance) || 0;
+        const balance = parseFloat(acc.balance.replace(/,/g, '')) || 0;
         await createAccount({
           name: acc.name,
           type: acc.type,

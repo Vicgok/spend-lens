@@ -44,7 +44,9 @@ task.md
 implementation_plan.md
 AGENTS.md
 CLAUDE.md
+docs/
 
 # AI
 .continue/
 .claude/
+.antigravity/

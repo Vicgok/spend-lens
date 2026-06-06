@@ -1,0 +1,36 @@
+[
+  {
+    "sender": "HDFCBK",
+    "body": "Money Transfer: Rs. 5,000.00 paid from HDFC Bank A/c XX8888 via UPI to vicky@okaxis. UPI Ref: 614050212345.",
+    "expected": {
+      "amount": 5000.00,
+      "type": "debit",
+      "accountNumber": "8888",
+      "accountType": "ACCOUNT",
+      "merchant": "vicky",
+      "referenceNo": "614050212345"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "body": "Dear Customer, A/c XX9999 debited by Rs 250.00 on 20-May-26 at merchant@paytm VPA. UPI Ref No 614012345678.",
+    "expected": {
+      "amount": 250.00,
+      "type": "debit",
+      "accountNumber": "9999",
+      "accountType": "ACCOUNT",
+      "merchant": "merchant",
+      "referenceNo": "614012345678"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "body": "Sent Rs 1,000.00 to rajesh@ybl. Ref: 614099887766.",
+    "expected": {
+      "amount": 1000.00,
+      "type": "debit",
+      "merchant": "rajesh",
+      "referenceNo": "614099887766"
+    }
+  }
+]

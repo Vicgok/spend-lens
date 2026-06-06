@@ -1,114 +1,107 @@
 const palette = {
-  // Primary
-  primary: '#6C5CE7',
-  primaryLight: '#A29BFE',
-  primaryDark: '#5A4BD1',
-
-  // Secondary
-  secondary: '#00CEC9',
-  secondaryLight: '#55EFC4',
-
-  // Accent
-  accent: '#FD79A8',
-  accentLight: '#FDB8D0',
+  // Primary / Accent (Lime)
+  primary: '#A0C42C',
+  primaryLight: '#B8D943',
+  primaryDark: '#87A623',
 
   // Semantic
-  income: '#00B894',
-  incomeLight: '#55EFC4',
-  expense: '#E17055',
-  expenseLight: '#FAB1A0',
-  warning: '#FDCB6E',
-  warningDark: '#F39C12',
-  info: '#74B9FF',
+  income: '#2E7D32',
+  incomeLight: '#4CAF50',
+  expense: '#C84B31',
+  expenseLight: '#E57373',
+  warning: '#C28A24',
+  warningDark: '#A06E1A',
+  info: '#1976D2',
 
   // Neutrals
-  white: '#FFFFFF',
-  black: '#000000',
+  white: '#FDFCF8', // Warm paper white
+  black: '#1B1B1B', // Dark carbon black
 };
 
 export const colors = {
   dark: {
-    background: '#0D1117',
-    surface: '#161B22',
-    surfaceElevated: '#21262D',
-    card: '#1C2128',
-    cardHover: '#242B35',
-    border: '#30363D',
-    borderLight: '#21262D',
+    background: '#121210', // Dark warm background
+    surface: '#1E1E1C', // Dark paper surface
+    surfaceElevated: '#282825',
+    card: '#1E1E1C',
+    cardHover: '#282825',
+    border: '#333330',
+    borderLight: '#282825',
 
-    text: '#F0F6FC',
-    textSecondary: '#8B949E',
-    textMuted: '#484F58',
-    textInverse: '#0D1117',
+    text: '#F5F3EE',
+    textSecondary: '#A5A39E',
+    textMuted: '#666664',
+    textInverse: '#1B1B1B',
 
     ...palette,
 
     // Tab bar
-    tabBar: '#0D1117',
-    tabBarBorder: '#21262D',
+    tabBar: '#1E1E1C',
+    tabBarBorder: '#333330',
     tabBarActive: palette.primary,
-    tabBarInactive: '#484F58',
+    tabBarInactive: '#666664',
 
-    // Gradients (start, end)
-    gradientPrimary: ['#6C5CE7', '#A29BFE'] as readonly [string, string],
-    gradientSecondary: ['#00CEC9', '#55EFC4'] as readonly [string, string],
-    gradientCross: ['#6C5CE7', '#00CEC9'] as readonly [string, string],
-    gradientIncome: ['#00B894', '#55EFC4'] as readonly [string, string],
-    gradientExpense: ['#E17055', '#FAB1A0'] as readonly [string, string],
-    gradientDark: ['#161B22', '#0D1117'] as readonly [string, string],
+    // Gradients (minimal, flat curves)
+    gradientPrimary: ['#A0C42C', '#B8D943'] as readonly [string, string],
+    gradientSecondary: ['#2E7D32', '#4CAF50'] as readonly [string, string],
+    gradientCross: ['#A0C42C', '#2E7D32'] as readonly [string, string],
+    gradientIncome: ['#2E7D32', '#4CAF50'] as readonly [string, string],
+    gradientExpense: ['#C84B31', '#E57373'] as readonly [string, string],
+    gradientDark: ['#1E1E1C', '#121210'] as readonly [string, string],
 
-    // Glassmorphism
-    glass: 'rgba(22, 27, 34, 0.6)',
-    glassBorder: 'rgba(48, 54, 61, 0.5)',
+    // Glassmorphism (flat borders)
+    glass: 'rgba(30, 30, 28, 0.8)',
+    glassBorder: 'rgba(51, 51, 48, 0.6)',
   },
   light: {
-    background: '#F6F8FA',
-    surface: '#FFFFFF',
-    surfaceElevated: '#FFFFFF',
-    card: '#FFFFFF',
-    cardHover: '#F3F4F6',
-    border: '#D0D7DE',
-    borderLight: '#E8ECEF',
+    background: '#F5F3EE', // Warm neutral background
+    surface: '#FDFCF8', // Tactile paper card background
+    surfaceElevated: '#FDFCF8',
+    card: '#FDFCF8',
+    cardHover: '#F6F5F0',
+    border: '#1F1F1F', // Thin dark carbon border
+    borderLight: '#E5E3DE',
 
-    text: '#1F2328',
-    textSecondary: '#656D76',
-    textMuted: '#8B949E',
-    textInverse: '#FFFFFF',
+    text: '#1B1B1B', // Dark carbon text
+    textSecondary: '#666666',
+    textMuted: '#999999',
+    textInverse: '#F5F3EE',
 
     ...palette,
 
-    tabBar: '#FFFFFF',
-    tabBarBorder: '#D0D7DE',
+    tabBar: '#FDFCF8',
+    tabBarBorder: '#1F1F1F',
     tabBarActive: palette.primary,
-    tabBarInactive: '#8B949E',
+    tabBarInactive: '#999999',
 
-    gradientPrimary: ['#6C5CE7', '#A29BFE'] as readonly [string, string],
-    gradientSecondary: ['#00CEC9', '#55EFC4'] as readonly [string, string],
-    gradientCross: ['#6C5CE7', '#00CEC9'] as readonly [string, string],
-    gradientIncome: ['#00B894', '#55EFC4'] as readonly [string, string],
-    gradientExpense: ['#E17055', '#FAB1A0'] as readonly [string, string],
-    gradientDark: ['#F6F8FA', '#FFFFFF'] as readonly [string, string],
+    gradientPrimary: ['#A0C42C', '#B8D943'] as readonly [string, string],
+    gradientSecondary: ['#2E7D32', '#4CAF50'] as readonly [string, string],
+    gradientCross: ['#A0C42C', '#2E7D32'] as readonly [string, string],
+    gradientIncome: ['#2E7D32', '#4CAF50'] as readonly [string, string],
+    gradientExpense: ['#C84B31', '#E57373'] as readonly [string, string],
+    gradientDark: ['#FDFCF8', '#F5F3EE'] as readonly [string, string],
 
-    glass: 'rgba(255, 255, 255, 0.7)',
-    glassBorder: 'rgba(208, 215, 222, 0.5)',
+    glass: 'rgba(253, 252, 248, 0.9)',
+    glassBorder: 'rgba(31, 31, 31, 0.2)',
   },
 };
 
-// Category colors for charts and badges
+// Category colors for charts and badges (aligned with Swiss tones)
 export const categoryColors = [
-  '#6C5CE7', // Purple
-  '#00CEC9', // Teal
-  '#FD79A8', // Pink
-  '#FDCB6E', // Yellow
-  '#74B9FF', // Blue
-  '#E17055', // Orange
-  '#00B894', // Green
-  '#A29BFE', // Lavender
-  '#FF7675', // Red
-  '#55EFC4', // Mint
-  '#DFE6E9', // Gray
-  '#FAB1A0', // Peach
+  '#A0C42C', // lime accent
+  '#2E7D32', // green
+  '#C84B31', // red-orange
+  '#C28A24', // ochre
+  '#3E5C76', // blue slate
+  '#7E6B8F', // muted violet
+  '#D4A373', // sand
+  '#4A5759', // olive grey
+  '#A5A39E', // warm grey
+  '#6D597A', // plum
+  '#E07A5F', // terracotta
+  '#1F1F1F', // black border
 ];
 
 export type ThemeMode = 'dark' | 'light';
 export type ThemeColors = typeof colors.dark;
+

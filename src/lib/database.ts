@@ -120,12 +120,20 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   `);
 
-  // Seed default categories if empty
-  const categoryCount = await database.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM categories'
-  );
-  if (categoryCount && categoryCount.count === 0) {
-    for (const cat of DEFAULT_CATEGORIES) {
+  // Seed or sync default categories to ensure keywords are always up to date
+  for (const cat of DEFAULT_CATEGORIES) {
+    const existing = await database.getFirstAsync<{ id: string }>(
+      'SELECT id FROM categories WHERE id = ?',
+      cat.id
+    );
+    if (existing) {
+      // Update core fields to match DEFAULT_CATEGORIES
+      await database.runAsync(
+        `UPDATE categories SET name = ?, icon = ?, color = ?, type = ?, keywords = ?, sort_order = ? WHERE id = ?`,
+        cat.name, cat.icon, cat.color, cat.type, JSON.stringify(cat.keywords), cat.sortOrder, cat.id
+      );
+    } else {
+      // Insert if not exists
       await database.runAsync(
         `INSERT INTO categories (id, name, icon, color, type, is_custom, keywords, parent_id, sort_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -617,3 +625,14 @@ export async function deleteCategory(id: string): Promise<void> {
   
   await database.runAsync('DELETE FROM categories WHERE id = ?', id);
 }
+
+export async function clearAllData(): Promise<void> {
+  const database = await getDatabase();
+  await database.execAsync(`
+    DELETE FROM transactions;
+    DELETE FROM accounts;
+    DELETE FROM goals;
+    DELETE FROM settings;
+  `);
+}
+

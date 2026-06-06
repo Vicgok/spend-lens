@@ -4,9 +4,12 @@ import { router } from 'expo-router';
 import { simulateSMSScan } from '@/features/sms-parser/sms-reader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography } from '@/theme';
 import { APP_NAME, APP_VERSION } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useTransactionStore } from '@/stores/transaction-store';
+import { formatCurrency } from '@/utils/currency';
+import Svg, { Path, Circle } from 'react-native-svg';
 
 interface SettingsRowProps {
   icon: string;
@@ -18,31 +21,125 @@ interface SettingsRowProps {
   onToggle?: (value: boolean) => void;
 }
 
+function renderSettingsIcon(iconName: string, color: string) {
+  switch (iconName) {
+    case 'profile':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <Circle cx="12" cy="7" r="4" />
+        </Svg>
+      );
+    case 'darkMode':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </Svg>
+      );
+    case 'currency':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M17 1l4 4-4 4" />
+          <Path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <Path d="M7 23l-4-4 4-4" />
+          <Path d="M21 13v2a4 4 0 0 1-4 4H3" />
+        </Svg>
+      );
+    case 'accounts':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M3 21h18" />
+          <Path d="M3 10h18" />
+          <Path d="M5 6l7-3 7 3" />
+          <Path d="M4 10v11" />
+          <Path d="M20 10v11" />
+          <Path d="M8 14v3" />
+          <Path d="M12 14v3" />
+          <Path d="M16 14v3" />
+        </Svg>
+      );
+    case 'categories':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+          <Path d="M7 7h.01" />
+        </Svg>
+      );
+    case 'sms':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </Svg>
+      );
+    case 'export':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <Path d="M17 8l-5-5-5 5" />
+          <Path d="M12 3v12" />
+        </Svg>
+      );
+    case 'clear':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M3 6h18" />
+          <Path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </Svg>
+      );
+    case 'privacy':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </Svg>
+      );
+    case 'terms':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <Path d="M14 2v6h6" />
+          <Path d="M16 13H8" />
+          <Path d="M16 17H8" />
+          <Path d="M10 9H8" />
+        </Svg>
+      );
+    case 'version':
+      return (
+        <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <Circle cx="12" cy="12" r="10" />
+          <Path d="M12 16v-4" />
+          <Path d="M12 8h.01" />
+        </Svg>
+      );
+    default:
+      return null;
+  }
+}
+
 function SettingsRow({ icon, label, value, onPress, isToggle, toggleValue, onToggle }: SettingsRowProps) {
   const { theme } = useTheme();
   return (
     <Pressable
-      style={[styles.settingsRow, { borderBottomColor: theme.border }]}
+      style={[styles.settingsRow, { borderBottomColor: theme.borderLight }]}
       onPress={onPress}
       disabled={isToggle}
     >
       <View style={styles.settingsLeft}>
-        <Text style={styles.settingsIcon}>{icon}</Text>
-        <Text style={[styles.settingsLabel, { color: theme.text }]}>{label}</Text>
+        {renderSettingsIcon(icon, theme.primary)}
+        <Text style={[styles.settingsLabel, { color: theme.text, fontFamily: typography.fontFamily.medium }]}>{label}</Text>
       </View>
       {isToggle ? (
         <Switch
           value={toggleValue}
           onValueChange={onToggle}
-          trackColor={{ false: theme.border, true: theme.primary + '80' }}
-          thumbColor={toggleValue ? theme.primary : theme.textMuted}
+          trackColor={{ false: theme.borderLight, true: theme.primary }}
+          thumbColor={toggleValue ? theme.text : theme.textSecondary}
         />
       ) : (
         <View style={styles.settingsRight}>
           {value && (
             <Text style={[styles.settingsValue, { color: theme.textSecondary }]}>{value}</Text>
           )}
-          <Text style={[styles.settingsArrow, { color: theme.textMuted }]}>›</Text>
+          <Text style={[styles.settingsArrow, { color: theme.textSecondary }]}>›</Text>
         </View>
       )}
     </Pressable>
@@ -52,7 +149,11 @@ function SettingsRow({ icon, label, value, onPress, isToggle, toggleValue, onTog
 export default function SettingsScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { currency } = useSettingsStore();
+  const transactions = useTransactionStore((s) => s.transactions);
+  const getTotalBalance = useTransactionStore((s) => s.getTotalBalance);
+
+  const totalBalance = getTotalBalance();
+  const transactionCount = transactions.length;
 
   const handleSMSParsingPress = () => {
     Alert.alert(
@@ -65,6 +166,9 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               const added = await simulateSMSScan();
+              // Reload transactions & stats
+              await useTransactionStore.getState().loadTransactions();
+              await useTransactionStore.getState().loadMonthlyStats();
               Alert.alert('Scan Complete', `Simulated scan found and added ${added} new transactions.`);
             } catch (e) {
               console.error(e);
@@ -75,82 +179,118 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleEditProfilePress = () => {
+    Alert.alert(
+      'Edit Profile',
+      'This feature will allow updating your local dashboard name, avatar, and default settings in a future update.',
+      [{ text: 'OK' }]
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.title, { color: theme.text }]}>Settings</Text>
+        {/* Editorial Header */}
+        <View style={styles.header}>
+          <Text style={[styles.microHeader, { color: theme.textSecondary }]}>USER CONTROL PANEL</Text>
+          <Text style={[styles.title, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>Settings</Text>
+        </View>
 
-        {/* Profile Section */}
+        {/* Profile Card (Tactile Swiss Card) */}
         <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>🧑</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={[styles.avatar, { backgroundColor: theme.primary + '30', borderColor: theme.border }]}>
+              <Text style={styles.avatarText}>🧑</Text>
+            </View>
+            <View style={[styles.profileInfo, { flex: 1 }]}>
+              <Text style={[styles.profileName, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+                Local Sandbox Profile
+              </Text>
+              <Text style={[styles.profileSub, { color: theme.textSecondary }]}>
+                {transactionCount} transactions tracked
+              </Text>
+            </View>
+            <Pressable
+              onPress={handleEditProfilePress}
+              style={({ pressed }) => [
+                styles.profileEditBtn,
+                { borderColor: theme.border, backgroundColor: pressed ? theme.borderLight : 'transparent' }
+              ]}
+            >
+              <Svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M12 20h9" />
+                <Path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </Svg>
+            </Pressable>
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: theme.text }]}>Free Account</Text>
-            <Text style={[styles.profileSub, { color: theme.textSecondary }]}>
-              Sign in to sync & backup
+          <View style={styles.profileBalance}>
+            <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>NET WORTH</Text>
+            <Text style={[styles.balanceText, { color: theme.text, fontFamily: typography.fontFamily.monoBold }]}>
+              {formatCurrency(totalBalance)}
             </Text>
           </View>
-          <Pressable
-            style={[styles.upgradeBtn, { borderColor: theme.primary }]}
-            onPress={() => Alert.alert('Coming Soon', 'Premium features will be available in the next update!')}
-          >
-            <Text style={[styles.upgradeBtnText, { color: theme.primary }]}>Upgrade</Text>
-          </Pressable>
         </View>
 
         {/* General */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>GENERAL</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>GENERAL</Text>
         <View style={[styles.settingsGroup, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <SettingsRow
-            icon="🌙"
+            icon="darkMode"
             label="Dark Mode"
             isToggle
             toggleValue={isDark}
             onToggle={toggleTheme}
           />
-          <SettingsRow icon="💱" label="Currency" value={currency} />
-          <SettingsRow icon="🏦" label="Manage Accounts" onPress={() => router.push('/accounts' as any)} />
-          <SettingsRow icon="🏷️" label="Categories" onPress={() => router.push('/categories' as any)} />
+          <SettingsRow icon="accounts" label="Manage Accounts" onPress={() => router.push('/accounts' as any)} />
+          <SettingsRow icon="categories" label="Categories" onPress={() => router.push('/categories' as any)} />
         </View>
-
+ 
         {/* Data */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>DATA</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>DATA</Text>
         <View style={[styles.settingsGroup, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <SettingsRow
-            icon="📱"
+            icon="sms"
             label="SMS Parsing"
             value={Platform.OS === 'android' ? 'Enabled' : 'Simulated'}
             onPress={handleSMSParsingPress}
           />
-          <SettingsRow icon="📤" label="Export Data" value="CSV" />
-          <SettingsRow icon="🗑️" label="Clear All Data" onPress={() =>
+          <SettingsRow icon="export" label="Export Data" value="JSON/CSV" />
+          <SettingsRow icon="clear" label="Clear All Data" onPress={() =>
             Alert.alert('Clear Data', 'This will delete all your transactions and accounts. This cannot be undone.', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Clear', style: 'destructive' },
+              {
+                text: 'Clear',
+                style: 'destructive',
+                onPress: async () => {
+                  // Clean DB
+                  const dbModule = require('@/lib/database');
+                  try {
+                    await dbModule.clearAllData();
+                    await useTransactionStore.getState().loadAccounts();
+                    await useTransactionStore.getState().loadTransactions();
+                    await useTransactionStore.getState().loadMonthlyStats();
+                    Alert.alert('Data Cleared', 'All app data has been reset successfully.');
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }
+              },
             ])
           } />
         </View>
-
-        {/* Premium */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>PREMIUM</Text>
-        <View style={[styles.settingsGroup, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <SettingsRow icon="⭐" label="Upgrade to Premium" />
-          <SettingsRow icon="🔄" label="Restore Purchases" />
-        </View>
-
+ 
         {/* About */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>ABOUT</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>ABOUT</Text>
         <View style={[styles.settingsGroup, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <SettingsRow icon="📋" label="Privacy Policy" />
-          <SettingsRow icon="📜" label="Terms of Service" />
-          <SettingsRow icon="ℹ️" label="Version" value={APP_VERSION} />
+          <SettingsRow icon="privacy" label="Privacy Policy" />
+          <SettingsRow icon="terms" label="Terms of Service" />
+          <SettingsRow icon="version" label="Version" value={APP_VERSION} />
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textMuted }]}>
-            {APP_NAME} · Made with ❤️
+          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
+            {APP_NAME} · Tactile Paper Dashboard
           </Text>
         </View>
       </ScrollView>
@@ -160,39 +300,59 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
-  title: { fontFamily: typography.fontFamily.bold, fontSize: typography.sizes.xl, marginBottom: 20 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
+  header: { marginBottom: 20 },
+  microHeader: {
+    fontSize: 11,
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  title: { fontSize: 28, letterSpacing: -0.5 },
 
   profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     padding: 16,
-    borderRadius: borderRadius.lg,
+    borderRadius: 4,
     borderWidth: 1,
-    marginBottom: 28,
-    gap: 14,
+    marginBottom: 24,
+    gap: 12,
   },
   avatar: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: 'rgba(108, 92, 231, 0.15)',
-    justifyContent: 'center', alignItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  avatarText: { fontSize: 24 },
+  avatarText: { fontSize: 22 },
   profileInfo: { flex: 1 },
-  profileName: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.base, marginBottom: 2 },
-  profileSub: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.xs },
-  upgradeBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: borderRadius.full, borderWidth: 1.5 },
-  upgradeBtnText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.sm },
+  profileName: { fontSize: 16, marginBottom: 2 },
+  profileSub: { fontSize: 12 },
+  profileBalance: {
+    marginTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E3DE',
+    paddingTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  balanceText: {
+    fontSize: 15,
+  },
 
   sectionTitle: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 1,
     marginBottom: 8,
     marginLeft: 4,
   },
   settingsGroup: {
-    borderRadius: borderRadius.lg,
+    borderRadius: 4,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 24,
@@ -203,15 +363,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1,
   },
   settingsLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   settingsIcon: { fontSize: 20 },
-  settingsLabel: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.base },
+  settingsLabel: { fontSize: 15 },
   settingsRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  settingsValue: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.sm },
-  settingsArrow: { fontSize: 20, fontWeight: '300' },
+  settingsValue: { fontSize: 13 },
+  settingsArrow: { fontSize: 16 },
 
   footer: { alignItems: 'center', paddingVertical: 24 },
-  footerText: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.xs },
+  footerText: { fontSize: 11 },
+  profileEditBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
