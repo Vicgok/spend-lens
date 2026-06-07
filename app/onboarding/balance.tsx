@@ -64,7 +64,7 @@ function formatIndianNumber(valStr: string): string {
 
 export default function BalanceSetup() {
   const { theme } = useTheme();
-  const createAccount = useTransactionStore((s) => s.createAccount);
+  const createAccountsBatch = useTransactionStore((s) => s.createAccountsBatch);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   
   // Start with Cash as a sensible default
@@ -139,9 +139,9 @@ export default function BalanceSetup() {
     
     setIsSubmitting(true);
     try {
-      for (const acc of accounts) {
+      const accountInputs = accounts.map((acc) => {
         const balance = parseFloat(acc.balance.replace(/,/g, '')) || 0;
-        await createAccount({
+        return {
           name: acc.name,
           type: acc.type,
           balance,
@@ -149,13 +149,16 @@ export default function BalanceSetup() {
           icon: acc.icon,
           color: acc.color || undefined,
           bankId: acc.bankId || null,
-        });
-      }
+        };
+      });
+
+      await createAccountsBatch(accountInputs);
       await completeOnboarding();
       router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Failed to create accounts:', error);
-      Alert.alert('Error', 'Failed to save accounts. Please try again.');
+    } catch (error: any) {
+      console.error('[Onboarding Account Creation]', error);
+      const errorMessage = error.message || 'Failed to save accounts. Please try again.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
     }

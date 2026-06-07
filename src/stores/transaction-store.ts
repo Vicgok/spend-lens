@@ -30,6 +30,7 @@ interface TransactionState {
   // Actions
   loadAccounts: () => Promise<void>;
   createAccount: (input: AccountCreateInput) => Promise<Account>;
+  createAccountsBatch: (inputs: AccountCreateInput[]) => Promise<Account[]>;
   deleteAccount: (id: string) => Promise<void>;
   loadTransactions: (filter?: TransactionFilter) => Promise<void>;
   addTransaction: (input: TransactionCreateInput) => Promise<Transaction>;
@@ -75,6 +76,12 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     const account = await db.createAccount(input);
     set((state) => ({ accounts: [...state.accounts, account] }));
     return account;
+  },
+
+  createAccountsBatch: async (inputs) => {
+    const newAccounts = await db.createAccountsBatch(inputs);
+    set((state) => ({ accounts: [...state.accounts, ...newAccounts] }));
+    return newAccounts;
   },
 
   deleteAccount: async (id) => {

@@ -7,7 +7,8 @@ import { getTransactionType } from '../extractors/type';
 import { extractMerchantInfo } from '../extractors/merchant';
 import { extractTransactionDate } from '../extractors/date';
 import { getReferenceNumber } from '../extractors/reference';
-import { parseTransactionSMS } from '../engine';
+import { parseTransactionSMS, generateSMSHash } from '../engine';
+import { normalizeBankName } from '../enrichment/sender';
 
 // Load fixtures (using direct require since they are JSON)
 const indianBanks = require('./fixtures/indian-banks.json');
@@ -238,6 +239,46 @@ function runIntegrationTests() {
   runFixtures('Edge Cases & OTPs', edgeCases);
 }
 
+function runBugFixTests() {
+  console.log('\n--- Running Bug 3 and Bug 4 Unit Tests ---');
+
+  // Bug 3 Bank Identification / Normalization
+  assert(normalizeBankName('AD-HDFCBK') === 'hdfc', 'Bug 3: AD-HDFCBK -> hdfc');
+  assert(normalizeBankName('abc@okicici') === null, 'Bug 3: Ignore UPI VPA/handles containing @');
+  assert(normalizeBankName('312312312321-icici') === null, 'Bug 3: Ignore references containing digits and hyphens');
+  assert(normalizeBankName('41234567890-icici') === null, 'Bug 3: Ignore digits followed by bank identifier');
+  assert(normalizeBankName('HDFCBK') === 'hdfc', 'Bug 3: Exact sender map HDFCBK -> hdfc');
+  assert(normalizeBankName('icici bank') === 'icici', 'Bug 3: Substring search with icici keyword -> icici');
+
+  // Bug 4 Canonical Hash
+  const parsedMock1 = {
+    account: { type: 'ACCOUNT' as const, number: '1234', name: 'HDFC Bank' },
+    balance: { available: 5000, outstanding: null },
+    transaction: { type: 'debit' as const, amount: 1500, merchant: 'Swiggy', referenceNo: 'REF123' },
+    date: '2026-06-07T04:17:11.000Z',
+    confidence: 'high' as const,
+    rawBody: 'Alert: Rs 1500 debited from A/c XX1234 at Swiggy.'
+  };
+
+  const parsedMock2 = {
+    account: { type: 'ACCOUNT' as const, number: '1234', name: 'HDFC Bank' },
+    balance: { available: 3500, outstanding: null },
+    transaction: { type: 'debit' as const, amount: 1500, merchant: 'Swiggy', referenceNo: 'REF124' },
+    date: '2026-06-07T05:00:00.000Z',
+    confidence: 'high' as const,
+    rawBody: 'Notice: Rs 1500.00 debited from A/c 1234 for Swiggy.'
+  };
+
+  const hash1 = generateSMSHash(parsedMock1.rawBody, parsedMock1.date, parsedMock1);
+  const hash2 = generateSMSHash(parsedMock2.rawBody, parsedMock2.date, parsedMock2);
+
+  assert(hash1 === hash2, 'Bug 4: Identical amount, type, last4, merchant, and yyyyMMdd must produce the same canonical hash');
+
+  const hashFallback1 = generateSMSHash('Alert: Rs 1500 spent', '2026-06-07T04:17:11.000Z', null);
+  const hashFallback2 = generateSMSHash('Dear Customer, Rs 1500 spent', '2026-06-07T04:17:11.000Z', null);
+  assert(hashFallback1 === hashFallback2, 'Bug 4: Cleaned body fallback matches ignoring common prefixes');
+}
+
 function main() {
   console.log('=============================================');
   console.log('       SPENDLENS SMS ENGINE TEST SUITE       ');
@@ -252,6 +293,7 @@ function main() {
   runMerchantTests();
   runDateTests();
   runReferenceTests();
+  runBugFixTests();
   runIntegrationTests();
 
   console.log('\n=============================================');

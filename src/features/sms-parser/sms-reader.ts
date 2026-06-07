@@ -2,8 +2,10 @@ import { Platform, PermissionsAndroid, NativeModules } from 'react-native';
 import { parseTransactionSMS, generateSMSHash } from './engine';
 import { useTransactionStore } from '../../stores/transaction-store';
 import { checkSMSHashExists } from '../../lib/database';
-import { TransactionCreateInput } from '../../types';
+import { TransactionCreateInput, Account } from '../../types';
 import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
+import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
+import { ParsedTransaction } from './types';
 
 // Optional import for native read SMS library
 let ExpoReadSms: any = null;
@@ -174,6 +176,133 @@ export async function requestSMSPermission(): Promise<boolean> {
 }
 
 /**
+ * Resolves the appropriate database account for a parsed SMS.
+ * Tries to match existing accounts, or creates a new bank/wallet account,
+ * or falls back to a primary onboarding account.
+ */
+export async function resolveAccountForParsedSMS(
+  parsed: ParsedTransaction,
+  sender: string
+): Promise<Account> {
+  const store = useTransactionStore.getState();
+  await store.loadAccounts();
+  const accounts = store.accounts;
+
+  const info = identifyBankFromSender(sender);
+  const bankId = info.bankId || (parsed.account.name ? normalizeBankName(parsed.account.name) : null);
+
+  if (bankId) {
+    const matchingAccounts = accounts.filter((a) => a.bankId === bankId);
+    if (matchingAccounts.length > 0) {
+      if (parsed.account.number) {
+        const numberMatch = matchingAccounts.find((a) => a.name.includes(parsed.account.number!));
+        if (numberMatch) {
+          return numberMatch;
+        }
+      }
+      return matchingAccounts[0];
+    }
+
+    // No matching account found for this bankId, but we know it's a valid bank/wallet
+    const name = info.bankName || parsed.account.name || 'Bank Account';
+    const type = parsed.account.type === 'CARD' ? 'credit_card' : (info.accountType === 'wallet' ? 'wallet' : 'bank');
+    const balance = parsed.balance.available !== null ? parsed.balance.available : 0;
+    const accountName = parsed.account.number ? `${name} XX${parsed.account.number}` : name;
+    
+    // Create new account
+    const newAccount = await store.createAccount({
+      name: accountName,
+      type,
+      balance,
+      currency: 'INR',
+      icon: info.accountType === 'wallet' ? '📱' : (type === 'credit_card' ? '💳' : '🏦'),
+      bankId: bankId,
+    });
+    return newAccount;
+  }
+
+  // Fallback to existing account
+  const fallback = accounts.find((a) => a.type === 'bank') || accounts.find((a) => a.type === 'cash') || accounts[0];
+  if (fallback) {
+    return fallback;
+  }
+
+  // Fallback: create a default bank account if none exists
+  return await store.createAccount({
+    name: 'Primary Bank Account',
+    type: 'bank',
+    balance: 50000,
+    currency: 'INR',
+    icon: '🏦',
+  });
+}
+
+/**
+ * Processes an incoming or scanned SMS message.
+ * Extracts fields, resolves account, checks duplicates, inserts to DB, and triggers a local notification.
+ * Returns true if a new transaction was successfully processed and added, false otherwise.
+ */
+export async function processIncomingSMS(
+  body: string,
+  receivedDate: string,
+  sender?: string,
+  shouldNotify: boolean = true
+): Promise<boolean> {
+  if (!body) return false;
+
+  const dateStr = new Date(receivedDate).toISOString();
+
+  // 1. Parse SMS using engine
+  const parsed = parseTransactionSMS(body, dateStr, sender);
+  if (!parsed || !parsed.transaction.amount || !parsed.transaction.type) {
+    return false;
+  }
+
+  // 2. Generate canonical hash using the parsed transaction details for deduplication
+  const hash = generateSMSHash(body, dateStr, parsed);
+
+  // 3. Duplicate Check
+  const alreadyExists = await checkSMSHashExists(hash);
+  if (alreadyExists) {
+    return false;
+  }
+
+  // 4. Resolve account for this transaction
+  const resolvedAccount = await resolveAccountForParsedSMS(parsed, sender || '');
+
+  // 5. Add Transaction to store
+  const store = useTransactionStore.getState();
+  await store.addTransaction({
+    accountId: resolvedAccount.id,
+    type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
+    amount: parsed.transaction.amount,
+    merchant: parsed.transaction.merchant || undefined,
+    description: parsed.rawBody,
+    date: parsed.date || dateStr,
+    source: 'sms',
+    smsHash: hash,
+  });
+
+  // 6. Trigger native notification if requested
+  if (shouldNotify && SpendLensSmsModule && typeof SpendLensSmsModule.showNotification === 'function') {
+    const amountFormatted = `₹${parsed.transaction.amount.toLocaleString('en-IN')}`;
+    const actionText = parsed.transaction.type === 'credit' ? 'credited to' : 'debited from';
+    const merchantText = parsed.transaction.merchant ? ` at ${parsed.transaction.merchant}` : '';
+    
+    try {
+      await SpendLensSmsModule.showNotification(
+        parsed.transaction.type === 'credit' ? 'Income Detected 💰' : 'Expense Detected 💸',
+        `${amountFormatted} ${actionText} ${resolvedAccount.name}${merchantText}.`
+      );
+    } catch (err) {
+      console.warn('Failed to trigger native notification:', err);
+    }
+  }
+
+  return true;
+}
+
+/**
  * Synchronize transactions from native Android SMS messages.
  * Reads the device's SMS inbox and parses financial transactions.
  * Returns the number of newly added transactions.
@@ -192,41 +321,18 @@ export async function syncSMSFromDevice(): Promise<number> {
     try {
       const messages = await SpendLensSmsModule.readSmsInbox();
       if (messages && messages.length > 0) {
-        const store = useTransactionStore.getState();
-        
-        // Find default account (prefer Bank, fallback to first available account)
-        let targetAccount = store.accounts.find((a) => a.type === 'bank') || store.accounts[0];
-        if (!targetAccount) {
-          targetAccount = await store.createAccount({
-            name: 'Primary Bank Account',
-            type: 'bank',
-            balance: 50000,
-            currency: 'INR',
-            icon: '🏦',
-          });
-        }
+        const tenDaysAgo = Date.now() - 10 * 24 * 60 * 60 * 1000;
         
         for (const sms of messages) {
-          const dateStr = new Date(sms.date).toISOString();
-          const hash = generateSMSHash(sms.body, dateStr);
-          const alreadyExists = await checkSMSHashExists(hash);
+          const smsTime = new Date(sms.date).getTime();
+          // STRICT constraint: history scan max upto 10days
+          if (smsTime < tenDaysAgo) {
+            continue;
+          }
           
-          if (!alreadyExists) {
-            const parsed = parseTransactionSMS(sms.body, dateStr, sms.address);
-            if (parsed && parsed.transaction.amount) {
-              const input: TransactionCreateInput = {
-                accountId: targetAccount.id,
-                type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
-                amount: parsed.transaction.amount,
-                merchant: parsed.transaction.merchant || undefined,
-                description: parsed.rawBody,
-                date: parsed.date || dateStr,
-                source: 'sms',
-                smsHash: hash,
-              };
-              await store.addTransaction(input);
-              newCount++;
-            }
+          const wasAdded = await processIncomingSMS(sms.body, sms.date, sms.address, false);
+          if (wasAdded) {
+            newCount++;
           }
         }
       }
@@ -244,42 +350,13 @@ export async function syncSMSFromDevice(): Promise<number> {
  * Returns the number of newly added transactions.
  */
 export async function simulateSMSScan(): Promise<number> {
-  const store = useTransactionStore.getState();
-  
-  // Ensure we have at least one account to assign transactions to
-  let targetAccount = store.accounts[0];
-  if (!targetAccount) {
-    targetAccount = await store.createAccount({
-      name: 'Primary Bank Account',
-      type: 'bank',
-      balance: 50000,
-      currency: 'INR',
-      icon: '🏦',
-    });
-  }
-  
   let newTransactionsCount = 0;
 
   for (const sms of MOCK_SMS_MESSAGES) {
-    const hash = generateSMSHash(sms.body, sms.date);
-    const alreadyExists = await checkSMSHashExists(hash);
-
-    if (!alreadyExists) {
-      const parsed = parseTransactionSMS(sms.body, sms.date, sms.sender);
-      if (parsed && parsed.transaction.amount) {
-        const input: TransactionCreateInput = {
-          accountId: targetAccount.id,
-          type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
-          amount: parsed.transaction.amount,
-          merchant: parsed.transaction.merchant || undefined,
-          description: parsed.rawBody,
-          date: parsed.date || sms.date,
-          source: 'sms',
-          smsHash: hash,
-        };
-        await store.addTransaction(input);
-        newTransactionsCount++;
-      }
+    // Note: We don't enforce the 10-day limit on mocks to ensure demo/testing functions correctly with mock data.
+    const wasAdded = await processIncomingSMS(sms.body, sms.date, sms.sender, false);
+    if (wasAdded) {
+      newTransactionsCount++;
     }
   }
 
@@ -328,48 +405,9 @@ export function startSMSListener(onNewTransactionAdded: (count: number) => void)
         const date = new Date().toISOString();
 
         if (body) {
-          const hash = generateSMSHash(body, date);
-          const alreadyExists = await checkSMSHashExists(hash);
-          if (!alreadyExists) {
-            const parsed = parseTransactionSMS(body, date, address);
-            if (parsed && parsed.transaction.amount) {
-              const store = useTransactionStore.getState();
-              
-              // Ensure we have an account
-              let targetAccount = store.accounts.find((a) => a.type === 'bank') || store.accounts[0];
-              if (!targetAccount) {
-                targetAccount = await store.createAccount({
-                  name: 'Primary Bank Account',
-                  type: 'bank',
-                  balance: 10000,
-                  currency: 'INR',
-                  icon: '🏦',
-                });
-              }
-              await store.addTransaction({
-                accountId: targetAccount.id,
-                type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
-                amount: parsed.transaction.amount,
-                merchant: parsed.transaction.merchant || undefined,
-                description: parsed.rawBody,
-                date: parsed.date || date,
-                source: 'sms',
-                smsHash: hash,
-              });
-              
-              // Push local native notification
-              if (SpendLensSmsModule && typeof SpendLensSmsModule.showNotification === 'function') {
-                const amountFormatted = `₹${parsed.transaction.amount.toLocaleString('en-IN')}`;
-                const actionText = parsed.transaction.type === 'credit' ? 'credited to' : 'debited from';
-                const merchantText = parsed.transaction.merchant ? ` at ${parsed.transaction.merchant}` : '';
-                SpendLensSmsModule.showNotification(
-                  parsed.transaction.type === 'credit' ? 'Income Detected 💰' : 'Expense Detected 💸',
-                  `${amountFormatted} ${actionText} your account${merchantText}.`
-                ).catch((err: any) => console.warn('Failed to trigger native notification:', err));
-              }
-
-              onNewTransactionAdded(1);
-            }
+          const wasAdded = await processIncomingSMS(body, date, address, true);
+          if (wasAdded) {
+            onNewTransactionAdded(1);
           }
         }
       }

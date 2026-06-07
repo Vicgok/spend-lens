@@ -115,8 +115,66 @@ export function parseTransactionSMS(
 /**
  * Generates a stable hash from SMS content for deduplication.
  */
-export function generateSMSHash(body: string, date: string): string {
-  const content = `${body.trim().toLowerCase()}|${date}`;
+export function generateSMSHash(
+  body: string,
+  date: string,
+  parsed?: ParsedTransaction | null
+): string {
+  let content = '';
+
+  if (parsed && parsed.transaction.amount && parsed.transaction.type) {
+    const amount = parsed.transaction.amount;
+    const merchant = (parsed.transaction.merchant || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    const accountLast4 = parsed.account.number || '';
+    const transactionType = parsed.transaction.type;
+    
+    // Extract yyyyMMdd from parsed.date or date parameter
+    const dStr = parsed.date || date;
+    let yyyyMMdd = '';
+    if (dStr) {
+      const datePart = dStr.split('T')[0];
+      if (datePart && /^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        yyyyMMdd = datePart.replace(/-/g, '');
+      } else {
+        try {
+          const d = new Date(dStr);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            yyyyMMdd = `${year}${month}${day}`;
+          }
+        } catch (_) {}
+      }
+    }
+    content = `${amount}|${merchant}|${accountLast4}|${transactionType}|${yyyyMMdd}`;
+  } else {
+    // Clean body text fallback
+    let cleanBody = body.toLowerCase().trim();
+    // Remove common prefixes
+    cleanBody = cleanBody.replace(/^(alert|dear customer|transaction alert|notification|notice|msg|msg_id)(:\s*|,\s*|\s+)/i, '');
+    cleanBody = cleanBody.replace(/\s+/g, ' ');
+    
+    let yyyyMMdd = '';
+    if (date) {
+      const datePart = date.split('T')[0];
+      if (datePart && /^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        yyyyMMdd = datePart.replace(/-/g, '');
+      } else {
+        try {
+          const d = new Date(date);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            yyyyMMdd = `${year}${month}${day}`;
+          }
+        } catch (_) {}
+      }
+    }
+    content = `${cleanBody}|${yyyyMMdd}`;
+  }
+
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);

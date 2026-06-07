@@ -23,22 +23,29 @@ export function cleanSenderId(sender: string): string {
 }
 
 /**
- * Maps the sender ID to a known predefined bank or wallet in the SpendLens DB.
- * Addresses U2 from reference.
+ * Normalizes user-input, sender info or body text to predefined bank IDs.
+ * Strictly ignores UPI IDs, VPAs, transaction refs or account numbers.
  */
-export function identifyBankFromSender(sender: string): ParsedSenderInfo {
-  const result: ParsedSenderInfo = {
-    isKnownBank: false,
-    bankId: null,
-    bankName: null,
-    accountType: null
-  };
+export function normalizeBankName(input: string): string | null {
+  if (!input) return null;
+  const cleaned = input.toLowerCase().trim();
 
-  if (!sender) return result;
+  // Rule 1: Ignore if it looks like VPA / UPI handle (contains @)
+  if (cleaned.includes('@')) {
+    return null;
+  }
 
-  const cleaned = cleanSenderId(sender);
+  // Rule 1: Ignore if it contains transaction reference or account numbers (e.g., digits with hyphen, or starts with 4+ digits)
+  if (/\b\d+-|-\d+\b/.test(cleaned) || /^[0-9\-]+$/.test(cleaned)) {
+    return null;
+  }
+  if (/^\d{4,}/.test(cleaned)) {
+    return null;
+  }
 
-  // Map known Indian SMS sender patterns to predefined bank/wallet IDs
+  // Priority 1: Exact senderId matches (6-letter sender IDs after cleaning prefix)
+  const sender = cleanSenderId(input).toUpperCase();
+  
   const senderToBankIdMap: Record<string, string> = {
     HDFCBK: 'hdfc',
     SBIINB: 'sbi',
@@ -59,20 +66,70 @@ export function identifyBankFromSender(sender: string): ParsedSenderInfo {
     PHONEPE: 'phonepe',
   };
 
-  let bankId = senderToBankIdMap[cleaned];
+  if (senderToBankIdMap[sender]) {
+    return senderToBankIdMap[sender];
+  }
 
-  // Try heuristic matching against predefined banks if not directly found
-  if (!bankId) {
-    const matchedBank = PREDEFINED_BANKS.find(bank => 
-      cleaned.includes(bank.shortName.toUpperCase()) || 
-      cleaned.includes(bank.id.toUpperCase())
-    );
-    if (matchedBank) {
-      bankId = matchedBank.id;
+  // Priority 2: Known bank keywords matching
+  const keywordsMap: Record<string, string> = {
+    icici: 'icici',
+    hdfc: 'hdfc',
+    sbi: 'sbi',
+    axis: 'axis',
+    kotak: 'kotak',
+    idfc: 'idfc',
+    federal: 'federal',
+    yesbank: 'yesbank',
+    yes: 'yesbank',
+    indusind: 'indusind',
+    pnb: 'pnb',
+    bob: 'bob',
+    canara: 'canara',
+    union: 'union',
+    paytm: 'paytm',
+    gpay: 'gpay',
+    phonepe: 'phonepe'
+  };
+
+  // Split cleaned text to find word boundary matches
+  const cleanText = cleaned.replace(/[^a-z0-9\s]/g, ' ');
+  const words = cleanText.split(/\s+/);
+
+  for (const word of words) {
+    if (keywordsMap[word]) {
+      return keywordsMap[word];
     }
   }
 
-  // Populate from predefined bank info
+  // Fallback: Check if any keyword matches as a word in the string via regex
+  for (const keyword of Object.keys(keywordsMap)) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(cleaned)) {
+      return keywordsMap[keyword];
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Maps the sender ID to a known predefined bank or wallet in the SpendLens DB.
+ * Addresses U2 from reference.
+ */
+export function identifyBankFromSender(sender: string): ParsedSenderInfo {
+  const result: ParsedSenderInfo = {
+    isKnownBank: false,
+    bankId: null,
+    bankName: null,
+    accountType: null
+  };
+
+  if (!sender) return result;
+
+  // Utilize the new normalizeBankName helper
+  const bankId = normalizeBankName(sender);
+
+  // Populate from predefined bank info if found
   if (bankId) {
     const bank = PREDEFINED_BANKS.find(b => b.id === bankId);
     if (bank) {
@@ -84,7 +141,8 @@ export function identifyBankFromSender(sender: string): ParsedSenderInfo {
     }
   }
 
-  // Fallback to checking constants lists for generic identification
+  // Fallback to checking constants lists for generic identification (e.g. US banks)
+  const cleaned = cleanSenderId(sender);
   const allKnownSenders = [
     ...BANK_SENDER_IDS.india,
     ...BANK_SENDER_IDS.us,

@@ -117,6 +117,7 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_sms_hash ON transactions(sms_hash);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_sms_hash_unique ON transactions(sms_hash);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   `);
 
@@ -146,6 +147,73 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
 }
 
 // ========== ACCOUNTS ==========
+
+export async function createAccountsBatch(inputs: AccountCreateInput[]): Promise<Account[]> {
+  const database = await getDatabase();
+  const createdAccounts: Account[] = [];
+
+  await database.withTransactionAsync(async () => {
+    for (const input of inputs) {
+      // Defensive validation: prevent duplicate bankId
+      if (input.bankId) {
+        const existing = await database.getFirstAsync<{ id: string }>(
+          'SELECT id FROM accounts WHERE bank_id = ?',
+          input.bankId
+        );
+        if (existing) {
+          throw new Error(`Account for bank "${input.name}" has already been added.`);
+        }
+      }
+
+      // Prevent duplicate cash account
+      if (input.type === 'cash') {
+        const existing = await database.getFirstAsync<{ id: string }>(
+          "SELECT id FROM accounts WHERE type = 'cash'"
+        );
+        if (existing) {
+          throw new Error('A Cash account already exists.');
+        }
+      }
+
+      // Prevent duplicate wallet with same name
+      if (input.type === 'wallet') {
+        const existing = await database.getFirstAsync<{ id: string }>(
+          "SELECT id FROM accounts WHERE type = 'wallet' AND LOWER(name) = ?",
+          input.name.toLowerCase().trim()
+        );
+        if (existing) {
+          throw new Error(`Wallet "${input.name}" has already been added.`);
+        }
+      }
+
+      const id = generateId();
+      const now = new Date().toISOString();
+      const account: Account = {
+        id,
+        name: input.name,
+        type: input.type,
+        balance: input.balance,
+        currency: input.currency || 'INR',
+        icon: input.icon || null,
+        color: input.color || null,
+        bankId: input.bankId || null,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      await database.runAsync(
+        `INSERT INTO accounts (id, name, type, balance, currency, icon, color, bank_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        account.id, account.name, account.type, account.balance,
+        account.currency, account.icon, account.color, account.bankId, account.createdAt, account.updatedAt
+      );
+
+      createdAccounts.push(account);
+    }
+  });
+
+  return createdAccounts;
+}
 
 export async function createAccount(input: AccountCreateInput): Promise<Account> {
   const database = await getDatabase();
@@ -230,7 +298,7 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
   };
 
   await database.runAsync(
-    `INSERT INTO transactions (id, account_id, type, amount, category_id, merchant, description, date, source, sms_hash, is_recurring, tags, created_at, synced_at)
+    `INSERT OR IGNORE INTO transactions (id, account_id, type, amount, category_id, merchant, description, date, source, sms_hash, is_recurring, tags, created_at, synced_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     transaction.id, transaction.accountId, transaction.type, transaction.amount,
     transaction.categoryId, transaction.merchant, transaction.description,
