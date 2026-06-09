@@ -1,6 +1,12 @@
 # dependencies
 node_modules/
 
+# ide
+.idea/
+.vscode/
+
+# local
+scripts/
 # Expo
 .expo/
 dist/

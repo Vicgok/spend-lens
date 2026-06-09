@@ -6,7 +6,6 @@
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo-google-fonts/poppins": "^0.4.1",
-    "@maniac-tech/react-native-expo-read-sms": "^9.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.100.14",
     "babel-preset-expo": "~54.0.10",
@@ -48,7 +47,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "tsx src/features/sms-parser/__tests__/run-tests.ts",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "android:build": "expo prebuild --clean --platform android && node scripts/update-gradle.js && cd android && .\\gradlew assembleRelease"
   },
   "private": true
 }
