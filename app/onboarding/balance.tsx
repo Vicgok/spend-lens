@@ -183,7 +183,6 @@ export default function BalanceSetup() {
       const errorMessage = error.message || 'Failed to save accounts. Please try again.';
       await writeLog('ONBOARDING_FAILED', `Onboarding account creation failed: ${errorMessage}`, { error: error.message });
       Alert.alert('Error', errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };

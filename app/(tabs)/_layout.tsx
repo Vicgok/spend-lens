@@ -144,10 +144,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     opacity: underlineOpacity.value,
   }));
 
-  const handleAddPress = () => {
-    router.push('/add-transaction');
-  };
-
   return (
     <View
       style={[
@@ -205,13 +201,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           />
         );
       })}
-
-      <TabBarButton
-        isFocused={false}
-        onPress={handleAddPress}
-        index={4}
-        tabWidth={tabWidth}
-      />
     </View>
   );
 }
@@ -231,6 +220,18 @@ export default function TabLayout() {
       <Tabs.Screen name="transactions" />
       <Tabs.Screen name="insights" />
       <Tabs.Screen name="settings" />
+      <Tabs.Screen
+        name="add-transaction"
+        options={{
+          href: null,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push('/add-transaction');
+          },
+        }}
+      />
     </Tabs>
   );
 }

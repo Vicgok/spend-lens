@@ -114,7 +114,6 @@ export default function AddTransactionScreen() {
       router.back();
     } catch (error) {
       console.error('Failed to add transaction:', error);
-    } finally {
       setIsSubmitting(false);
     }
   };
