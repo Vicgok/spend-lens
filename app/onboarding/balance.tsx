@@ -22,6 +22,7 @@ import { useOnboardingStore } from '@/stores/settings-store';
 import { AccountType } from '@/types';
 import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
 import { AccountIcon, BankLogo } from '@/components/ui/BankLogo';
+import { writeLog } from '@/lib/database';
 
 const { height } = Dimensions.get('window');
 
@@ -131,6 +132,15 @@ export default function BalanceSetup() {
     setAccounts((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const logger = {
+    info: (msg: string) => {
+      console.log(msg);
+      writeLog('ONBOARDING_TRACE', msg).catch((e) =>
+        console.warn('[logger] Failed to write trace log:', e)
+      );
+    },
+  };
+
   const handleFinish = async () => {
     if (accounts.length === 0) {
       Alert.alert('Add Account', 'Please add at least one account.');
@@ -138,6 +148,7 @@ export default function BalanceSetup() {
     }
     
     setIsSubmitting(true);
+    await writeLog('ONBOARDING_STARTED', `User initiated onboarding complete with ${accounts.length} accounts`);
     try {
       const accountInputs = accounts.map((acc) => {
         const balance = parseFloat(acc.balance.replace(/,/g, '')) || 0;
@@ -152,12 +163,25 @@ export default function BalanceSetup() {
         };
       });
 
+      logger.info('[ONBOARDING] createAccountsBatch start');
       await createAccountsBatch(accountInputs);
+      logger.info('[ONBOARDING] createAccountsBatch success');
+
+      logger.info('[ONBOARDING] completeOnboarding start');
       await completeOnboarding();
+      logger.info('[ONBOARDING] completeOnboarding success');
+
+      // Hydrate state before navigation
+      await useTransactionStore.getState().loadAccounts();
+      await useTransactionStore.getState().loadTransactions();
+
+      logger.info('[ONBOARDING] router.replace start');
       router.replace('/(tabs)');
+      logger.info('[ONBOARDING] router.replace executed');
     } catch (error: any) {
       console.error('[Onboarding Account Creation]', error);
       const errorMessage = error.message || 'Failed to save accounts. Please try again.';
+      await writeLog('ONBOARDING_FAILED', `Onboarding account creation failed: ${errorMessage}`, { error: error.message });
       Alert.alert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);

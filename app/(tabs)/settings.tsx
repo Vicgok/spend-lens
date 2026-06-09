@@ -243,6 +243,7 @@ export default function SettingsScreen() {
           />
           <SettingsRow icon="accounts" label="Manage Accounts" onPress={() => router.push('/accounts' as any)} />
           <SettingsRow icon="categories" label="Categories" onPress={() => router.push('/categories' as any)} />
+          <SettingsRow icon="profile" label="Developer Tools" onPress={() => router.push('/developer-tools' as any)} />
         </View>
  
         {/* Data */}

@@ -96,12 +96,13 @@ export default function AddTransactionScreen() {
   const handleSubmit = async () => {
     const parsedAmount = parseFloat(amount.replace(/,/g, ''));
     if (!parsedAmount || parsedAmount <= 0) return;
-    if (accounts.length === 0) return;
+    const accountId = accounts?.[0]?.id;
+    if (!accountId) return;
 
     setIsSubmitting(true);
     try {
       await addTransaction({
-        accountId: accounts[0].id,
+        accountId,
         type,
         amount: parsedAmount,
         categoryId: selectedCategory || undefined,

@@ -113,6 +113,21 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS bank_detections (
+      bank_id TEXT PRIMARY KEY,
+      bank_name TEXT NOT NULL,
+      status TEXT NOT NULL,
+      detected_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS logs (
+      id TEXT PRIMARY KEY,
+      event TEXT NOT NULL,
+      message TEXT,
+      details TEXT,
+      timestamp TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
@@ -701,6 +716,109 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM accounts;
     DELETE FROM goals;
     DELETE FROM settings;
+    DELETE FROM bank_detections;
+    DELETE FROM logs;
   `);
+}
+
+// ========== LOGS ==========
+
+export interface LogEntry {
+  id: string;
+  event: string;
+  message: string | null;
+  details: string | null;
+  timestamp: string;
+}
+
+export async function writeLog(event: string, message: string | null, details: any = null): Promise<void> {
+  try {
+    const database = await getDatabase();
+    const id = generateId();
+    const timestamp = new Date().toISOString();
+    const detailsStr = details ? JSON.stringify(details) : null;
+    
+    await database.runAsync(
+      `INSERT INTO logs (id, event, message, details, timestamp) VALUES (?, ?, ?, ?, ?)`,
+      id, event, message, detailsStr, timestamp
+    );
+    console.log(`[LOG - ${event}] ${message}`);
+  } catch (e) {
+    console.error('Failed to write log to SQLite:', e);
+  }
+}
+
+export async function getLogs(limit: number = 200): Promise<LogEntry[]> {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<{
+    id: string; event: string; message: string | null; details: string | null; timestamp: string;
+  }>('SELECT * FROM logs ORDER BY timestamp DESC LIMIT ?', limit);
+  return rows.map((row) => ({
+    id: row.id,
+    event: row.event,
+    message: row.message,
+    details: row.details,
+    timestamp: row.timestamp,
+  }));
+}
+
+export async function clearLogs(): Promise<void> {
+  const database = await getDatabase();
+  await database.execAsync('DELETE FROM logs');
+}
+
+// ========== BANK DETECTIONS ==========
+
+export interface DetectedBank {
+  bankId: string;
+  bankName: string;
+  status: 'pending' | 'tracked' | 'ignored';
+  detectedAt: string;
+}
+
+export async function addPendingDetection(bankId: string, bankName: string): Promise<void> {
+  try {
+    const database = await getDatabase();
+    // Only insert if not already exists (keeps original status/date)
+    const existing = await database.getFirstAsync<{ bank_id: string }>(
+      'SELECT bank_id FROM bank_detections WHERE bank_id = ?',
+      bankId
+    );
+    if (!existing) {
+      await database.runAsync(
+        'INSERT INTO bank_detections (bank_id, bank_name, status, detected_at) VALUES (?, ?, ?, ?)',
+        bankId,
+        bankName,
+        'pending',
+        new Date().toISOString()
+      );
+      await writeLog('ACCOUNT_NOT_FOUND', `Detected new untracked bank: ${bankName} (${bankId})`, { bankId, bankName });
+    }
+  } catch (e) {
+    console.error('Failed to insert pending bank detection:', e);
+  }
+}
+
+export async function getPendingDetections(): Promise<DetectedBank[]> {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<{
+    bank_id: string; bank_name: string; status: string; detected_at: string;
+  }>("SELECT * FROM bank_detections WHERE status = 'pending' ORDER BY detected_at DESC");
+  return rows.map((row) => ({
+    bankId: row.bank_id,
+    bankName: row.bank_name,
+    status: row.status as DetectedBank['status'],
+    detectedAt: row.detected_at,
+  }));
+}
+
+export async function updateDetectionStatus(bankId: string, status: 'pending' | 'tracked' | 'ignored'): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
+    'UPDATE bank_detections SET status = ? WHERE bank_id = ?',
+    status,
+    bankId
+  );
+  await writeLog('ACCOUNT_MATCHED', `Updated bank detection status for ${bankId} to ${status}`);
 }
 

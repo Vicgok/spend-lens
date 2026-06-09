@@ -10,6 +10,9 @@ import {
   Platform,
   Alert,
   NativeModules,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,15 +25,35 @@ import { getCategoryById } from '@/features/categorizer/categorizer';
 import { syncSMSFromDevice, startSMSListener, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
 import { TransactionSkeleton } from '@/components/ui/Skeleton';
 import { detectImpulseSpending } from '@/features/insights-engine/detector';
+import { getPendingDetections, updateDetectionStatus, DetectedBank, writeLog } from '@/lib/database';
 import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
+
+const logger = {
+  info: (msg: string) => {
+    console.log(msg);
+    writeLog('TABS_TRACE', msg).catch((e) =>
+      console.warn('[logger] Failed to write trace log:', e)
+    );
+  },
+  error: (msg: string, err?: any) => {
+    console.error(msg, err);
+    writeLog('TABS_ERROR', `${msg}: ${err?.message || String(err)}`, {
+      error: err?.message,
+    }).catch((e) => console.warn('[logger] Failed to write error log:', e));
+  },
+};
 
 export default function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = React.useState(false);
   const [selectedAccountId, setSelectedAccountId] = React.useState<string | null>(null);
+  const [pendingBanks, setPendingBanks] = React.useState<DetectedBank[]>([]);
+  const [addingBank, setAddingBank] = React.useState<DetectedBank | null>(null);
+  const [initialBalance, setInitialBalance] = React.useState('');
+  const [isAppReady, setIsAppReady] = React.useState(false);
 
   const {
     transactions,
@@ -45,18 +68,69 @@ export default function DashboardScreen() {
   } = useTransactionStore();
 
   const loadData = useCallback(async () => {
+    logger.info('[TABS_INIT]');
     try {
       await syncSMSFromDevice();
     } catch (e) {
       console.warn('SMS sync error:', e);
     }
-    await Promise.all([
-      loadAccounts(),
-      loadTransactions(),
-      loadMonthlyStats(),
-      loadCategories(),
-    ]);
-  }, [loadAccounts, loadTransactions, loadMonthlyStats, loadCategories]);
+    try {
+      const detections = await getPendingDetections();
+      setPendingBanks(detections);
+    } catch (e) {
+      console.warn('Failed to load pending bank detections:', e);
+    }
+
+    try {
+      await loadAccounts();
+      logger.info('[TABS_ACCOUNTS_LOADED]');
+
+      await loadTransactions();
+      logger.info('[TABS_TRANSACTIONS_LOADED]');
+
+      await Promise.all([
+        loadMonthlyStats(),
+        loadCategories(),
+      ]);
+
+      setIsAppReady(true);
+      logger.info('[TABS_READY]');
+    } catch (err: any) {
+      logger.error('[TABS_RENDER_ERROR]', err);
+    }
+  }, []); // Stable store actions do not change reference
+
+  const handleIgnoreBank = async (bankId: string) => {
+    try {
+      await updateDetectionStatus(bankId, 'ignored');
+      setPendingBanks((prev) => prev.filter((b) => b.bankId !== bankId));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddAccount = async () => {
+    if (!addingBank) return;
+    const balance = parseFloat(initialBalance.replace(/,/g, '')) || 0;
+    try {
+      await useTransactionStore.getState().createAccount({
+        name: addingBank.bankName,
+        type: 'bank',
+        balance,
+        currency: 'INR',
+        icon: '🏦',
+        bankId: addingBank.bankId,
+      });
+      await updateDetectionStatus(addingBank.bankId, 'tracked');
+      setPendingBanks((prev) => prev.filter((b) => b.bankId !== addingBank.bankId));
+      setAddingBank(null);
+      setInitialBalance('');
+      await loadData();
+      Alert.alert('Account Added', `Account for ${addingBank.bankName} added successfully.`);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add account.');
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -165,6 +239,17 @@ export default function DashboardScreen() {
 
   const pulsePath = getPulseGraphPath();
 
+  if (!isAppReady) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: typography.fontFamily.medium }]}>
+          Loading your financial observatory...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
       <ScrollView
@@ -197,6 +282,53 @@ export default function DashboardScreen() {
             </Pressable>
           </View>
         </View>
+
+        {/* Pending Bank Detections Alert Card */}
+        {pendingBanks.map((bank) => (
+          <View
+            key={bank.bankId}
+            style={[
+              styles.detectionCard,
+              { backgroundColor: theme.card, borderColor: theme.border }
+            ]}
+          >
+            <View style={styles.detectionHeader}>
+              <Text style={styles.detectionIcon}>🏦</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.detectionTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+                  New Bank Found
+                </Text>
+                <Text style={[styles.detectionDesc, { color: theme.textSecondary }]}>
+                  {bank.bankName} transactions were detected. Track this account?
+                </Text>
+              </View>
+            </View>
+            <View style={styles.detectionActions}>
+              <Pressable
+                onPress={() => setAddingBank(bank)}
+                style={({ pressed }) => [
+                  styles.detectionBtn,
+                  { backgroundColor: theme.primary, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }
+                ]}
+              >
+                <Text style={[styles.detectionBtnText, { color: '#1B1B1B', fontFamily: typography.fontFamily.bold }]}>
+                  Add Account
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleIgnoreBank(bank.bankId)}
+                style={({ pressed }) => [
+                  styles.detectionBtnIgnore,
+                  { borderColor: theme.border, opacity: pressed ? 0.7 : 1 }
+                ]}
+              >
+                <Text style={[styles.detectionBtnTextIgnore, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
+                  Ignore
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ))}
 
         {/* Section 1: Balance Overview Grid */}
         <View style={[styles.balanceCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -473,6 +605,58 @@ export default function DashboardScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal for adding bank account from detection */}
+      <Modal
+        visible={addingBank !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setAddingBank(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+                Add {addingBank?.bankName} Account
+              </Text>
+              <Pressable onPress={() => setAddingBank(null)} style={styles.modalCloseButton}>
+                <Text style={[styles.modalCloseText, { color: theme.textSecondary }]}>✕</Text>
+              </Pressable>
+            </View>
+
+            <View style={{ paddingHorizontal: 24, gap: 16, marginTop: 16 }}>
+              <Text style={{ color: theme.textSecondary, fontSize: 14, lineHeight: 20 }}>
+                Set the starting balance for this account to begin tracking. Transactions will be backfilled automatically.
+              </Text>
+
+              <View style={[styles.inputContainer, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+                <Text style={[styles.currencySymbol, { color: theme.primary }]}>₹</Text>
+                <TextInput
+                  style={[styles.balanceInput, { color: theme.text }]}
+                  placeholder="0"
+                  placeholderTextColor={theme.textMuted}
+                  keyboardType="decimal-pad"
+                  value={initialBalance}
+                  onChangeText={setInitialBalance}
+                  autoFocus={true}
+                />
+              </View>
+
+              <Pressable
+                onPress={handleAddAccount}
+                style={({ pressed }) => [
+                  styles.submitBtn,
+                  { backgroundColor: theme.primary, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }
+                ]}
+              >
+                <Text style={{ color: '#1B1B1B', fontFamily: typography.fontFamily.bold, fontSize: 15 }}>
+                  Add Account
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -507,6 +691,16 @@ function getAccountTypeEmoji(type: string): string {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
   scrollContent: { paddingHorizontal: 16 },
   header: {
     flexDirection: 'row',
@@ -770,5 +964,113 @@ const styles = StyleSheet.create({
   },
   accountCardBalance: {
     fontSize: 14,
+  },
+  detectionCard: {
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  detectionHeader: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  detectionIcon: {
+    fontSize: 28,
+  },
+  detectionTitle: {
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  detectionDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  detectionActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  detectionBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 4,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  detectionBtnText: {
+    fontSize: 13,
+  },
+  detectionBtnIgnore: {
+    width: 80,
+    height: 38,
+    borderRadius: 4,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  detectionBtnTextIgnore: {
+    fontSize: 13,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    borderRadius: 8,
+    borderWidth: 1,
+    width: '100%',
+    maxWidth: 340,
+    paddingVertical: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseText: {
+    fontSize: 18,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    height: 48,
+    borderWidth: 1,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  balanceInput: {
+    flex: 1,
+    fontSize: 18,
+    padding: 0,
+  },
+  submitBtn: {
+    height: 48,
+    borderRadius: 4,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
   },
 });

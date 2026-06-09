@@ -24,6 +24,7 @@ import {
 } from '@expo-google-fonts/jetbrains-mono';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { useOnboardingStore, useSettingsStore } from '@/stores/settings-store';
+export { ErrorBoundary } from './error';
 
 // Optimize native screens behavior
 enableScreens(true);

@@ -244,6 +244,11 @@ function runBugFixTests() {
 
   // Bug 3 Bank Identification / Normalization
   assert(normalizeBankName('AD-HDFCBK') === 'hdfc', 'Bug 3: AD-HDFCBK -> hdfc');
+  assert(normalizeBankName('JX-HDFCBK-S') === 'hdfc', 'Bug 3: JX-HDFCBK-S -> hdfc');
+  assert(normalizeBankName('AX-ICICIT-S') === 'icici', 'Bug 3: AX-ICICIT-S -> icici');
+  assert(normalizeBankName('AD-SBIUPI-S') === 'sbi', 'Bug 3: AD-SBIUPI-S -> sbi');
+  assert(normalizeBankName('AD-AXISMR-P') === 'axis', 'Bug 3: AD-AXISMR-P -> axis');
+  assert(normalizeBankName('CP-HDFCBN-S') === 'hdfc', 'Bug 3: CP-HDFCBN-S -> hdfc');
   assert(normalizeBankName('abc@okicici') === null, 'Bug 3: Ignore UPI VPA/handles containing @');
   assert(normalizeBankName('312312312321-icici') === null, 'Bug 3: Ignore references containing digits and hyphens');
   assert(normalizeBankName('41234567890-icici') === null, 'Bug 3: Ignore digits followed by bank identifier');

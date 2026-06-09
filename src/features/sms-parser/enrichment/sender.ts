@@ -9,16 +9,18 @@ export interface ParsedSenderInfo {
 }
 
 /**
- * Strips carrier/regional headers from SMS sender IDs (e.g., "AD-HDFCBK" -> "HDFCBK").
+ * Strips carrier/regional headers and suffixes from SMS sender IDs (e.g., "AD-HDFCBK-S" -> "HDFCBK").
  */
 export function cleanSenderId(sender: string): string {
   if (!sender) return '';
-  const cleaned = sender.toUpperCase().trim();
-  // Strip typical Indian SMS provider prefixes (e.g., AX-HDFCBK)
-  const match = cleaned.match(/^[A-Z]{2}-([A-Z0-9]+)$/);
-  if (match) {
-    return match[1];
-  }
+  let cleaned = sender.toUpperCase().trim();
+  
+  // Strip typical Indian SMS provider prefixes (e.g., "JX-" in "JX-HDFCBK-S")
+  cleaned = cleaned.replace(/^[A-Z]{2}-/, '');
+  
+  // Strip typical SMS provider suffixes (e.g., "-S", "-P", "-T" in "HDFCBK-S")
+  cleaned = cleaned.replace(/-[A-Z]$/, '');
+  
   return cleaned;
 }
 
@@ -43,17 +45,24 @@ export function normalizeBankName(input: string): string | null {
     return null;
   }
 
-  // Priority 1: Exact senderId matches (6-letter sender IDs after cleaning prefix)
+  // Priority 1: Exact senderId matches after cleaning prefix and suffix
   const sender = cleanSenderId(input).toUpperCase();
   
   const senderToBankIdMap: Record<string, string> = {
     HDFCBK: 'hdfc',
+    HDFCBN: 'hdfc',
     SBIINB: 'sbi',
+    SBIUPI: 'sbi',
+    SBINB: 'sbi',
     ICICIB: 'icici',
+    ICICIT: 'icici',
+    ICICIP: 'icici',
     AXISBK: 'axis',
+    AXISMR: 'axis',
     KOTAKB: 'kotak',
     PNBSMS: 'pnb',
     BOIIND: 'bob',
+    BOBPRO: 'bob',
     CANBNK: 'canara',
     UCOBNK: 'union',
     INDBNK: 'indusind',
@@ -68,6 +77,35 @@ export function normalizeBankName(input: string): string | null {
 
   if (senderToBankIdMap[sender]) {
     return senderToBankIdMap[sender];
+  }
+
+  // Priority 1.5: Substring prefix/keyword matching for sender IDs
+  const bankPrefixes: Record<string, string> = {
+    HDFC: 'hdfc',
+    ICICI: 'icici',
+    AXIS: 'axis',
+    KOTAK: 'kotak',
+    PNB: 'pnb',
+    BOB: 'bob',
+    CANARA: 'canara',
+    UNION: 'union',
+    INDUSIND: 'indusind',
+    YESB: 'yesbank',
+    IDFC: 'idfc',
+    FEDERL: 'federal',
+    FEDERAL: 'federal',
+    PAYTM: 'paytm',
+    PYTM: 'paytm',
+  };
+
+  for (const [prefix, id] of Object.entries(bankPrefixes)) {
+    if (sender.startsWith(prefix)) {
+      return id;
+    }
+  }
+
+  if (sender.startsWith('SBI') || sender.startsWith('SBIN')) {
+    return 'sbi';
   }
 
   // Priority 2: Known bank keywords matching

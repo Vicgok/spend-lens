@@ -1,7 +1,7 @@
 import { Platform, PermissionsAndroid, NativeModules } from 'react-native';
 import { parseTransactionSMS, generateSMSHash } from './engine';
 import { useTransactionStore } from '../../stores/transaction-store';
-import { checkSMSHashExists } from '../../lib/database';
+import { checkSMSHashExists, writeLog, addPendingDetection } from '../../lib/database';
 import { TransactionCreateInput, Account } from '../../types';
 import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
@@ -177,13 +177,13 @@ export async function requestSMSPermission(): Promise<boolean> {
 
 /**
  * Resolves the appropriate database account for a parsed SMS.
- * Tries to match existing accounts, or creates a new bank/wallet account,
- * or falls back to a primary onboarding account.
+ * Tries to match existing accounts by last 4 digits, bankId, or bank name.
+ * Never creates account automatically. Registers pending bank detections instead.
  */
 export async function resolveAccountForParsedSMS(
   parsed: ParsedTransaction,
   sender: string
-): Promise<Account> {
+): Promise<Account | null> {
   const store = useTransactionStore.getState();
   await store.loadAccounts();
   const accounts = store.accounts;
@@ -191,50 +191,58 @@ export async function resolveAccountForParsedSMS(
   const info = identifyBankFromSender(sender);
   const bankId = info.bankId || (parsed.account.name ? normalizeBankName(parsed.account.name) : null);
 
+  // 1. Match by last 4 digits first if present (Priority 1)
+  if (parsed.account.number) {
+    const numberMatch = accounts.find((a) => a.name.includes(parsed.account.number!));
+    if (numberMatch) {
+      await writeLog('ACCOUNT_MATCHED', `Resolved account by last 4 digits: ${numberMatch.name}`, { bankId, accountNumber: parsed.account.number });
+      return numberMatch;
+    }
+  }
+
+  // 2. Match by bankId (Priority 2)
   if (bankId) {
     const matchingAccounts = accounts.filter((a) => a.bankId === bankId);
     if (matchingAccounts.length > 0) {
-      if (parsed.account.number) {
-        const numberMatch = matchingAccounts.find((a) => a.name.includes(parsed.account.number!));
-        if (numberMatch) {
-          return numberMatch;
+      // Refined matching: try to match type (e.g. card/wallet vs bank account)
+      const isCardTransaction = parsed.account.type === 'CARD';
+      const typeMatchedMatch = matchingAccounts.find((a) => {
+        const nameLower = a.name.toLowerCase();
+        if (isCardTransaction) {
+          return nameLower.includes('card');
+        } else {
+          return !nameLower.includes('card') && !nameLower.includes('wallet');
         }
-      }
-      return matchingAccounts[0];
+      });
+      const resolved = typeMatchedMatch || matchingAccounts[0];
+      await writeLog('ACCOUNT_MATCHED', `Resolved account by bankId and type: ${resolved.name}`, { bankId, type: parsed.account.type });
+      return resolved;
     }
-
-    // No matching account found for this bankId, but we know it's a valid bank/wallet
-    const name = info.bankName || parsed.account.name || 'Bank Account';
-    const type = parsed.account.type === 'CARD' ? 'credit_card' : (info.accountType === 'wallet' ? 'wallet' : 'bank');
-    const balance = parsed.balance.available !== null ? parsed.balance.available : 0;
-    const accountName = parsed.account.number ? `${name} XX${parsed.account.number}` : name;
-    
-    // Create new account
-    const newAccount = await store.createAccount({
-      name: accountName,
-      type,
-      balance,
-      currency: 'INR',
-      icon: info.accountType === 'wallet' ? '📱' : (type === 'credit_card' ? '💳' : '🏦'),
-      bankId: bankId,
-    });
-    return newAccount;
   }
 
-  // Fallback to existing account
-  const fallback = accounts.find((a) => a.type === 'bank') || accounts.find((a) => a.type === 'cash') || accounts[0];
-  if (fallback) {
-    return fallback;
+  // 3. Match by bank name / normalizer (Priority 3)
+  const parsedBankName = parsed.account.name || info.bankName;
+  if (parsedBankName) {
+    const nameNorm = normalizeBankName(parsedBankName);
+    if (nameNorm) {
+      const match = accounts.find((a) => a.bankId === nameNorm || a.name.toLowerCase().includes(parsedBankName.toLowerCase()));
+      if (match) {
+        await writeLog('ACCOUNT_MATCHED', `Resolved account by normalized name: ${match.name}`, { parsedBankName });
+        return match;
+      }
+    }
   }
 
-  // Fallback: create a default bank account if none exists
-  return await store.createAccount({
-    name: 'Primary Bank Account',
-    type: 'bank',
-    balance: 50000,
-    currency: 'INR',
-    icon: '🏦',
-  });
+  // 4. No match exists - Create pending bank detection (if valid bankId)
+  if (bankId) {
+    const name = info.bankName || parsed.account.name || bankId.toUpperCase();
+    await addPendingDetection(bankId, name);
+  }
+
+  // Log as not found since no active account was resolved
+  await writeLog('ACCOUNT_NOT_FOUND', `Could not resolve account for sender: ${sender}`, { sender, parsed });
+
+  return null;
 }
 
 /**
@@ -251,12 +259,16 @@ export async function processIncomingSMS(
   if (!body) return false;
 
   const dateStr = new Date(receivedDate).toISOString();
+  await writeLog('SMS_RECEIVED', `Intercepted SMS from ${sender || 'unknown'}`, { body, sender, receivedDate });
 
   // 1. Parse SMS using engine
   const parsed = parseTransactionSMS(body, dateStr, sender);
   if (!parsed || !parsed.transaction.amount || !parsed.transaction.type) {
+    await writeLog('SMS_FAILED', `SMS failed validation or not financial`, { body, sender });
     return false;
   }
+
+  await writeLog('SMS_PARSED', `SMS parsed successfully: ₹${parsed.transaction.amount} at ${parsed.transaction.merchant || 'unknown'}`, { parsed });
 
   // 2. Generate canonical hash using the parsed transaction details for deduplication
   const hash = generateSMSHash(body, dateStr, parsed);
@@ -264,11 +276,15 @@ export async function processIncomingSMS(
   // 3. Duplicate Check
   const alreadyExists = await checkSMSHashExists(hash);
   if (alreadyExists) {
+    await writeLog('TXN_SKIPPED_DUPLICATE', `Transaction duplicate skipped for hash ${hash}`);
     return false;
   }
 
   // 4. Resolve account for this transaction
   const resolvedAccount = await resolveAccountForParsedSMS(parsed, sender || '');
+  if (!resolvedAccount) {
+    return false; // Skip persisting since we cannot map it to a tracked account yet
+  }
 
   // 5. Add Transaction to store
   const store = useTransactionStore.getState();
@@ -283,6 +299,8 @@ export async function processIncomingSMS(
     smsHash: hash,
   });
 
+  await writeLog('TXN_CREATED', `Transaction of ₹${parsed.transaction.amount} persisted to account ${resolvedAccount.name}`, { hash });
+
   // 6. Trigger native notification if requested
   if (shouldNotify && SpendLensSmsModule && typeof SpendLensSmsModule.showNotification === 'function') {
     const amountFormatted = `₹${parsed.transaction.amount.toLocaleString('en-IN')}`;
@@ -294,6 +312,7 @@ export async function processIncomingSMS(
         parsed.transaction.type === 'credit' ? 'Income Detected 💰' : 'Expense Detected 💸',
         `${amountFormatted} ${actionText} ${resolvedAccount.name}${merchantText}.`
       );
+      await writeLog('NOTIFICATION_CREATED', `Triggered transaction notification: ₹${parsed.transaction.amount}`);
     } catch (err) {
       console.warn('Failed to trigger native notification:', err);
     }

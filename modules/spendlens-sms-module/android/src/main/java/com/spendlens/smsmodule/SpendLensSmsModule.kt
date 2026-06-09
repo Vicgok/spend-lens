@@ -1,6 +1,7 @@
 package com.spendlens.smsmodule
 
 import android.Manifest
+import android.app.PendingIntent
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -88,12 +89,26 @@ class SpendLensSmsModule : Module() {
 
         val iconId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
 
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val pendingIntent = if (launchIntent != null) {
+          PendingIntent.getActivity(
+            context,
+            0,
+            launchIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+          )
+        } else null
+
         val builder = NotificationCompat.Builder(context, channelId)
           .setSmallIcon(if (iconId != 0) iconId else android.R.drawable.ic_dialog_info)
           .setContentTitle(title)
           .setContentText(message)
           .setPriority(NotificationCompat.PRIORITY_DEFAULT)
           .setAutoCancel(true)
+
+        if (pendingIntent != null) {
+          builder.setContentIntent(pendingIntent)
+        }
 
         if (Build.VERSION.SDK_INT >= 33) {
           if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
