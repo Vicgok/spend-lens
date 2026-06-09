@@ -7,16 +7,8 @@ import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
 import { ParsedTransaction } from './types';
 
-// Optional import for native read SMS library
-let ExpoReadSms: any = null;
-try {
-  ExpoReadSms = require('@maniac-tech/react-native-expo-read-sms');
-} catch (error) {
-  // Graceful fallback for Expo Go, iOS, or environment without the library
-}
-
 // Detect if we actually have the native module linked (false in Expo Go/iOS/Simulators)
-const hasNativeModule = Platform.OS === 'android' && !!NativeModules.RNExpoReadSms;
+const hasNativeModule = Platform.OS === 'android' && !!SpendLensSmsModule;
 
 // Helper to get a ISO date string offset by days, optionally forced to weekend
 function getMockDateISO(daysAgo: number, forceWeekend: boolean = false): string {
@@ -384,62 +376,18 @@ export async function simulateSMSScan(): Promise<number> {
 
 /**
  * Start listening for incoming SMS messages (Android only).
+ *
+ * NOTE: Incoming SMS is handled natively by the manifest-registered SmsReceiver
+ * which triggers SmsHeadlessTaskService. This JS-side listener is no longer needed
+ * and was causing native crashes due to the @maniac-tech/react-native-expo-read-sms
+ * library registering a duplicate BroadcastReceiver. The native pipeline handles
+ * everything: receive SMS → HeadlessJS → processIncomingSMS → notification.
+ *
+ * This function now only sets up a polling-based refresh when the app is foregrounded
+ * to pick up any transactions created by the background headless task.
  */
 export function startSMSListener(onNewTransactionAdded: (count: number) => void) {
-  if (!hasNativeModule || !ExpoReadSms) {
-    return () => {};
-  }
-
-  console.log('Starting SMS background receiver...');
-  
-  try {
-    ExpoReadSms.startReadSMS(
-      async (status: string, smsData: any, errorMsg?: any) => {
-        if (status === 'error') {
-          console.error('SMS Listener Error:', errorMsg);
-          return;
-        }
-
-        let address = '';
-        let body = '';
-
-        if (typeof smsData === 'object' && smsData !== null) {
-          address = smsData.address || (Array.isArray(smsData) ? smsData[0] : '');
-          body = smsData.body || (Array.isArray(smsData) ? smsData[1] : '');
-        } else if (typeof smsData === 'string') {
-          if (smsData.startsWith('[') && smsData.endsWith(']')) {
-            const content = smsData.slice(1, -1);
-            const firstCommaIndex = content.indexOf(', ');
-            if (firstCommaIndex !== -1) {
-              address = content.substring(0, firstCommaIndex).trim();
-              body = content.substring(firstCommaIndex + 2).trim();
-            } else {
-              body = content;
-            }
-          } else {
-            body = smsData;
-          }
-        }
-
-        const date = new Date().toISOString();
-
-        if (body) {
-          const wasAdded = await processIncomingSMS(body, date, address, true);
-          if (wasAdded) {
-            onNewTransactionAdded(1);
-          }
-        }
-      }
-    );
-
-    // Return unsubscriber function
-    return () => {
-      if (ExpoReadSms?.stopReadSMS) {
-        ExpoReadSms.stopReadSMS();
-      }
-    };
-  } catch (error) {
-    console.error('Failed to start native SMS listener:', error);
-    return () => {};
-  }
+  // No-op: native SmsReceiver in AndroidManifest handles incoming SMS
+  // The HeadlessJS task processes them in the background
+  return () => {};
 }

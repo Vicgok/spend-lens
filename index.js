@@ -1,15 +1,6 @@
 import { NativeModules, AppRegistry } from 'react-native';
 import { processIncomingSMS } from './src/features/sms-parser/sms-reader';
 
-// Monkeypatch the unmaintained 3rd party library's native module to prevent NativeEventEmitter crashes
-if (NativeModules.RNExpoReadSms) {
-  if (typeof NativeModules.RNExpoReadSms.addListener !== 'function') {
-    NativeModules.RNExpoReadSms.addListener = () => {};
-  }
-  if (typeof NativeModules.RNExpoReadSms.removeListeners !== 'function') {
-    NativeModules.RNExpoReadSms.removeListeners = () => {};
-  }
-}
 
 // Register headless task for background SMS scanning
 AppRegistry.registerHeadlessTask('SpendLensSmsTask', () => async (data) => {

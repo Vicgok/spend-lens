@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,8 @@ import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency, formatSignedAmount } from '@/utils/currency';
 import { formatDate } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
-import { syncSMSFromDevice, startSMSListener, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
+import { syncSMSFromDevice, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
+import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 import { TransactionSkeleton } from '@/components/ui/Skeleton';
 import { detectImpulseSpending } from '@/features/insights-engine/detector';
 import { getPendingDetections, updateDetectionStatus, DetectedBank, writeLog } from '@/lib/database';
@@ -55,6 +56,9 @@ export default function DashboardScreen() {
   const [initialBalance, setInitialBalance] = React.useState('');
   const [isAppReady, setIsAppReady] = React.useState(false);
 
+  // Ref to track whether SMS has been initialized (prevent double-init on re-renders)
+  const smsInitialized = useRef(false);
+
   const {
     transactions,
     accounts,
@@ -67,13 +71,10 @@ export default function DashboardScreen() {
     isLoading,
   } = useTransactionStore();
 
+  // ─── Step 1: Load DB data only (no SMS) ───────────────────────────────────
   const loadData = useCallback(async () => {
     logger.info('[TABS_INIT]');
-    try {
-      await syncSMSFromDevice();
-    } catch (e) {
-      console.warn('SMS sync error:', e);
-    }
+
     try {
       const detections = await getPendingDetections();
       setPendingBanks(detections);
@@ -99,6 +100,93 @@ export default function DashboardScreen() {
       logger.error('[TABS_RENDER_ERROR]', err);
     }
   }, []); // Stable store actions do not change reference
+
+  // ─── Step 2: SMS Initialization – deferred 3s after TABS_READY ───────────
+  const initializeSMS = useCallback(async () => {
+    if (smsInitialized.current) return;
+    smsInitialized.current = true;
+
+    logger.info('[SMS_NATIVE_INIT] SMS initialization starting');
+
+    // 2a. Historical sync
+    try {
+      logger.info('[SMS_NATIVE_SYNC] Starting syncSMSFromDevice');
+      const count = await syncSMSFromDevice();
+      logger.info(`[SMS_NATIVE_SYNC] syncSMSFromDevice completed, added ${count} transactions`);
+
+      if (count > 0) {
+        // Reload data to reflect newly synced transactions
+        try {
+          await loadAccounts();
+          await loadTransactions();
+          await Promise.all([loadMonthlyStats(), loadCategories()]);
+          const detections = await getPendingDetections();
+          setPendingBanks(detections);
+        } catch (reloadErr: any) {
+          logger.error('[SMS_NATIVE_SYNC] Reload after sync failed', reloadErr);
+        }
+      }
+    } catch (error: any) {
+      logger.error('[SMS_NATIVE_FATAL] syncSMSFromDevice threw', error);
+    }
+
+    // 2b. Permission prompt (Android only, native module present)
+    if (Platform.OS === 'android' && SpendLensSmsModule) {
+      try {
+        logger.info('[SMS_NATIVE_PERMISSION] Checking SMS permission');
+        const granted = await checkSMSPermission();
+        logger.info(`[SMS_NATIVE_PERMISSION] Permission granted: ${granted}`);
+
+        if (!granted) {
+          Alert.alert(
+            'Enable SMS Tracking',
+            'SpendLens can automatically track your expenses by reading bank SMS messages. All processing happens on your device.',
+            [
+              { text: 'Not Now', style: 'cancel' },
+              {
+                text: 'Enable',
+                onPress: async () => {
+                  try {
+                    logger.info('[SMS_NATIVE_PERMISSION] Requesting SMS permission');
+                    await requestSMSPermission();
+                    logger.info('[SMS_NATIVE_PERMISSION] Permission request completed');
+                    await loadData();
+                  } catch (permErr: any) {
+                    logger.error('[SMS_NATIVE_PERMISSION] requestSMSPermission failed', permErr);
+                  }
+                },
+              },
+            ]
+          );
+        }
+      } catch (permCheckErr: any) {
+        logger.error('[SMS_NATIVE_PERMISSION] checkSMSPermission threw', permCheckErr);
+      }
+    }
+
+    logger.info('[SMS_NATIVE_INIT] SMS initialization complete');
+  }, [loadData, loadAccounts, loadTransactions, loadMonthlyStats, loadCategories]);
+
+  // ─── Effects ──────────────────────────────────────────────────────────────
+
+  // Load DB data on mount
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Defer SMS init 3 seconds after mount so navigation is fully settled
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      initializeSMS();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [initializeSMS]);
+
+
+  // SMS live listener is handled natively by SmsReceiver in AndroidManifest
+  // No JS-side listener needed (was causing native crashes via @maniac-tech library)
+
+  // ─── Handlers ─────────────────────────────────────────────────────────────
 
   const handleIgnoreBank = async (bankId: string) => {
     try {
@@ -132,42 +220,6 @@ export default function DashboardScreen() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    if (Platform.OS !== 'android' || !NativeModules.RNExpoReadSms) return;
-    (async () => {
-      const granted = await checkSMSPermission();
-      if (!granted) {
-        Alert.alert(
-          'Enable SMS Tracking',
-          'SpendLens can automatically track your expenses by reading bank SMS messages. All processing happens on your device.',
-          [
-            { text: 'Not Now', style: 'cancel' },
-            {
-              text: 'Enable',
-              onPress: async () => {
-                await requestSMSPermission();
-                loadData();
-              },
-            },
-          ]
-        );
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = startSMSListener((count) => {
-      if (count > 0) {
-        loadData();
-      }
-    });
-    return unsubscribe;
-  }, [loadData]);
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
@@ -175,7 +227,7 @@ export default function DashboardScreen() {
   }, [loadData]);
 
   const totalBalance = getTotalBalance();
-  
+
   const displayedBalance = selectedAccountId
     ? accounts.find((a) => a.id === selectedAccountId)?.balance || 0
     : totalBalance;
@@ -264,7 +316,7 @@ export default function DashboardScreen() {
           <View>
             <Text style={[styles.microHeader, { color: theme.textSecondary }]}>FINANCIAL NOTEBOOK</Text>
             <Text style={[styles.mainHeader, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
-              SpendLens
+              SpendLens v1.0.2
             </Text>
           </View>
           <View style={styles.headerRight}>
@@ -338,9 +390,9 @@ export default function DashboardScreen() {
           <Text style={[styles.balanceAmount, { color: theme.text, fontFamily: typography.fontFamily.monoBold }]}>
             {formatCurrency(displayedBalance)}
           </Text>
- 
+
           <View style={[styles.thinDivider, { backgroundColor: theme.borderLight }]} />
- 
+
           {/* 3-Column stats */}
           <View style={styles.statsRow}>
             <View style={[styles.statCol, { borderRightWidth: 1, borderRightColor: theme.borderLight }]}>
@@ -801,15 +853,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   flowAmount: {
-    fontSize: 16,
+    fontSize: 18,
   },
   flowConnector: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     position: 'relative',
-    height: 20,
-    marginHorizontal: 12,
+    marginHorizontal: 8,
   },
   horizontalLine: {
     height: 1,
@@ -820,53 +870,50 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     position: 'absolute',
+    top: -2.5,
   },
-  alertCard: {
-    gap: 8,
-  },
+  alertCard: {},
   alertHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   alertBadge: {
-    fontSize: 10,
+    fontSize: 9,
     letterSpacing: 0.5,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: 2,
   },
   alertMetric: {
-    fontSize: 12,
+    fontSize: 11,
   },
   alertTitle: {
-    fontSize: 16,
+    fontSize: 15,
+    marginBottom: 6,
   },
   alertDescription: {
     fontSize: 13,
     lineHeight: 18,
   },
   impactBadge: {
+    marginTop: 12,
     padding: 10,
-    borderRadius: 2,
-    alignSelf: 'flex-start',
+    borderRadius: 4,
   },
   impactText: {
-    fontSize: 12,
+    fontSize: 13,
   },
   pulseGraphContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   noPulseText: {
     fontSize: 13,
     textAlign: 'center',
-    marginVertical: 12,
+    paddingVertical: 16,
   },
-  section: {
-    marginTop: 10,
-  },
+  section: {},
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -874,83 +921,91 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
   },
   seeAll: {
     fontSize: 13,
+  },
+  emptyState: {
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  emptyEmoji: {
+    fontSize: 32,
+    marginBottom: 4,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  emptyButton: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  emptyButtonText: {
+    fontSize: 14,
   },
   transactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 12,
   },
   txIcon: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: 4,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  txIconText: { fontSize: 20 },
-  txInfo: { flex: 1 },
+  txIconText: {
+    fontSize: 16,
+  },
+  txInfo: {
+    flex: 1,
+  },
   txMerchant: {
-    fontSize: 15,
+    fontSize: 14,
     marginBottom: 2,
   },
   txDate: {
     fontSize: 11,
   },
   txAmount: {
-    fontSize: 15,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 24,
-    borderWidth: 1,
-    borderRadius: 4,
-  },
-  emptyEmoji: { fontSize: 36, marginBottom: 8 },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  emptyButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 4,
-  },
-  emptyButtonText: {
-    fontSize: 13,
+    fontSize: 14,
   },
   accountsScroll: {
     marginBottom: 20,
   },
   accountsScrollContent: {
-    gap: 12,
-    paddingRight: 16,
+    gap: 10,
+    paddingRight: 8,
   },
   accountCardSmall: {
-    width: 140,
-    padding: 12,
+    width: 130,
     borderWidth: 1,
-    borderRadius: 4,
-    gap: 8,
+    borderRadius: 8,
+    padding: 12,
+    gap: 4,
   },
   accountCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
+    marginBottom: 4,
   },
   accountCardTypeEmoji: {
     fontSize: 14,
@@ -964,6 +1019,7 @@ const styles = StyleSheet.create({
   },
   accountCardBalance: {
     fontSize: 14,
+    marginTop: 2,
   },
   detectionCard: {
     borderWidth: 1,
@@ -975,72 +1031,72 @@ const styles = StyleSheet.create({
   detectionHeader: {
     flexDirection: 'row',
     gap: 12,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   detectionIcon: {
-    fontSize: 28,
+    fontSize: 20,
   },
   detectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 2,
   },
   detectionDesc: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 17,
   },
   detectionActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   detectionBtn: {
     flex: 1,
-    height: 38,
+    height: 40,
     borderRadius: 4,
     borderWidth: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   detectionBtnText: {
     fontSize: 13,
   },
   detectionBtnIgnore: {
-    width: 80,
-    height: 38,
+    flex: 1,
+    height: 40,
     borderRadius: 4,
     borderWidth: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    justifyContent: 'center',
   },
   detectionBtnTextIgnore: {
     fontSize: 13,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
   },
   modalContent: {
-    borderRadius: 8,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     borderWidth: 1,
-    width: '100%',
-    maxWidth: 340,
-    paddingVertical: 20,
+    borderBottomWidth: 0,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
+    marginBottom: 4,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
   },
   modalCloseButton: {
     width: 32,
     height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1050,27 +1106,26 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    height: 52,
     borderWidth: 1,
   },
   currencySymbol: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
     marginRight: 8,
+    fontWeight: '700',
   },
   balanceInput: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 20,
     padding: 0,
   },
   submitBtn: {
-    height: 48,
+    height: 50,
     borderRadius: 4,
     borderWidth: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
   },
 });

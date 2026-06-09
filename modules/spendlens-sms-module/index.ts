@@ -1,3 +1,11 @@
 import { requireNativeModule } from 'expo-modules-core';
 
-export default requireNativeModule('SpendLensSmsModule');
+let SpendLensSmsModule: any = null;
+try {
+  SpendLensSmsModule = requireNativeModule('SpendLensSmsModule');
+} catch (e: any) {
+  console.warn('[SpendLensSmsModule] Native module not found. Fallback to mock.', e?.message);
+}
+
+export default SpendLensSmsModule;
+

@@ -25,7 +25,11 @@ class SmsHeadlessTaskService : HeadlessJsTaskService() {
                 .setContentText("Scanning SMS...")
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 
-            startForeground(9999, builder.build())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(9999, builder.build(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            } else {
+                startForeground(9999, builder.build())
+            }
         }
     }
 

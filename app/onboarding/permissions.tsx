@@ -17,6 +17,8 @@ import {
   requestSMSPermission,
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
+import SpendLensSmsModule from '../../modules/spendlens-sms-module';
+
 
 export default function OnboardingPermissions() {
   const { theme } = useTheme();
@@ -44,7 +46,7 @@ export default function OnboardingPermissions() {
       return;
     }
 
-    if (!NativeModules.RNExpoReadSms) {
+    if (!SpendLensSmsModule) {
       Alert.alert(
         'Expo Go Limitation',
         'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',

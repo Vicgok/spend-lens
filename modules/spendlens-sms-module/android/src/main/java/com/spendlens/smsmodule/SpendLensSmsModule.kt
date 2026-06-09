@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import expo.modules.kotlin.modules.Module
@@ -16,22 +17,31 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
 
 class SpendLensSmsModule : Module() {
+  companion object {
+    private const val TAG = "SpendLensSmsModule"
+  }
+
   override fun definition() = ModuleDefinition {
     Name("SpendLensSmsModule")
 
     AsyncFunction("readSmsInbox") { promise: Promise ->
+      Log.d(TAG, "[SMS_NATIVE_SYNC] readSmsInbox called")
       val context = appContext.reactContext ?: run {
+        Log.e(TAG, "[SMS_NATIVE_FATAL] readSmsInbox: React application context is not available")
         promise.reject("ERR_NO_CONTEXT", "React application context is not available", null)
         return@AsyncFunction
       }
 
       val readSmsPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS)
+      Log.d(TAG, "[SMS_NATIVE_PERMISSION] READ_SMS permission check result: $readSmsPermission")
       if (readSmsPermission != PackageManager.PERMISSION_GRANTED) {
+        Log.w(TAG, "[SMS_NATIVE_PERMISSION] READ_SMS permission not granted – aborting inbox read")
         promise.reject("PERMISSION_DENIED", "READ_SMS permission not granted", null)
         return@AsyncFunction
       }
 
       try {
+        Log.d(TAG, "[SMS_NATIVE_SYNC] Querying SMS content provider")
         val smsList = mutableListOf<Map<String, Any>>()
         val uri = Uri.parse("content://sms/inbox")
         val projection = arrayOf("address", "body", "date")
@@ -63,14 +73,19 @@ class SpendLensSmsModule : Module() {
             smsList.add(map)
           }
         }
+
+        Log.d(TAG, "[SMS_NATIVE_SYNC] readSmsInbox complete – returned ${smsList.size} messages")
         promise.resolve(smsList)
       } catch (e: Exception) {
+        Log.e(TAG, "[SMS_NATIVE_FATAL] readSmsInbox threw exception: ${e.message}", e)
         promise.reject("ERROR", e.message, e)
       }
     }
 
     AsyncFunction("showNotification") { title: String, message: String, promise: Promise ->
+      Log.d(TAG, "[SMS_NATIVE_RECEIVER] showNotification called: $title")
       val context = appContext.reactContext ?: run {
+        Log.e(TAG, "[SMS_NATIVE_FATAL] showNotification: React application context is not available")
         promise.reject("ERR_NO_CONTEXT", "React application context is not available", null)
         return@AsyncFunction
       }
@@ -111,15 +126,20 @@ class SpendLensSmsModule : Module() {
         }
 
         if (Build.VERSION.SDK_INT >= 33) {
-          if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+          val notifPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+          Log.d(TAG, "[SMS_NATIVE_PERMISSION] POST_NOTIFICATIONS check result: $notifPermission")
+          if (notifPermission != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "[SMS_NATIVE_PERMISSION] POST_NOTIFICATIONS not granted – skipping notification")
             promise.resolve("PERMISSION_DENIED")
             return@AsyncFunction
           }
         }
 
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+        Log.d(TAG, "[SMS_NATIVE_RECEIVER] Notification posted successfully")
         promise.resolve("SUCCESS")
       } catch (e: Exception) {
+        Log.e(TAG, "[SMS_NATIVE_FATAL] showNotification threw exception: ${e.message}", e)
         promise.reject("ERROR", e.message, e)
       }
     }
