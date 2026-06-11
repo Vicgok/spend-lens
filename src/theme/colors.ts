@@ -1,3 +1,16 @@
+const onboarding = {
+  background: '#e1d7c2',
+  primary: '#745143',
+  brandGreen: '#3E5A2A',
+  accentCardBg: '#B7884E',
+  accentCardTitle: '#FFF8EE',
+  accentCardSubtitle: '#F4E6D0',
+  accentCardIconBg: '#E8DCC6',
+  accentCardDot: '#6EEB83',
+  mutedText: '#54554b',
+  pillInactive: 'rgba(116, 81, 67, 0.3)',
+};
+
 const palette = {
   // Primary / Accent (Lime)
   primary: '#A0C42C',
@@ -20,6 +33,7 @@ const palette = {
 
 export const colors = {
   dark: {
+    onboarding,
     background: '#121210', // Dark warm background
     surface: '#1E1E1C', // Dark paper surface
     surfaceElevated: '#282825',
@@ -54,6 +68,7 @@ export const colors = {
     glassBorder: 'rgba(51, 51, 48, 0.6)',
   },
   light: {
+    onboarding,
     background: '#F5F3EE', // Warm neutral background
     surface: '#FDFCF8', // Tactile paper card background
     surfaceElevated: '#FDFCF8',
