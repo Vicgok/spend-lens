@@ -13,6 +13,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,6 +56,21 @@ export default function DashboardScreen() {
   const [addingBank, setAddingBank] = React.useState<DetectedBank | null>(null);
   const [initialBalance, setInitialBalance] = React.useState('');
   const [isAppReady, setIsAppReady] = React.useState(false);
+
+  // Pulse animation for pending bank cards
+  const pulseAnim = useRef(new Animated.Value(0.4)).current;
+  useEffect(() => {
+    if (pendingBanks.length > 0) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    }
+  }, [pendingBanks.length]);
 
   // Ref to track whether SMS has been initialized (prevent double-init on re-renders)
   const smsInitialized = useRef(false);
@@ -335,52 +351,6 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Pending Bank Detections Alert Card */}
-        {pendingBanks.map((bank) => (
-          <View
-            key={bank.bankId}
-            style={[
-              styles.detectionCard,
-              { backgroundColor: theme.card, borderColor: theme.border }
-            ]}
-          >
-            <View style={styles.detectionHeader}>
-              <Text style={styles.detectionIcon}>🏦</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.detectionTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
-                  New Bank Found
-                </Text>
-                <Text style={[styles.detectionDesc, { color: theme.textSecondary }]}>
-                  {bank.bankName} transactions were detected. Track this account?
-                </Text>
-              </View>
-            </View>
-            <View style={styles.detectionActions}>
-              <Pressable
-                onPress={() => setAddingBank(bank)}
-                style={({ pressed }) => [
-                  styles.detectionBtn,
-                  { backgroundColor: theme.primary, borderColor: theme.border, opacity: pressed ? 0.8 : 1 }
-                ]}
-              >
-                <Text style={[styles.detectionBtnText, { color: '#1B1B1B', fontFamily: typography.fontFamily.bold }]}>
-                  Add Account
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleIgnoreBank(bank.bankId)}
-                style={({ pressed }) => [
-                  styles.detectionBtnIgnore,
-                  { borderColor: theme.border, opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <Text style={[styles.detectionBtnTextIgnore, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
-                  Ignore
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        ))}
 
         {/* Section 1: Balance Overview Grid */}
         <View style={[styles.balanceCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -416,13 +386,87 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Section 1.5: Horizontal Scrollable Accounts */}
+        {/* Section 1.5: Banks & Accounts — Horizontal Scroll */}
+        {(pendingBanks.length > 0 || accounts.length > 0) && (
+          <View style={styles.banksSection}>
+            <Text style={[styles.banksSectionTitle, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>
+              Banks
+            </Text>
+            {pendingBanks.length > 0 && (
+              <Text style={[styles.banksSectionBadge, { color: theme.primary, fontFamily: typography.fontFamily.medium }]}>
+                {pendingBanks.length} new detected
+              </Text>
+            )}
+          </View>
+        )}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.accountsScroll}
           contentContainerStyle={styles.accountsScrollContent}
         >
+          {/* Pending Bank Detection Cards */}
+          {pendingBanks.map((bank) => (
+            <Pressable
+              key={`pending-${bank.bankId}`}
+              onPress={() => setAddingBank(bank)}
+              style={({ pressed }) => [
+                styles.pendingBankCard,
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.primary + '60',
+                },
+                pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
+              ]}
+            >
+              {/* Animated pulse glow overlay */}
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.pendingPulseOverlay,
+                  {
+                    borderColor: theme.primary,
+                    opacity: pulseAnim,
+                  },
+                ]}
+              />
+              {/* Dismiss / Ignore button */}
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleIgnoreBank(bank.bankId);
+                }}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.pendingDismissBtn,
+                  { opacity: pressed ? 0.5 : 0.7 },
+                ]}
+              >
+                <Text style={[styles.pendingDismissText, { color: theme.textSecondary }]}>✕</Text>
+              </Pressable>
+              {/* NEW badge */}
+              <View style={[styles.pendingNewBadge, { backgroundColor: theme.primary + '25' }]}>
+                <Text style={[styles.pendingNewBadgeText, { color: theme.primary, fontFamily: typography.fontFamily.bold }]}>
+                  NEW
+                </Text>
+              </View>
+              <Text style={styles.pendingBankEmoji}>🏦</Text>
+              <Text
+                style={[
+                  styles.pendingBankName,
+                  { color: theme.text, fontFamily: typography.fontFamily.bold },
+                ]}
+                numberOfLines={1}
+              >
+                {bank.bankName}
+              </Text>
+              <Text style={[styles.pendingBankAction, { color: theme.primary, fontFamily: typography.fontFamily.medium }]}>
+                Tap to add →
+              </Text>
+            </Pressable>
+          ))}
+
+          {/* Existing Account Cards */}
           {accounts.map((acc) => {
             const isSelected = selectedAccountId === acc.id;
             return (
@@ -1021,54 +1065,71 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
-  detectionCard: {
-    borderWidth: 1,
+  // ─── Pending Bank Card (in horizontal scroll) ─────────────────────
+  pendingBankCard: {
+    width: 140,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    padding: 12,
+    gap: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  pendingPulseOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderWidth: 2,
+    borderRadius: 10,
+  },
+  pendingDismissBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    zIndex: 2,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingDismissText: {
+    fontSize: 12,
+    lineHeight: 14,
+  },
+  pendingNewBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
-  },
-  detectionHeader: {
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
-  },
-  detectionIcon: {
-    fontSize: 20,
-  },
-  detectionTitle: {
-    fontSize: 14,
     marginBottom: 2,
   },
-  detectionDesc: {
+  pendingNewBadgeText: {
+    fontSize: 8,
+    letterSpacing: 1,
+  },
+  pendingBankEmoji: {
+    fontSize: 22,
+    marginBottom: 2,
+  },
+  pendingBankName: {
     fontSize: 12,
-    lineHeight: 17,
+    textAlign: 'center',
   },
-  detectionActions: {
+  pendingBankAction: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  // ─── Banks Section Header ────────────────────────────────────────
+  banksSection: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  detectionBtn: {
-    flex: 1,
-    height: 40,
-    borderRadius: 4,
-    borderWidth: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 8,
+    gap: 8,
   },
-  detectionBtnText: {
-    fontSize: 13,
+  banksSectionTitle: {
+    fontSize: 15,
   },
-  detectionBtnIgnore: {
-    flex: 1,
-    height: 40,
-    borderRadius: 4,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detectionBtnTextIgnore: {
-    fontSize: 13,
+  banksSectionBadge: {
+    fontSize: 11,
   },
   modalOverlay: {
     flex: 1,

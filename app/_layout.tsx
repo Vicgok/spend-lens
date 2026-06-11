@@ -38,8 +38,10 @@ function RootNavigator() {
     async function configureAndroidNavbar() {
       if (Platform.OS === 'android') {
         try {
+          await NavigationBar.setPositionAsync('absolute');
+          await NavigationBar.setBackgroundColorAsync('#00000000');
           await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
-          await NavigationBar.setVisibilityAsync('hidden');
+          await NavigationBar.setVisibilityAsync('visible');
         } catch (error) {
           console.warn('Failed to configure navigation bar:', error);
         }
@@ -62,7 +64,7 @@ function RootNavigator() {
   return (
     <NavigationProvider value={navTheme}>
       <View style={{ flex: 1, backgroundColor: theme.background }}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
         <Stack
           screenOptions={{
             headerShown: false,

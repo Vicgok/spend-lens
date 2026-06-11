@@ -10,6 +10,8 @@ import {
   NativeModules,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/providers/theme-provider';
 import { typography, spacing } from '@/theme';
 import {
@@ -21,7 +23,8 @@ import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 
 
 export default function OnboardingPermissions() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [hasPermission, setHasPermission] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
@@ -107,7 +110,8 @@ export default function OnboardingPermissions() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top + 16, paddingBottom: Math.max(insets.bottom, 20) }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
       {/* Editorial Header */}
       <View style={styles.header}>
         <Text style={[styles.microHeader, { color: theme.textSecondary }]}>DATA PERMISSIONS</Text>
@@ -230,24 +234,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    gap: 24,
+    gap: 20,
   },
   header: {
     marginBottom: 10,
+    alignItems: 'center',
   },
   microHeader: {
     fontSize: 11,
     letterSpacing: 2,
     marginBottom: 4,
+    textAlign: 'center',
   },
   title: {
     fontSize: 28,
     letterSpacing: -0.5,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 20,
+    textAlign: 'center',
   },
   flowContainer: {
     borderWidth: 1,

@@ -42,7 +42,7 @@
       [
         "expo-navigation-bar",
         {
-          "hidden": true
+          "position": "absolute"
         }
       ],
       [

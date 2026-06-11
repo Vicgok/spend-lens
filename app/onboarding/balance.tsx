@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/providers/theme-provider';
 import { typography, spacing, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
@@ -64,7 +66,8 @@ function formatIndianNumber(valStr: string): string {
 }
 
 export default function BalanceSetup() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const createAccountsBatch = useTransactionStore((s) => s.createAccountsBatch);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   
@@ -200,8 +203,15 @@ export default function BalanceSetup() {
       style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 24,
+            paddingBottom: Math.max(insets.bottom, 20) + 120,
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
@@ -291,7 +301,7 @@ export default function BalanceSetup() {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View style={[styles.bottomSection, { backgroundColor: theme.background }]}>
+      <View style={[styles.bottomSection, { backgroundColor: theme.background, paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
         <Pressable onPress={handleFinish} disabled={isSubmitting} style={styles.ctaWrapper}>
           <LinearGradient
             colors={theme.gradientPrimary}
