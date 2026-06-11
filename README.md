@@ -101,16 +101,6 @@ src/
 
 modules/
 └── spendlens-sms-module/
-
-.rules/
-├── product.md
-├── architecture.md
-├── ui.md
-├── performance.md
-├── fabric.md
-├── sms.md
-├── logging.md
-└── coding.md
 ```
 
 ---
@@ -154,14 +144,6 @@ Before implementing features:
 * Avoid unnecessary animations
 * Use SVG instead of emojis
 
-See:
-
-```text
-.rules/
-```
-
-for project standards.
-
 ---
 
 ## Logging
@@ -192,22 +174,9 @@ Example:
 
 ---
 
-## Contributing
-
-1. Create a feature branch
-2. Follow rules in `.rules/`
-3. Run type checks
-4. Verify Fabric compatibility
-5. Test onboarding flow
-6. Submit PR
-
----
-
 ## License
 
 Private project.
-
-All rights reserved.
 
 ---
 
