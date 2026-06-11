@@ -34,7 +34,7 @@ import {
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
-import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui/OnboardingIcons';
+import { LockIcon, ShieldIcon, CheckCircleIcon, BackArrowIcon } from '@/components/ui/OnboardingIcons';
 import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
 // Helper to convert hex to rgba dynamically
@@ -434,13 +434,30 @@ export default function OnboardingPermissions() {
 
       {/* ── Top Bar (Static) ─────────────────────────────────── */}
       <View style={styles.topBar}>
-        <LogoMark />
+        <View style={[styles.topBarSide, { alignItems: 'flex-start' }]}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [
+              styles.backButton,
+              { transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]}
+          >
+            <BackArrowIcon color={obTheme.primary} size={20} />
+          </Pressable>
+        </View>
 
         {/* Progress pills */}
-        <View style={styles.progressPills}>
+        <View style={styles.topBarCenter}>
           <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
           <View style={[styles.pillActive, { backgroundColor: obTheme.primary }]} />
           <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
+        </View>
+
+        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.headerLogo}
+          />
         </View>
       </View>
 
@@ -615,25 +632,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
-  logoRow: {
-    flexDirection: 'row',
+  topBarSide: {
+    width: 44,
     alignItems: 'center',
-    gap: 8,
   },
-  logoText: {
-    fontFamily: typography.fontFamily.bold,
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: -0.2,
-  },
-  progressPills: {
+  topBarCenter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    position: 'absolute',
-    left: 0,
-    right: 0,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -8,
   },
   pillActive: {
     width: 24,
@@ -644,6 +659,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 4,
     borderRadius: 2,
+  },
+  headerLogo: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
   },
 
   // ── Scroll container ──

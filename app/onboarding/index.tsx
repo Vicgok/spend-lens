@@ -360,16 +360,19 @@ export default function OnboardingWelcome() {
       <StatusBar style="dark" translucent backgroundColor="transparent" />
       {/* ── Top Bar (Static) ─────────────────────────────────── */}
       <View style={styles.topBar}>
-        <LogoMark />
+        <View style={styles.topBarSide} />
 
         {/* Progress pills */}
-        <View style={styles.progressPills}>
+        <View style={styles.topBarCenter}>
           <View style={[styles.pillActive, { backgroundColor: obTheme.brandGreen }]} />
-          <View
-            style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]}
-          />
-          <View
-            style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]}
+          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
+          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
+        </View>
+
+        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.headerLogo}
           />
         </View>
       </View>
@@ -445,27 +448,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
-  logoRow: {
-    flexDirection: 'row',
+  topBarSide: {
+    width: 44,
     alignItems: 'center',
-    gap: 8,
   },
-  logoText: {
-    fontFamily: typography.fontFamily.bold,
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: -0.2,
-  },
-  progressPills: {
+  topBarCenter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    position: 'absolute',
-    left: 0,
-    right: 0,
   },
   pillActive: {
     width: 24,
@@ -476,6 +469,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 4,
     borderRadius: 2,
+  },
+  headerLogo: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
   },
 
   // ── Hero ──

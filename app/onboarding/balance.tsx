@@ -12,6 +12,7 @@ import {
   FlatList,
   Alert,
   Dimensions,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -33,6 +34,7 @@ import {
   CashIcon,
   CreditCardIcon,
   WalletIcon,
+  BackArrowIcon,
 } from '@/components/ui/OnboardingIcons';
 import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
@@ -84,9 +86,25 @@ const renderPresetIcon = (type: AccountType, color: string) => {
   }
 };
 
+const LogoMark = React.memo(() => {
+  const { theme } = useTheme();
+  const obTheme = theme.onboarding;
+
+  return (
+    <View style={styles.logoRow}>
+      <Image
+        source={require('../../assets/icon.png')}
+        style={{ width: 34, height: 34, borderRadius: 9 }}
+      />
+      <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
+    </View>
+  );
+});
+
 export default function BalanceSetup() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const obTheme = theme.onboarding;
   const createAccountsBatch = useTransactionStore((s) => s.createAccountsBatch);
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
   
@@ -245,17 +263,46 @@ export default function BalanceSetup() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
+
+      {/* ── Top Bar (Static) ─────────────────────────────────── */}
+      <View style={styles.topBar}>
+        <View style={[styles.topBarSide, { alignItems: 'flex-start' }]}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [
+              styles.backButton,
+              { transform: [{ scale: pressed ? 0.95 : 1 }] }
+            ]}
+          >
+            <BackArrowIcon color={obTheme.primary} size={20} />
+          </Pressable>
+        </View>
+
+        {/* Progress pills */}
+        <View style={styles.topBarCenter}>
+          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
+          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
+          <View style={[styles.pillActive, { backgroundColor: obTheme.primary }]} />
+        </View>
+
+        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.headerLogo}
+          />
+        </View>
+      </View>
       
       <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingTop: insets.top + 24,
+              paddingTop: 12,
               paddingBottom: Math.max(insets.bottom, 20) + 120,
             },
           ]}
@@ -671,5 +718,47 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     textAlign: 'center',
     lineHeight: 20,
+  },
+
+  // ── Top Bar ──
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  topBarSide: {
+    width: 44,
+    alignItems: 'center',
+  },
+  topBarCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -8,
+  },
+  pillActive: {
+    width: 24,
+    height: 4,
+    borderRadius: 2,
+  },
+  pillInactive: {
+    width: 8,
+    height: 4,
+    borderRadius: 2,
+  },
+  headerLogo: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
   },
 });
