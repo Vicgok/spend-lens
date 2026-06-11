@@ -316,21 +316,7 @@ const TrustCard = React.memo(() => {
   );
 });
 
-// ── Logo Mark ──────────────────────────────────────────────────────────────
-const LogoMark = React.memo(() => {
-  const { theme } = useTheme();
-  const obTheme = theme.onboarding;
 
-  return (
-    <View style={styles.logoRow}>
-      <Image
-        source={require('../../assets/icon.png')}
-        style={{ width: 34, height: 34, borderRadius: 9 }}
-      />
-      <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
-    </View>
-  );
-});
 
 // ── Main Onboarding Welcome Screen ─────────────────────────────────────────
 export default function OnboardingWelcome() {
