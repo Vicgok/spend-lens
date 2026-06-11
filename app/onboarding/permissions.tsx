@@ -10,6 +10,7 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,7 +34,7 @@ import {
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
-import { LockIcon } from '@/components/ui/OnboardingIcons';
+import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui/OnboardingIcons';
 import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
 // Helper to convert hex to rgba dynamically
@@ -257,6 +258,19 @@ const LogoMark = React.memo(() => {
   );
 });
 
+type CustomAlertButton = {
+  text: string;
+  onPress?: () => void;
+  style?: 'default' | 'cancel' | 'destructive';
+};
+
+type CustomAlertConfig = {
+  title: string;
+  message: string;
+  buttons?: CustomAlertButton[];
+  iconType?: 'info' | 'success' | 'warning' | 'shield';
+};
+
 // ── Main Permissions Screen Component ────────────────────────────────────────
 export default function OnboardingPermissions() {
   const { theme } = useTheme();
@@ -268,6 +282,17 @@ export default function OnboardingPermissions() {
   const isFocused = useIsFocused();
   const [isExiting, setIsExiting] = useState(false);
   const [nextPath, setNextPath] = useState<any>(null);
+
+  const [customAlert, setCustomAlert] = useState<CustomAlertConfig | null>(null);
+
+  const showCustomAlert = (
+    title: string,
+    message: string,
+    buttons?: CustomAlertButton[],
+    iconType?: 'info' | 'success' | 'warning' | 'shield'
+  ) => {
+    setCustomAlert({ title, message, buttons, iconType });
+  };
 
   const navigation = useNavigation();
   const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
@@ -324,22 +349,25 @@ export default function OnboardingPermissions() {
 
   const handleRequestPermission = async () => {
     if (Platform.OS !== 'android') {
-      Alert.alert(
+      showCustomAlert(
         'SMS Reader',
-        'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or simulate tracking via Demo Scan.'
+        'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or simulate tracking via Demo Scan.',
+        undefined,
+        'info'
       );
       return;
     }
 
     if (!SpendLensSmsModule) {
-      Alert.alert(
+      showCustomAlert(
         'Expo Go Limitation',
         'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',
         [
           { text: 'Try Demo Scan', onPress: () => handleSimulateScan() },
           { text: 'Continue Manually', onPress: () => navigateToNext('/onboarding/balance') },
           { text: 'Cancel', style: 'cancel' }
-        ]
+        ],
+        'shield'
       );
       return;
     }
@@ -348,15 +376,23 @@ export default function OnboardingPermissions() {
       const granted = await requestSMSPermission();
       setHasPermission(granted);
       if (granted) {
-        Alert.alert(
+        showCustomAlert(
           'Permission Granted!',
-          'SpendLens will now automatically scan financial messages when they arrive.'
+          'SpendLens will now automatically scan financial messages when they arrive.',
+          [
+            {
+              text: 'Continue',
+              onPress: () => navigateToNext('/onboarding/balance'),
+            }
+          ],
+          'success'
         );
-        navigateToNext('/onboarding/balance');
       } else {
-        Alert.alert(
+        showCustomAlert(
           'Permission Denied',
-          'You can still add transactions manually. You can enable SMS tracking anytime in settings.'
+          'You can still add transactions manually. You can enable SMS tracking anytime in settings.',
+          undefined,
+          'warning'
         );
       }
     } catch (error) {
@@ -370,7 +406,7 @@ export default function OnboardingPermissions() {
       try {
         const addedCount = await simulateSMSScan();
         setIsScanning(false);
-        Alert.alert(
+        showCustomAlert(
           'Scan Complete!',
           `Successfully simulated scanning SMS and created ${addedCount} transactions with smart auto-categorization.`,
           [
@@ -378,7 +414,8 @@ export default function OnboardingPermissions() {
               text: 'Awesome',
               onPress: () => navigateToNext('/onboarding/balance'),
             },
-          ]
+          ],
+          'success'
         );
       } catch (error) {
         console.error('Failed to simulate scan:', error);
@@ -485,6 +522,81 @@ export default function OnboardingPermissions() {
           </View>
         </ScrollView>
       </OnboardingTransition>
+
+      {/* Custom Alert Modal */}
+      <Modal
+        visible={customAlert !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCustomAlert(null)}
+      >
+        <View style={styles.alertOverlay}>
+          <View style={[styles.alertCard, { backgroundColor: '#FAF9F7', borderColor: hexToRgba(obTheme.primary, 0.15) }]}>
+            {/* Icon */}
+            <View style={[styles.alertIconWrapper, { backgroundColor: hexToRgba(obTheme.primary, 0.08) }]}>
+              {customAlert?.iconType === 'success' ? (
+                <CheckCircleIcon color={obTheme.brandGreen} size={28} />
+              ) : (
+                <ShieldIcon color={obTheme.primary} size={28} />
+              )}
+            </View>
+
+            {/* Title */}
+            <Text style={[styles.alertTitle, { color: obTheme.primary }]}>
+              {customAlert?.title}
+            </Text>
+
+            {/* Message */}
+            <Text style={[styles.alertMessage, { color: obTheme.mutedText }]}>
+              {customAlert?.message}
+            </Text>
+
+            {/* Buttons */}
+            <View style={styles.alertButtonContainer}>
+              {customAlert?.buttons && customAlert.buttons.length > 0 ? (
+                customAlert.buttons.map((btn, idx) => {
+                  const isCancel = btn.style === 'cancel';
+                  return (
+                    <Pressable
+                      key={idx}
+                      onPress={() => {
+                        setCustomAlert(null);
+                        if (btn.onPress) btn.onPress();
+                      }}
+                      style={({ pressed }) => [
+                        isCancel ? styles.alertBtnSecondary : styles.alertBtnPrimary,
+                        !isCancel && { backgroundColor: obTheme.primary },
+                        isCancel && { borderColor: obTheme.primary },
+                        { transform: [{ scale: pressed ? 0.98 : 1 }] }
+                      ]}
+                    >
+                      <Text style={[
+                        isCancel ? styles.alertBtnTextSecondary : styles.alertBtnTextPrimary,
+                        !isCancel && { color: '#FAF9F7' },
+                        isCancel && { color: obTheme.primary }
+                      ]}>
+                        {btn.text}
+                      </Text>
+                    </Pressable>
+                  );
+                })
+              ) : (
+                <Pressable
+                  onPress={() => setCustomAlert(null)}
+                  style={({ pressed }) => [
+                    styles.alertBtnPrimary,
+                    { backgroundColor: obTheme.primary, transform: [{ scale: pressed ? 0.98 : 1 }] }
+                  ]}
+                >
+                  <Text style={[styles.alertBtnTextPrimary, { color: '#FAF9F7' }]}>
+                    OK
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -717,5 +829,81 @@ const styles = StyleSheet.create({
   },
   ctaDisabled: {
     opacity: 0.6,
+  },
+
+  // ── Custom Alert Styles ──
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  alertCard: {
+    width: '100%',
+    maxWidth: 328,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  alertIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alertTitle: {
+    fontFamily: typography.fontFamily.bold,
+    fontWeight: '700',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  alertMessage: {
+    fontFamily: typography.fontFamily.medium,
+    fontWeight: '500',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  alertButtonContainer: {
+    width: '100%',
+    gap: 8,
+  },
+  alertBtnPrimary: {
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  alertBtnSecondary: {
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  alertBtnTextPrimary: {
+    fontFamily: typography.fontFamily.bold,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  alertBtnTextSecondary: {
+    fontFamily: typography.fontFamily.bold,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
