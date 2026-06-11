@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
   Dimensions,
-  Animated,
   Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -13,16 +12,22 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
 import { typography } from '@/theme';
+import { useIsFocused } from '@react-navigation/native';
 import Svg, {
-  Rect,
   Circle,
   Ellipse,
   Path,
   Line,
-  Defs,
-  LinearGradient,
-  Stop,
 } from 'react-native-svg';
+import {
+  CalendarIcon,
+  RefreshIcon,
+  ShieldIcon,
+  ArrowUpIcon,
+  CheckCircleIcon,
+  GraphUpIcon,
+} from '@/components/ui/OnboardingIcons';
+import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = 300;
@@ -47,102 +52,72 @@ type SignalCardData = {
   dotColor: string;
   accent?: boolean;
   position: { top?: number; bottom?: number; left?: number; right?: number };
-  floatDelay: number;
 };
 
 const SIGNAL_CARDS: SignalCardData[] = [
   {
-    icon: '📅',
+    icon: 'calendar',
     label: 'Bill Due',
     sublabel: 'Electricity · 3 days',
     dotColor: DOT_AMBER,
     position: { top: 10, left: 16 },
-    floatDelay: 0,
   },
   {
-    icon: '🔄',
+    icon: 'refresh',
     label: 'Subscription',
     sublabel: 'Netflix · ₹199',
     dotColor: DOT_GRAY,
     position: { top: 22, right: 16 },
-    floatDelay: 400,
   },
   {
-    icon: '🛡️',
+    icon: 'shield',
     label: 'Protected',
     sublabel: 'Activity normal',
     dotColor: 'brandGreen',
     accent: true,
     position: { top: 120, left: 12 },
-    floatDelay: 200,
   },
   {
-    icon: '⬆',
+    icon: 'arrow-up',
     label: 'Salary In',
     sublabel: '+₹3,200 received',
     dotColor: 'brandGreen',
     accent: true,
     position: { top: 124, right: 12 },
-    floatDelay: 600,
   },
   {
-    icon: '◎',
+    icon: 'check-circle',
     label: 'All Clear',
     sublabel: 'No anomalies found',
     dotColor: 'brandGreen',
     position: { bottom: 20, left: 16 },
-    floatDelay: 300,
   },
   {
-    icon: '📈',
+    icon: 'graph-up',
     label: 'Spending Up',
     sublabel: '18% vs last week',
     dotColor: DOT_AMBER,
     position: { bottom: 16, right: 16 },
-    floatDelay: 500,
   },
 ];
 
-// ── Floating Signal Card Component ─────────────────────────────────────────
-function SignalCard({
-  card,
-  enterDelay,
-}: {
-  card: SignalCardData;
-  enterDelay: number;
-}) {
+// Helper to render custom SVG icons based on name
+const renderSignalIcon = (name: string, color: string) => {
+  switch (name) {
+    case 'calendar': return <CalendarIcon color={color} size={15} />;
+    case 'refresh': return <RefreshIcon color={color} size={15} />;
+    case 'shield': return <ShieldIcon color={color} size={15} />;
+    case 'arrow-up': return <ArrowUpIcon color={color} size={15} />;
+    case 'check-circle': return <CheckCircleIcon color={color} size={15} />;
+    case 'graph-up': return <GraphUpIcon color={color} size={15} />;
+    default: return null;
+  }
+};
+
+// ── Floating Signal Card Component (Staticized) ─────────────────────────────
+const SignalCard = React.memo(({ card }: { card: SignalCardData }) => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
-
-  const enterAnim = useRef(new Animated.Value(0)).current;
-  const floatAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Entry animation
-    Animated.timing(enterAnim, {
-      toValue: 1,
-      duration: 500,
-      delay: enterDelay + 300,
-      useNativeDriver: true,
-    }).start();
-
-    // Continuous float
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -5,
-          duration: 1800,
-          delay: card.floatDelay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 0,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
 
   const cardBg = card.accent
     ? obTheme.accentCardBg
@@ -152,89 +127,48 @@ function SignalCard({
     : 'rgba(116, 81, 67, 0.2)';
   const iconBg = card.accent ? obTheme.accentCardIconBg : 'rgba(116, 81, 67, 0.08)';
   const dotColorResolved = card.dotColor === 'brandGreen' ? obTheme.brandGreen : card.dotColor;
+  const contentColor = card.accent ? obTheme.accentCardTitle : obTheme.primary;
+  const sublabelColor = card.accent ? obTheme.accentCardSubtitle : obTheme.primary;
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.signalCard,
         card.position,
         {
           backgroundColor: cardBg,
           borderColor: cardBorder,
-          opacity: enterAnim,
-          transform: [
-            {
-              translateY: Animated.add(
-                floatAnim,
-                enterAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [10, 0],
-                })
-              ),
-            },
-            {
-              scale: enterAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.85, 1],
-              }),
-            },
-          ],
         },
       ]}
     >
       {/* Icon */}
       <View style={[styles.signalIconBox, { backgroundColor: iconBg }]}>
-        <Text style={styles.signalIconEmoji}>{card.icon}</Text>
+        {renderSignalIcon(card.icon, contentColor)}
       </View>
 
       {/* Text */}
       <View style={styles.signalTextBox}>
         <View style={styles.signalLabelRow}>
-          <Text style={[styles.signalLabel, { color: card.accent ? obTheme.accentCardTitle : obTheme.primary }]}>
+          <Text style={[styles.signalLabel, { color: contentColor }]}>
             {card.label}
           </Text>
           <View
             style={[styles.signalDot, { backgroundColor: card.accent ? obTheme.accentCardDot : dotColorResolved }]}
           />
         </View>
-        <Text style={[styles.signalSublabel, { color: card.accent ? obTheme.accentCardSubtitle : obTheme.primary }]} numberOfLines={1}>
+        <Text style={[styles.signalSublabel, { color: sublabelColor }]} numberOfLines={1}>
           {card.sublabel}
         </Text>
       </View>
-    </Animated.View>
+    </View>
   );
-}
+});
 
-// ── Hero Illustration with Walking Figure ──────────────────────────────────
-function HeroIllustration() {
+// ── Hero Illustration with Walking Figure (Staticized) ──────────────────────
+const HeroIllustration = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
 
-  // Pulse ring animations
-  const pulse1 = useRef(new Animated.Value(0)).current;
-  const pulse2 = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(pulse1, {
-        toValue: 1,
-        duration: 3000,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    setTimeout(() => {
-      Animated.loop(
-        Animated.timing(pulse2, {
-          toValue: 1,
-          duration: 3000,
-          useNativeDriver: true,
-        })
-      ).start();
-    }, 1500);
-  }, []);
-
-  // Scale the SVG to screen width
   const svgWidth = SCREEN_WIDTH;
   const svgHeight = HERO_HEIGHT;
   const scale = svgWidth / 390;
@@ -243,8 +177,8 @@ function HeroIllustration() {
 
   return (
     <View style={styles.heroContainer}>
-      {/* Pulse rings (behind SVG) */}
-      <Animated.View
+      {/* Subtle pulse ring (static background design element) */}
+      <View
         style={[
           styles.pulseRing,
           {
@@ -253,42 +187,8 @@ function HeroIllustration() {
             width: 140,
             height: 140,
             borderColor: obTheme.brandGreen,
-            opacity: pulse1.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.28, 0],
-            }),
-            transform: [
-              {
-                scale: pulse1.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.4, 1.4],
-                }),
-              },
-            ],
-          },
-        ]}
-      />
-      <Animated.View
-        style={[
-          styles.pulseRing,
-          {
-            top: centerY * scale - 70,
-            left: centerX * scale - 70,
-            width: 140,
-            height: 140,
-            borderColor: obTheme.brandGreen,
-            opacity: pulse2.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.2, 0],
-            }),
-            transform: [
-              {
-                scale: pulse2.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.4, 1.4],
-                }),
-              },
-            ],
+            opacity: 0.12,
+            transform: [{ scale: 1.0 }],
           },
         ]}
       />
@@ -323,44 +223,31 @@ function HeroIllustration() {
         <Line x1={208} y1={218} x2={221} y2={240} stroke={obTheme.brandGreen} strokeWidth={0.7} strokeDasharray="2 5" opacity={0.2} />
 
         {/* Cute Cartoon Mascot Figure (Monochrome) */}
-        {/* Mascot Body Shadow */}
         <Ellipse cx={195} cy={278} rx={22} ry={5} fill="rgba(0,0,0,0.06)" />
-
-        {/* Head glow */}
         <Circle cx={195} cy={165} r={36} fill={hexToRgba(obTheme.brandGreen, 0.06)} />
 
-        {/* Mascot Body */}
         <Path
           d="M 175 190 C 160 210, 160 245, 175 260 C 185 270, 205 270, 215 260 C 230 245, 230 210, 215 190 Z"
           fill="#FAF9F7"
           stroke={obTheme.primary}
           strokeWidth={1.8}
         />
-        {/* Mascot belly patch */}
         <Ellipse cx={195} cy={230} rx={16} ry={22} fill={hexToRgba(obTheme.brandGreen, 0.15)} />
 
-        {/* Mascot Head */}
         <Circle cx={195} cy={160} r={28} fill="#FAF9F7" stroke={obTheme.primary} strokeWidth={1.8} />
 
-        {/* Mascot Face Details */}
-        {/* Blush */}
+        {/* face blush and details */}
         <Circle cx={178} cy={164} r={3.5} fill={obTheme.brandGreen} opacity={0.4} />
         <Circle cx={212} cy={164} r={3.5} fill={obTheme.brandGreen} opacity={0.4} />
-        {/* Large Cute Anime Eyes */}
         <Circle cx={183} cy={157} r={4.5} fill={obTheme.primary} />
         <Circle cx={207} cy={157} r={4.5} fill={obTheme.primary} />
-        {/* Eye Shine / Sparkle */}
         <Circle cx={181.5} cy={155.5} r={1.5} fill="white" />
         <Circle cx={205.5} cy={155.5} r={1.5} fill="white" />
-        {/* Smiling Mouth */}
         <Path d="M 191 166 Q 195 171 199 166" stroke={obTheme.primary} strokeWidth={1.8} strokeLinecap="round" fill="none" />
 
-        {/* Cute Mascot Antenna */}
         <Path d="M 195 132 L 195 122" stroke={obTheme.primary} strokeWidth={1.8} strokeLinecap="round" />
         <Circle cx={195} cy={119} r={4.5} fill={obTheme.brandGreen} stroke={obTheme.primary} strokeWidth={1.5} />
 
-        {/* Mascot Arms */}
-        {/* Left Arm waving */}
         <Path
           d="M 168 205 C 152 200, 142 190, 138 177"
           stroke={obTheme.primary}
@@ -370,7 +257,6 @@ function HeroIllustration() {
         />
         <Circle cx={138} cy={177} r={3} fill={obTheme.brandGreen} stroke={obTheme.primary} strokeWidth={1.5} />
 
-        {/* Right Arm waving or resting */}
         <Path
           d="M 222 205 C 235 210, 245 215, 252 227"
           stroke={obTheme.primary}
@@ -380,16 +266,12 @@ function HeroIllustration() {
         />
         <Circle cx={252} cy={227} r={3} fill={obTheme.brandGreen} stroke={obTheme.primary} strokeWidth={1.5} />
 
-        {/* Mascot Legs */}
-        {/* Left Leg */}
         <Path d="M 182 262 L 180 278" stroke={obTheme.primary} strokeWidth={4.5} strokeLinecap="round" />
         <Path d="M 174 278 L 183 278" stroke={obTheme.primary} strokeWidth={4} strokeLinecap="round" />
 
-        {/* Right Leg */}
         <Path d="M 208 262 L 210 278" stroke={obTheme.primary} strokeWidth={4.5} strokeLinecap="round" />
         <Path d="M 207 278 L 216 278" stroke={obTheme.primary} strokeWidth={4} strokeLinecap="round" />
 
-        {/* Floating ambient dots */}
         <Circle cx={152} cy={80} r={3} fill={obTheme.brandGreen} opacity={0.42} />
         <Circle cx={138} cy={108} r={1.8} fill={obTheme.brandGreen} opacity={0.28} />
         <Circle cx={148} cy={244} r={2.2} fill={obTheme.brandGreen} opacity={0.32} />
@@ -398,25 +280,23 @@ function HeroIllustration() {
         <Circle cx={248} cy={252} r={2.8} fill={obTheme.brandGreen} opacity={0.35} />
         <Circle cx={195} cy={72} r={3.5} fill={obTheme.brandGreen} opacity={0.25} />
 
-        {/* Sparkle – top left */}
         <Path d="M 144 68 L 148 64 L 144 60" stroke={obTheme.brandGreen} strokeWidth={1.1} strokeLinecap="round" opacity={0.38} />
         <Path d="M 148 64 L 153 64" stroke={obTheme.brandGreen} strokeWidth={1.1} strokeLinecap="round" opacity={0.38} />
 
-        {/* Sparkle – top right */}
         <Path d="M 246 62 L 250 58 L 246 54" stroke={obTheme.brandGreen} strokeWidth={1.1} strokeLinecap="round" opacity={0.32} />
         <Path d="M 250 58 L 255 58" stroke={obTheme.brandGreen} strokeWidth={1.1} strokeLinecap="round" opacity={0.32} />
       </Svg>
 
       {/* Signal Cards */}
-      {SIGNAL_CARDS.map((card, idx) => (
-        <SignalCard key={card.label} card={card} enterDelay={idx * 120} />
+      {SIGNAL_CARDS.map((card) => (
+        <SignalCard key={card.label} card={card} />
       ))}
     </View>
   );
-}
+});
 
 // ── Trust Card Component ───────────────────────────────────────────────────
-function TrustCard() {
+const TrustCard = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
 
@@ -424,21 +304,7 @@ function TrustCard() {
     <View style={[styles.trustCard, { borderColor: hexToRgba(obTheme.primary, 0.2) }]}>
       {/* Shield icon */}
       <View style={[styles.trustIconBox, { backgroundColor: hexToRgba(obTheme.primary, 0.08), borderColor: hexToRgba(obTheme.primary, 0.15) }]}>
-        <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-          <Path
-            d="M10 2L2.5 5v5.5C2.5 14.4 5.8 17.2 10 18c4.2-.8 7.5-3.6 7.5-7.5V5L10 2z"
-            stroke={obTheme.brandGreen}
-            strokeWidth={1.4}
-            strokeLinejoin="round"
-          />
-          <Path
-            d="M6.5 10l2.8 2.8L14.5 7"
-            stroke={obTheme.brandGreen}
-            strokeWidth={1.4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </Svg>
+        <ShieldIcon color={obTheme.brandGreen} size={20} />
       </View>
 
       {/* Text */}
@@ -448,10 +314,10 @@ function TrustCard() {
       </View>
     </View>
   );
-}
+});
 
 // ── Logo Mark ──────────────────────────────────────────────────────────────
-function LogoMark() {
+const LogoMark = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
 
@@ -464,66 +330,35 @@ function LogoMark() {
       <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
     </View>
   );
-}
+});
 
-// ── Main Onboarding Screen ─────────────────────────────────────────────────
+// ── Main Onboarding Welcome Screen ─────────────────────────────────────────
 export default function OnboardingWelcome() {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
   const insets = useSafeAreaInsets();
 
-  // Content animations
-  const titleAnim = useRef(new Animated.Value(0)).current;
-  const subtitleAnim = useRef(new Animated.Value(0)).current;
-  const trustAnim = useRef(new Animated.Value(0)).current;
-  const ctaAnim = useRef(new Animated.Value(0)).current;
+  const isFocused = useIsFocused();
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    Animated.stagger(160, [
-      Animated.timing(titleAnim, {
-        toValue: 1,
-        duration: 600,
-        delay: 320,
-        useNativeDriver: true,
-      }),
-      Animated.timing(subtitleAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(trustAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(ctaAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+    if (isFocused) {
+      setIsExiting(false);
+    }
+  }, [isFocused]);
 
   const handleNext = () => {
-    router.push('/onboarding/permissions');
+    setIsExiting(true);
   };
 
-  const animStyle = (anim: Animated.Value) => ({
-    opacity: anim,
-    transform: [
-      {
-        translateY: anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [14, 0],
-        }),
-      },
-    ],
-  });
+  const handleExitComplete = () => {
+    router.push('/onboarding/permissions');
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 12 }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
-      {/* ── Top Bar ─────────────────────────────────────────── */}
+      {/* ── Top Bar (Static) ─────────────────────────────────── */}
       <View style={styles.topBar}>
         <LogoMark />
 
@@ -539,61 +374,57 @@ export default function OnboardingWelcome() {
         </View>
       </View>
 
-      {/* ── Middle Centered Section ────────────────────────── */}
-      <View style={styles.middleContainer}>
-        {/* ── Hero ────────────────────────────────────────────── */}
-        <HeroIllustration />
+      {/* Content wrapper with unified Transition animation */}
+      <OnboardingTransition exit={isExiting} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
+        {/* ── Middle Centered Section ────────────────────────── */}
+        <View style={styles.middleContainer}>
+          {/* ── Hero ────────────────────────────────────────────── */}
+          <HeroIllustration />
 
-        {/* ── Content ─────────────────────────────────────────── */}
-        <View style={styles.contentSection}>
-          <Animated.Text
-            style={[styles.headline, { color: obTheme.primary }, animStyle(titleAnim)]}
-          >
-            Financial{' '}
-            <Text style={{ color: obTheme.brandGreen }}>Clarity</Text>
-            {'\n'}Before Financial{'\n'}Problems
-          </Animated.Text>
+          {/* ── Content ─────────────────────────────────────────── */}
+          <View style={styles.contentSection}>
+            <Text style={[styles.headline, { color: obTheme.primary }]}>
+              Financial{' '}
+              <Text style={{ color: obTheme.brandGreen }}>Clarity</Text>
+              {'\n'}Before Financial{'\n'}Problems
+            </Text>
 
-          <Animated.Text
-            style={[styles.subtitle, { color: obTheme.primary }, animStyle(subtitleAnim)]}
-          >
-            SpendLens quietly analyzes activity on your device and highlights
-            unusual spending, hidden subscriptions, upcoming risks, and important
-            money patterns before they impact you.
-          </Animated.Text>
+            <Text style={[styles.subtitle, { color: obTheme.primary }]}>
+              SpendLens quietly analyzes activity on your device and highlights
+              unusual spending, hidden subscriptions, upcoming risks, and important
+              money patterns before they impact you.
+            </Text>
+          </View>
+
+          {/* ── Trust Card ──────────────────────────────────────── */}
+          <View style={styles.trustCardWrapper}>
+            <TrustCard />
+          </View>
         </View>
 
-        {/* ── Trust Card ──────────────────────────────────────── */}
-        <Animated.View
-          style={[styles.trustCardWrapper, animStyle(trustAnim)]}
-        >
-          <TrustCard />
-        </Animated.View>
-      </View>
-
-      {/* ── CTA ─────────────────────────────────────────────── */}
-      <Animated.View
-        style={[
-          styles.ctaSection,
-          { paddingBottom: Math.max(insets.bottom, 20) + 24 },
-          animStyle(ctaAnim),
-        ]}
-      >
-        <Pressable
-          onPress={handleNext}
-          style={({ pressed }) => [
-            styles.ctaButton,
-            {
-              backgroundColor: obTheme.primary,
-              shadowColor: obTheme.primary,
-              transform: [{ scale: pressed ? 0.972 : 1 }],
-            },
+        {/* ── CTA ─────────────────────────────────────────────── */}
+        <View
+          style={[
+            styles.ctaSection,
+            { paddingBottom: Math.max(insets.bottom, 20) + 24 },
           ]}
         >
-          <Text style={[styles.ctaText, { color: obTheme.accentCardTitle }]}>Save Me From Myself</Text>
-        </Pressable>
-        <Text style={[styles.ctaNote, { color: obTheme.mutedText }]}>No bank login required</Text>
-      </Animated.View>
+          <Pressable
+            onPress={handleNext}
+            style={({ pressed }) => [
+              styles.ctaButton,
+              {
+                backgroundColor: obTheme.primary,
+                shadowColor: obTheme.primary,
+                transform: [{ scale: pressed ? 0.972 : 1 }],
+              },
+            ]}
+          >
+            <Text style={[styles.ctaText, { color: obTheme.accentCardTitle }]}>Save Me From Myself</Text>
+          </Pressable>
+          <Text style={[styles.ctaNote, { color: obTheme.mutedText }]}>No bank login required</Text>
+        </View>
+      </OnboardingTransition>
     </View>
   );
 }
@@ -646,12 +477,6 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
   },
-  skipText: {
-    fontFamily: typography.fontFamily.medium,
-    fontWeight: '500',
-    fontSize: 14,
-    letterSpacing: -0.1,
-  },
 
   // ── Hero ──
   heroContainer: {
@@ -688,9 +513,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  signalIconEmoji: {
-    fontSize: 14,
   },
   signalTextBox: {
     flex: 1,
@@ -798,7 +620,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    // Simulated shadow for the gradient CTA feel
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 16,

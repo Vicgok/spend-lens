@@ -8,8 +8,8 @@ export default function OnboardingLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: theme.background },
-        animation: 'slide_from_right',
+        contentStyle: { backgroundColor: theme.onboarding.background },
+        animation: 'none',
       }}
     >
       <Stack.Screen name="index" />

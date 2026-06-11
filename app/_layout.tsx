@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, Platform, View } from 'react-native';
@@ -33,6 +33,9 @@ SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { theme, isDark } = useTheme();
+  const segments = useSegments();
+  const isOnboarding = segments[0] === 'onboarding';
+  const rootBg = isOnboarding ? theme.onboarding.background : theme.background;
 
   useEffect(() => {
     async function configureAndroidNavbar() {
@@ -61,12 +64,12 @@ function RootNavigator() {
 
   return (
     <NavigationProvider value={navTheme}>
-      <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <View style={{ flex: 1, backgroundColor: rootBg }}>
         <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: theme.background },
+            contentStyle: { backgroundColor: rootBg },
             animation: 'ios_from_right',
             gestureEnabled: true,
             fullScreenGestureEnabled: true,

@@ -9,31 +9,32 @@ import {
   Alert,
   ScrollView,
   Dimensions,
-  Animated,
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Svg, {
   Rect,
   Circle,
   Path,
-  Line,
   Defs,
   LinearGradient as SvgLinearGradient,
   RadialGradient,
   Stop,
 } from 'react-native-svg';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography } from '@/theme';
 import {
   checkSMSPermission,
   requestSMSPermission,
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
+import { LockIcon } from '@/components/ui/OnboardingIcons';
+import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
 // Helper to convert hex to rgba dynamically
 function hexToRgba(hex: string, alpha: number): string {
@@ -44,40 +45,10 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-// ── SMS Hero Illustration ──────────────────────────────────────────────────
-function SmsHeroIllustration() {
+// ── SMS Hero Illustration (Staticized) ──────────────────────────────────────
+const SmsHeroIllustration = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
-
-  const dotAnims = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current;
-
-  useEffect(() => {
-    dotAnims.forEach((anim, index) => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(index * 280),
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-          Animated.timing(anim, {
-            toValue: 0,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    });
-  }, []);
 
   const { width: SCREEN_WIDTH } = Dimensions.get('window');
   const svgWidth = Math.min(SCREEN_WIDTH - 48, 390);
@@ -105,7 +76,7 @@ function SmsHeroIllustration() {
         {/* Dot texture grid */}
         {Array.from({ length: 5 }).map((_, row) =>
           Array.from({ length: 12 }).map((_, col) => {
-            // Remove middle dots that interfere with the flow animation
+            // Remove middle dots that interfere with the flow illustration
             if (row === 2 && col >= 3 && col <= 5) {
               return null;
             }
@@ -126,6 +97,7 @@ function SmsHeroIllustration() {
         <Rect x="38" y="42" width="76" height="116" rx="14" stroke={obTheme.primary} strokeWidth={1.4} fill="rgba(255,255,255,0.92)" />
         <Rect x="63" y="51" width="28" height="5" rx="2.5" stroke={obTheme.primary} strokeWidth={1.1} fill="none" opacity={0.5} />
         <Rect x="47" y="64" width="58" height="76" rx="7" stroke={obTheme.primary} strokeWidth={1.1} fill="rgba(255,255,255,0.8)" opacity={0.8} />
+        
         {/* SMS message lines */}
         <Rect x="53" y="74" width="38" height="14" rx="5" fill={hexToRgba(obTheme.primary, 0.12)} stroke={hexToRgba(obTheme.primary, 0.3)} strokeWidth={1} />
         <Path d="M 57 81 h 18" stroke={obTheme.primary} strokeWidth={1.2} strokeLinecap="round" />
@@ -135,20 +107,17 @@ function SmsHeroIllustration() {
         <Path d="M 57 118 h 22" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" opacity="0.6" />
         <Rect x="69" y="147" width="14" height="3" rx="1.5" fill={obTheme.primary} opacity={0.25} />
 
-        {/* ── Flow dots from phone to lens ── */}
-        {dotAnims.map((anim, i) => {
+        {/* ── Flow dots from phone to lens (Static) ── */}
+        {Array.from({ length: 5 }).map((_, i) => {
           const cx = 114 + (i + 1) * 14;
           return (
-            <AnimatedCircle
+            <Circle
               key={i}
               cx={cx}
               cy={105}
               r={2.8}
               fill={obTheme.primary}
-              opacity={anim.interpolate({
-                inputRange: [0, 0.5, 1],
-                outputRange: [0, 0.7, 0],
-              })}
+              opacity={0.35}
             />
           );
         })}
@@ -198,10 +167,10 @@ function SmsHeroIllustration() {
       </Svg>
     </View>
   );
-}
+});
 
 // ── Automation Flow Card ────────────────────────────────────────────────────
-function AutomationFlowCard() {
+const AutomationFlowCard = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
   const steps = ['SMS', 'Scan', 'Insights', 'Savings'];
@@ -238,10 +207,10 @@ function AutomationFlowCard() {
       </View>
     </View>
   );
-}
+});
 
 // ── Privacy Manifest Card ────────────────────────────────────────────────────
-function PrivacyManifestCard() {
+const PrivacyManifestCard = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
   const points = [
@@ -253,7 +222,7 @@ function PrivacyManifestCard() {
     <View style={[styles.privacyManifestCard, { backgroundColor: '#FFFFFF', borderColor: 'rgba(230, 230, 230, 0.9)' }]}>
       <View style={styles.privacyManifestHeader}>
         <View style={[styles.privacyIconBox, { backgroundColor: hexToRgba(obTheme.brandGreen, 0.12), borderColor: hexToRgba(obTheme.brandGreen, 0.18) }]}>
-          <Text style={{ fontSize: 13 }}>🔒</Text>
+          <LockIcon color={obTheme.brandGreen} size={14} />
         </View>
         <Text style={[styles.privacyManifestTitle, { color: obTheme.primary }]}>
           Your Privacy Manifest
@@ -271,10 +240,10 @@ function PrivacyManifestCard() {
       </View>
     </View>
   );
-}
+});
 
 // ── Logo Mark ────────────────────────────────────────────────────────────────
-function LogoMark() {
+const LogoMark = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
   return (
@@ -286,15 +255,45 @@ function LogoMark() {
       <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
     </View>
   );
-}
+});
 
 // ── Main Permissions Screen Component ────────────────────────────────────────
 export default function OnboardingPermissions() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [hasPermission, setHasPermission] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
+
+  const isFocused = useIsFocused();
+  const [isExiting, setIsExiting] = useState(false);
+  const [nextPath, setNextPath] = useState<any>(null);
+
+  const navigation = useNavigation();
+  const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
+  const shouldPreventRemoveRef = useRef(true);
+  const pendingActionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!shouldPreventRemoveRef.current) {
+        return;
+      }
+      e.preventDefault();
+      pendingActionRef.current = e.data.action;
+      setExitDirection('right');
+      setIsExiting(true);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (isFocused) {
+      setIsExiting(false);
+      setExitDirection('left');
+      shouldPreventRemoveRef.current = true;
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     async function verifyPermission() {
@@ -306,6 +305,22 @@ export default function OnboardingPermissions() {
     }
     verifyPermission();
   }, []);
+
+  const navigateToNext = (path: any) => {
+    setNextPath(path);
+    setIsExiting(true);
+  };
+
+  const handleExitComplete = () => {
+    if (pendingActionRef.current) {
+      shouldPreventRemoveRef.current = false;
+      const action = pendingActionRef.current;
+      pendingActionRef.current = null;
+      navigation.dispatch(action);
+    } else if (nextPath) {
+      router.push(nextPath);
+    }
+  };
 
   const handleRequestPermission = async () => {
     if (Platform.OS !== 'android') {
@@ -322,7 +337,7 @@ export default function OnboardingPermissions() {
         'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',
         [
           { text: 'Try Demo Scan', onPress: () => handleSimulateScan() },
-          { text: 'Continue Manually', onPress: () => router.push('/onboarding/balance') },
+          { text: 'Continue Manually', onPress: () => navigateToNext('/onboarding/balance') },
           { text: 'Cancel', style: 'cancel' }
         ]
       );
@@ -337,7 +352,7 @@ export default function OnboardingPermissions() {
           'Permission Granted!',
           'SpendLens will now automatically scan financial messages when they arrive.'
         );
-        router.push('/onboarding/balance');
+        navigateToNext('/onboarding/balance');
       } else {
         Alert.alert(
           'Permission Denied',
@@ -361,7 +376,7 @@ export default function OnboardingPermissions() {
           [
             {
               text: 'Awesome',
-              onPress: () => router.push('/onboarding/balance'),
+              onPress: () => navigateToNext('/onboarding/balance'),
             },
           ]
         );
@@ -372,31 +387,7 @@ export default function OnboardingPermissions() {
     }, 1500);
   };
 
-  useEffect(() => {
-    async function hideNavbar() {
-      if (Platform.OS === 'android') {
-        try {
-          await NavigationBar.setVisibilityAsync('hidden');
-        } catch (error) {
-          console.warn('Failed to hide navigation bar:', error);
-        }
-      }
-    }
-    hideNavbar();
 
-    return () => {
-      async function restoreNavbar() {
-        if (Platform.OS === 'android') {
-          try {
-            await NavigationBar.setVisibilityAsync('visible');
-          } catch (error) {
-            console.warn('Failed to restore navigation bar:', error);
-          }
-        }
-      }
-      restoreNavbar();
-    };
-  }, []);
 
   const obTheme = theme.onboarding;
 
@@ -404,7 +395,7 @@ export default function OnboardingPermissions() {
     <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
 
-      {/* ── Top Bar ─────────────────────────────────────────── */}
+      {/* ── Top Bar (Static) ─────────────────────────────────── */}
       <View style={styles.topBar}>
         <LogoMark />
 
@@ -416,82 +407,84 @@ export default function OnboardingPermissions() {
         </View>
       </View>
 
-      {/* ── Responsive Centered Scroll Container ────────────── */}
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContainer,
-          { paddingBottom: Math.max(insets.bottom, 20) + 24 }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Illustration */}
-        <SmsHeroIllustration />
+      <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
+        {/* ── Responsive Centered Scroll Container ────────────── */}
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { paddingBottom: Math.max(insets.bottom, 20) + 24 }
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Illustration */}
+          <SmsHeroIllustration />
 
-        {/* Editorial Header */}
-        <View style={styles.header}>
-          <Text style={[styles.microHeader, { color: obTheme.brandGreen }]}>DATA PERMISSIONS</Text>
-          <Text style={[styles.title, { color: obTheme.primary, fontFamily: typography.fontFamily.bold }]}>
-            Smart <Text style={{ color: obTheme.brandGreen }}>Auto</Text>-Tracking
-          </Text>
-          <Text style={[styles.subtitle, { color: obTheme.primary, opacity: 0.8 }]}>
-            SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.
-          </Text>
-        </View>
+          {/* Editorial Header */}
+          <View style={styles.header}>
+            <Text style={[styles.microHeader, { color: obTheme.brandGreen }]}>DATA PERMISSIONS</Text>
+            <Text style={[styles.title, { color: obTheme.primary, fontFamily: typography.fontFamily.bold }]}>
+              Smart <Text style={{ color: obTheme.brandGreen }}>Auto</Text>-Tracking
+            </Text>
+            <Text style={[styles.subtitle, { color: obTheme.primary, opacity: 0.8 }]}>
+              SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.
+            </Text>
+          </View>
 
-        {/* Automation Flow */}
-        <AutomationFlowCard />
+          {/* Automation Flow */}
+          <AutomationFlowCard />
 
-        {/* Privacy Manifest */}
-        <PrivacyManifestCard />
+          {/* Privacy Manifest */}
+          <PrivacyManifestCard />
 
-        {/* Action Buttons Section */}
-        <View style={styles.bottomSection}>
-          {isChecking ? (
-            <ActivityIndicator size="large" color={obTheme.primary} style={{ marginVertical: 12 }} />
-          ) : (
-            <>
-              {Platform.OS === 'android' && !hasPermission && (
+          {/* Action Buttons Section */}
+          <View style={styles.bottomSection}>
+            {isChecking ? (
+              <ActivityIndicator size="large" color={obTheme.primary} style={{ marginVertical: 12 }} />
+            ) : (
+              <>
+                {Platform.OS === 'android' && !hasPermission && (
+                  <Pressable
+                    onPress={handleRequestPermission}
+                    style={({ pressed }) => [
+                      styles.secondaryButton,
+                      {
+                        borderColor: obTheme.primary,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.secondaryBtnText, { color: obTheme.primary }]}>
+                      Enable SMS Tracking
+                    </Text>
+                  </Pressable>
+                )}
+
                 <Pressable
-                  onPress={handleRequestPermission}
+                  onPress={handleSimulateScan}
+                  disabled={isScanning}
                   style={({ pressed }) => [
-                    styles.secondaryButton,
+                    styles.primaryButton,
                     {
-                      borderColor: obTheme.primary,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                      backgroundColor: obTheme.primary,
+                      shadowColor: obTheme.primary,
                     },
+                    isScanning && styles.ctaDisabled,
+                    { transform: [{ scale: pressed ? 0.975 : 1 }] }
                   ]}
                 >
-                  <Text style={[styles.secondaryBtnText, { color: obTheme.primary }]}>
-                    Enable SMS Tracking
-                  </Text>
+                  {isScanning ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={[styles.primaryBtnText, { color: obTheme.accentCardTitle }]}>
+                      Try Demo Scan
+                    </Text>
+                  )}
                 </Pressable>
-              )}
-
-              <Pressable
-                onPress={handleSimulateScan}
-                disabled={isScanning}
-                style={({ pressed }) => [
-                  styles.primaryButton,
-                  {
-                    backgroundColor: obTheme.primary,
-                    shadowColor: obTheme.primary,
-                  },
-                  isScanning && styles.ctaDisabled,
-                  { transform: [{ scale: pressed ? 0.975 : 1 }] }
-                ]}
-              >
-                {isScanning ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={[styles.primaryBtnText, { color: obTheme.accentCardTitle }]}>
-                    Try Demo Scan
-                  </Text>
-                )}
-              </Pressable>
-            </>
-          )}
-        </View>
-      </ScrollView>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </OnboardingTransition>
     </View>
   );
 }
@@ -539,12 +532,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 4,
     borderRadius: 2,
-  },
-  skipText: {
-    fontFamily: typography.fontFamily.medium,
-    fontWeight: '500',
-    fontSize: 14,
-    letterSpacing: -0.1,
   },
 
   // ── Scroll container ──
