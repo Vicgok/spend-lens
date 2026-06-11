@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Image,
+  Animated,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -114,30 +115,62 @@ const renderSignalIcon = (name: string, color: string) => {
   }
 };
 
-// ── Floating Signal Card Component (Staticized) ─────────────────────────────
+// ── Floating Signal Card Component ─────────────────────────────
 const SignalCard = React.memo(({ card }: { card: SignalCardData }) => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
 
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const randomDelay = Math.random() * 800;
+    const randomDuration = 2200 + Math.random() * 600; // Between 2.2s and 2.8s
+
+    const float = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -6,
+          duration: randomDuration,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: randomDuration,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const timer = setTimeout(() => {
+      float.start();
+    }, randomDelay);
+
+    return () => {
+      clearTimeout(timer);
+      float.stop();
+    };
+  }, []);
+
   const cardBg = card.accent
-    ? obTheme.accentCardBg
+    ? obTheme.brandGreen
     : 'rgba(255, 255, 255, 0.92)';
   const cardBorder = card.accent
-    ? hexToRgba(obTheme.accentCardBg, 0.4)
+    ? hexToRgba(obTheme.brandGreen, 0.4)
     : 'rgba(116, 81, 67, 0.2)';
-  const iconBg = card.accent ? obTheme.accentCardIconBg : 'rgba(116, 81, 67, 0.08)';
+  const iconBg = card.accent ? 'rgba(255, 255, 255, 0.15)' : 'rgba(116, 81, 67, 0.08)';
   const dotColorResolved = card.dotColor === 'brandGreen' ? obTheme.brandGreen : card.dotColor;
-  const contentColor = card.accent ? obTheme.accentCardTitle : obTheme.primary;
-  const sublabelColor = card.accent ? obTheme.accentCardSubtitle : obTheme.primary;
+  const contentColor = card.accent ? '#FAF9F7' : obTheme.primary;
+  const sublabelColor = card.accent ? 'rgba(255, 255, 255, 0.85)' : obTheme.primary;
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.signalCard,
         card.position,
         {
           backgroundColor: cardBg,
           borderColor: cardBorder,
+          transform: [{ translateY: floatAnim }],
         },
       ]}
     >
@@ -160,7 +193,7 @@ const SignalCard = React.memo(({ card }: { card: SignalCardData }) => {
           {card.sublabel}
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 });
 
