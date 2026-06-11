@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Animated,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -456,12 +457,10 @@ function LogoMark() {
 
   return (
     <View style={styles.logoRow}>
-      <Svg width={34} height={34} viewBox="0 0 34 34" fill="none">
-        <Rect width={34} height={34} rx={9} fill={obTheme.brandGreen} />
-        <Circle cx={17} cy={17} r={8} stroke="white" strokeWidth={1.6} />
-        <Circle cx={17} cy={17} r={3.2} fill="white" />
-        <Circle cx={20} cy={14} r={1.2} fill="white" opacity={0.6} />
-      </Svg>
+      <Image
+        source={require('../../assets/icon.png')}
+        style={{ width: 34, height: 34, borderRadius: 9 }}
+      />
       <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
     </View>
   );

@@ -10,6 +10,7 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -103,16 +104,22 @@ function SmsHeroIllustration() {
 
         {/* Dot texture grid */}
         {Array.from({ length: 5 }).map((_, row) =>
-          Array.from({ length: 12 }).map((_, col) => (
-            <Circle
-              key={`dot-${row}-${col}`}
-              cx={col * 36 + 18}
-              cy={row * 44 + 22}
-              r={1}
-              fill={obTheme.primary}
-              opacity={0.35}
-            />
-          ))
+          Array.from({ length: 12 }).map((_, col) => {
+            // Remove middle dots that interfere with the flow animation
+            if (row === 2 && col >= 3 && col <= 5) {
+              return null;
+            }
+            return (
+              <Circle
+                key={`dot-${row}-${col}`}
+                cx={col * 36 + 18}
+                cy={row * 44 + 22}
+                r={1}
+                fill={obTheme.primary}
+                opacity={0.35}
+              />
+            );
+          })
         )}
 
         {/* ── Phone device ── */}
@@ -272,12 +279,10 @@ function LogoMark() {
   const obTheme = theme.onboarding;
   return (
     <View style={styles.logoRow}>
-      <Svg width={34} height={34} viewBox="0 0 34 34" fill="none">
-        <Rect width={34} height={34} rx={9} fill={obTheme.brandGreen} />
-        <Circle cx={17} cy={17} r={8} stroke="white" strokeWidth={1.6} />
-        <Circle cx={17} cy={17} r={3.2} fill="white" />
-        <Circle cx={20} cy={14} r={1.2} fill="white" opacity={0.6} />
-      </Svg>
+      <Image
+        source={require('../../assets/icon.png')}
+        style={{ width: 34, height: 34, borderRadius: 9 }}
+      />
       <Text style={[styles.logoText, { color: obTheme.primary }]}>SpendLens</Text>
     </View>
   );
@@ -372,7 +377,6 @@ export default function OnboardingPermissions() {
       if (Platform.OS === 'android') {
         try {
           await NavigationBar.setVisibilityAsync('hidden');
-          await NavigationBar.setBehaviorAsync('overlay-swipe');
         } catch (error) {
           console.warn('Failed to hide navigation bar:', error);
         }

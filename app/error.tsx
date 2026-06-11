@@ -120,3 +120,6 @@ const styles = StyleSheet.create({
     color: '#1B1B1B',
   },
 });
+
+export default ErrorBoundary;
+

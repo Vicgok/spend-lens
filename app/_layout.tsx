@@ -38,8 +38,6 @@ function RootNavigator() {
     async function configureAndroidNavbar() {
       if (Platform.OS === 'android') {
         try {
-          await NavigationBar.setPositionAsync('absolute');
-          await NavigationBar.setBackgroundColorAsync('#00000000');
           await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
           await NavigationBar.setVisibilityAsync('visible');
         } catch (error) {
