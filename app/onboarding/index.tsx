@@ -334,46 +334,72 @@ function HeroIllustration() {
         <Line x1={182} y1={218} x2={157} y2={240} stroke={BRAND_GREEN} strokeWidth={0.7} strokeDasharray="2 5" opacity={0.2} />
         <Line x1={208} y1={218} x2={233} y2={240} stroke={BRAND_GREEN} strokeWidth={0.7} strokeDasharray="2 5" opacity={0.2} />
 
+        {/* Cute Cartoon Mascot Figure (Monochrome) */}
+        {/* Mascot Body Shadow */}
+        <Ellipse cx={195} cy={278} rx={22} ry={5} fill="rgba(0,0,0,0.06)" />
+
         {/* Head glow */}
-        <Circle cx={195} cy={114} r={32} fill="rgba(123,203,76,0.06)" />
+        <Circle cx={195} cy={165} r={36} fill="rgba(123,203,76,0.06)" />
 
-        {/* Head */}
-        <Circle cx={195} cy={114} r={26} stroke={NEAR_BLACK} strokeWidth={1.5} fill="rgba(250,249,247,0.85)" />
+        {/* Mascot Body */}
+        <Path 
+          d="M 175 190 C 160 210, 160 245, 175 260 C 185 270, 205 270, 215 260 C 230 245, 230 210, 215 190 Z" 
+          fill="#FAF9F7" 
+          stroke={NEAR_BLACK} 
+          strokeWidth={1.8} 
+        />
+        {/* Mascot belly patch */}
+        <Ellipse cx={195} cy={230} rx={16} ry={22} fill="rgba(123, 203, 76, 0.15)" />
 
-        {/* Eyes */}
-        <Ellipse cx={187} cy={111} rx={2.2} ry={2.2} fill={NEAR_BLACK} opacity={0.5} />
-        <Ellipse cx={203} cy={111} rx={2.2} ry={2.2} fill={NEAR_BLACK} opacity={0.5} />
+        {/* Mascot Head */}
+        <Circle cx={195} cy={160} r={28} fill="#FAF9F7" stroke={NEAR_BLACK} strokeWidth={1.8} />
 
-        {/* Smile */}
-        <Path d="M 188 120 Q 195 125.5 202 120" stroke={NEAR_BLACK} strokeWidth={1.3} strokeLinecap="round" fill="none" opacity={0.5} />
+        {/* Mascot Face Details */}
+        {/* Blush */}
+        <Circle cx={178} cy={164} r={3.5} fill={BRAND_GREEN} opacity={0.4} />
+        <Circle cx={212} cy={164} r={3.5} fill={BRAND_GREEN} opacity={0.4} />
+        {/* Large Cute Anime Eyes */}
+        <Circle cx={183} cy={157} r={4.5} fill={NEAR_BLACK} />
+        <Circle cx={207} cy={157} r={4.5} fill={NEAR_BLACK} />
+        {/* Eye Shine / Sparkle */}
+        <Circle cx={181.5} cy={155.5} r={1.5} fill="white" />
+        <Circle cx={205.5} cy={155.5} r={1.5} fill="white" />
+        {/* Smiling Mouth */}
+        <Path d="M 191 166 Q 195 171 199 166" stroke={NEAR_BLACK} strokeWidth={1.8} strokeLinecap="round" fill="none" />
 
-        {/* Neck */}
-        <Path d="M 191 140 L 199 140" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
+        {/* Cute Mascot Antenna */}
+        <Path d="M 195 132 L 195 122" stroke={NEAR_BLACK} strokeWidth={1.8} strokeLinecap="round" />
+        <Circle cx={195} cy={119} r={4.5} fill={BRAND_GREEN} stroke={NEAR_BLACK} strokeWidth={1.5} />
 
-        {/* Body */}
-        <Path d="M 195 140 C 194 162, 193 182, 194 210" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
+        {/* Mascot Arms */}
+        {/* Left Arm waving */}
+        <Path 
+          d="M 168 205 C 152 200, 142 190, 138 177" 
+          stroke={NEAR_BLACK} 
+          strokeWidth={4} 
+          strokeLinecap="round" 
+          fill="none" 
+        />
+        <Circle cx={138} cy={177} r={3} fill={BRAND_GREEN} stroke={NEAR_BLACK} strokeWidth={1.5} />
 
-        {/* Shoulders */}
-        <Path d="M 170 152 C 180 148, 195 150, 210 148 C 220 147, 227 152, 230 158" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" fill="none" />
+        {/* Right Arm waving or resting */}
+        <Path 
+          d="M 222 205 C 235 210, 245 215, 252 227" 
+          stroke={NEAR_BLACK} 
+          strokeWidth={4} 
+          strokeLinecap="round" 
+          fill="none" 
+        />
+        <Circle cx={252} cy={227} r={3} fill={BRAND_GREEN} stroke={NEAR_BLACK} strokeWidth={1.5} />
 
-        {/* Left arm */}
-        <Path d="M 170 152 C 162 164, 158 176, 162 188" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-        <Circle cx={162} cy={190} r={2.5} stroke={NEAR_BLACK} strokeWidth={1.2} fill="rgba(250,249,247,0.8)" />
+        {/* Mascot Legs */}
+        {/* Left Leg */}
+        <Path d="M 182 262 L 180 278" stroke={NEAR_BLACK} strokeWidth={4.5} strokeLinecap="round" />
+        <Path d="M 174 278 L 183 278" stroke={NEAR_BLACK} strokeWidth={4} strokeLinecap="round" />
 
-        {/* Right arm */}
-        <Path d="M 230 158 C 236 168, 238 180, 234 192" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-        <Circle cx={234} cy={194} r={2.5} stroke={NEAR_BLACK} strokeWidth={1.2} fill="rgba(250,249,247,0.8)" />
-
-        {/* Hips */}
-        <Path d="M 181 210 C 188 208, 202 208, 209 210" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-
-        {/* Left leg */}
-        <Path d="M 183 210 C 180 228, 175 248, 170 268" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-        <Path d="M 170 268 L 161 274" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-
-        {/* Right leg */}
-        <Path d="M 207 210 C 211 232, 216 250, 220 268" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
-        <Path d="M 220 268 L 229 273" stroke={NEAR_BLACK} strokeWidth={1.5} strokeLinecap="round" />
+        {/* Right Leg */}
+        <Path d="M 208 262 L 210 278" stroke={NEAR_BLACK} strokeWidth={4.5} strokeLinecap="round" />
+        <Path d="M 207 278 L 216 278" stroke={NEAR_BLACK} strokeWidth={4} strokeLinecap="round" />
 
         {/* Floating ambient dots */}
         <Circle cx={152} cy={80} r={3} fill={BRAND_GREEN} opacity={0.42} />
