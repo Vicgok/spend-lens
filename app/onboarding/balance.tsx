@@ -12,7 +12,6 @@ import {
   FlatList,
   Alert,
   Dimensions,
-  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -34,7 +33,6 @@ import {
   CashIcon,
   CreditCardIcon,
   WalletIcon,
-  BackArrowIcon,
 } from '@/components/ui/OnboardingIcons';
 import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
@@ -250,39 +248,10 @@ export default function BalanceSetup() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}
+      style={[styles.container, { backgroundColor: obTheme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
-
-      {/* ── Top Bar (Static) ─────────────────────────────────── */}
-      <View style={styles.topBar}>
-        <View style={[styles.topBarSide, { alignItems: 'flex-start' }]}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={({ pressed }) => [
-              styles.backButton,
-              { transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]}
-          >
-            <BackArrowIcon color={obTheme.primary} size={20} />
-          </Pressable>
-        </View>
-
-        {/* Progress pills */}
-        <View style={styles.topBarCenter}>
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-          <View style={[styles.pillActive, { backgroundColor: obTheme.primary }]} />
-        </View>
-
-        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
-          <Image
-            source={require('../../assets/icon.png')}
-            style={styles.headerLogo}
-          />
-        </View>
-      </View>
       
       <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
         <ScrollView
@@ -707,45 +676,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // ── Top Bar ──
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  topBarSide: {
-    width: 44,
-    alignItems: 'center',
-  },
-  topBarCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -8,
-  },
-  pillActive: {
-    width: 24,
-    height: 4,
-    borderRadius: 2,
-  },
-  pillInactive: {
-    width: 8,
-    height: 4,
-    borderRadius: 2,
-  },
-  headerLogo: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-  },
+
 });

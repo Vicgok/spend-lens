@@ -9,7 +9,6 @@ import {
   Alert,
   ScrollView,
   Dimensions,
-  Image,
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -34,7 +33,7 @@ import {
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
-import { LockIcon, ShieldIcon, CheckCircleIcon, BackArrowIcon } from '@/components/ui/OnboardingIcons';
+import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui/OnboardingIcons';
 import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
 
 // Helper to convert hex to rgba dynamically
@@ -416,37 +415,8 @@ export default function OnboardingPermissions() {
   const obTheme = theme.onboarding;
 
   return (
-    <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}>
+    <View style={[styles.container, { backgroundColor: obTheme.background }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
-
-      {/* ── Top Bar (Static) ─────────────────────────────────── */}
-      <View style={styles.topBar}>
-        <View style={[styles.topBarSide, { alignItems: 'flex-start' }]}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={({ pressed }) => [
-              styles.backButton,
-              { transform: [{ scale: pressed ? 0.95 : 1 }] }
-            ]}
-          >
-            <BackArrowIcon color={obTheme.primary} size={20} />
-          </Pressable>
-        </View>
-
-        {/* Progress pills */}
-        <View style={styles.topBarCenter}>
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-          <View style={[styles.pillActive, { backgroundColor: obTheme.primary }]} />
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-        </View>
-
-        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
-          <Image
-            source={require('../../assets/icon.png')}
-            style={styles.headerLogo}
-          />
-        </View>
-      </View>
 
       <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
         {/* ── Responsive Centered Scroll Container ────────────── */}
@@ -611,47 +581,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ── Top Bar ──
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  topBarSide: {
-    width: 44,
-    alignItems: 'center',
-  },
-  topBarCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -8,
-  },
-  pillActive: {
-    width: 24,
-    height: 4,
-    borderRadius: 2,
-  },
-  pillInactive: {
-    width: 8,
-    height: 4,
-    borderRadius: 2,
-  },
-  headerLogo: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-  },
+
 
   // ── Scroll container ──
   scrollContainer: {

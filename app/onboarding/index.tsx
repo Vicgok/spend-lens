@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Pressable,
   Dimensions,
-  Image,
   Animated,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -375,26 +374,8 @@ export default function OnboardingWelcome() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 12 }]}>
+    <View style={[styles.container, { backgroundColor: obTheme.background }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
-      {/* ── Top Bar (Static) ─────────────────────────────────── */}
-      <View style={styles.topBar}>
-        <View style={styles.topBarSide} />
-
-        {/* Progress pills */}
-        <View style={styles.topBarCenter}>
-          <View style={[styles.pillActive, { backgroundColor: obTheme.brandGreen }]} />
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-          <View style={[styles.pillInactive, { backgroundColor: obTheme.pillInactive }]} />
-        </View>
-
-        <View style={[styles.topBarSide, { alignItems: 'flex-end' }]}>
-          <Image
-            source={require('../../assets/icon.png')}
-            style={styles.headerLogo}
-          />
-        </View>
-      </View>
 
       {/* Content wrapper with unified Transition animation */}
       <OnboardingTransition exit={isExiting} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
@@ -461,39 +442,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // ── Top Bar ──
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  topBarSide: {
-    width: 44,
-    alignItems: 'center',
-  },
-  topBarCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  pillActive: {
-    width: 24,
-    height: 4,
-    borderRadius: 2,
-  },
-  pillInactive: {
-    width: 8,
-    height: 4,
-    borderRadius: 2,
-  },
-  headerLogo: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-  },
+
 
   // ── Hero ──
   heroContainer: {
