@@ -25,6 +25,8 @@ import { BankLogo } from './BankLogo';
 
 const { colors, radii, spacing, type: t, shadow } = tokens;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.73;
+const EXTENDED_HEIGHT = SCREEN_HEIGHT * 0.94;
 
 export interface AddFinancialSourcePayload {
   type: AccountType;
@@ -212,9 +214,9 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
   const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
 
   // Animated height for the bottom drawer
-  const sheetHeight = useRef(new Animated.Value(SCREEN_HEIGHT * 0.78)).current;
-  const currentHeightRef = useRef(SCREEN_HEIGHT * 0.78);
-  const startHeightRef = useRef(SCREEN_HEIGHT * 0.78);
+  const sheetHeight = useRef(new Animated.Value(DEFAULT_HEIGHT)).current;
+  const currentHeightRef = useRef(DEFAULT_HEIGHT);
+  const startHeightRef = useRef(DEFAULT_HEIGHT);
 
   useEffect(() => {
     const listenerId = sheetHeight.addListener(({ value }) => {
@@ -227,53 +229,67 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
 
   useEffect(() => {
     if (visible) {
-      sheetHeight.setValue(SCREEN_HEIGHT * 0.78);
+      sheetHeight.setValue(DEFAULT_HEIGHT);
+      currentHeightRef.current = DEFAULT_HEIGHT;
     }
   }, [visible, sheetHeight]);
 
   // PanResponder to allow native extending / dragging from the top mid handle bar
   const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponder: () => true, // Start dragging immediately on handle bar touch
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => {
-      startHeightRef.current = currentHeightRef.current;
+      startHeightRef.current = currentHeightRef.current || DEFAULT_HEIGHT;
     },
     onPanResponderMove: (evt, gestureState) => {
       // Calculate new height based on starting height and vertical delta dy
       const newHeight = startHeightRef.current - gestureState.dy;
-      if (newHeight >= SCREEN_HEIGHT * 0.45 && newHeight <= SCREEN_HEIGHT * 0.96) {
+      if (newHeight >= SCREEN_HEIGHT * 0.30 && newHeight <= SCREEN_HEIGHT * 0.96) {
         sheetHeight.setValue(newHeight);
+        currentHeightRef.current = newHeight;
       }
     },
     onPanResponderRelease: (evt, gestureState) => {
+      // If it was a simple tap / touch without actual drag, do nothing (prevents snapping)
+      if (Math.abs(gestureState.dy) < 5) {
+        return;
+      }
+
       const currentHeight = startHeightRef.current - gestureState.dy;
       if (gestureState.dy > 120) {
         // Dragged down far enough -> close drawer
         onClose();
-        // Reset to default height smoothly
         Animated.spring(sheetHeight, {
-          toValue: SCREEN_HEIGHT * 0.78,
+          toValue: DEFAULT_HEIGHT,
           useNativeDriver: false,
-        }).start();
-      } else if (currentHeight > SCREEN_HEIGHT * 0.86 || gestureState.dy < -50) {
+        }).start(() => {
+          currentHeightRef.current = DEFAULT_HEIGHT;
+        });
+      } else if (currentHeight > DEFAULT_HEIGHT + 60 || gestureState.dy < -50) {
         // Dragged up -> extend sheet to top
         Animated.spring(sheetHeight, {
-          toValue: SCREEN_HEIGHT * 0.94,
+          toValue: EXTENDED_HEIGHT,
           useNativeDriver: false,
-        }).start();
-      } else if (currentHeight < SCREEN_HEIGHT * 0.65) {
+        }).start(() => {
+          currentHeightRef.current = EXTENDED_HEIGHT;
+        });
+      } else if (currentHeight < DEFAULT_HEIGHT - 60) {
         // Dragged down too much -> close
         onClose();
         Animated.spring(sheetHeight, {
-          toValue: SCREEN_HEIGHT * 0.78,
+          toValue: DEFAULT_HEIGHT,
           useNativeDriver: false,
-        }).start();
+        }).start(() => {
+          currentHeightRef.current = DEFAULT_HEIGHT;
+        });
       } else {
         // Reset to default
         Animated.spring(sheetHeight, {
-          toValue: SCREEN_HEIGHT * 0.78,
+          toValue: DEFAULT_HEIGHT,
           useNativeDriver: false,
-        }).start();
+        }).start(() => {
+          currentHeightRef.current = DEFAULT_HEIGHT;
+        });
       }
     }
   }), [onClose, sheetHeight]);
@@ -346,6 +362,8 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: spacing['2xl'] }}
               keyboardShouldPersistTaps="handled"
+              bounces={false}
+              overScrollMode="never"
             >
               {/* Header */}
               <View style={styles.header}>
@@ -386,27 +404,27 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                         disabled && styles.typeCardDisabled,
                       ]}
                     >
-                      <Icon size={42} />
-                      <Text
-                        style={[
-                          styles.typeLabel,
-                          (selected || disabled) && { color: colors.forest },
-                        ]}
-                      >
-                        {label}
-                      </Text>
-                      <Text style={styles.typeSubLabel}>
-                        {disabled ? 'Already Added' : 'Add from list'}
-                      </Text>
-                      <View style={styles.indicatorWrap}>
-                        {disabled ? (
-                          <View style={styles.checkBadge}>
-                            <CheckMark size={12} color={colors.surface} />
-                          </View>
-                        ) : (
-                          <RadioDot selected={selected} />
-                        )}
-                      </View>
+                       <Icon size={34} />
+                       <Text
+                         style={[
+                           styles.typeLabel,
+                           (selected || disabled) && { color: colors.forest },
+                         ]}
+                       >
+                         {label}
+                       </Text>
+                       <Text style={styles.typeSubLabel}>
+                         {disabled ? 'Already Added' : 'Add from list'}
+                       </Text>
+                       <View style={styles.indicatorWrap}>
+                         {disabled ? (
+                           <View style={styles.checkBadge}>
+                             <CheckMark size={8} color={colors.surface} />
+                           </View>
+                         ) : (
+                           <RadioDot selected={selected} />
+                         )}
+                       </View>
                     </Pressable>
                   );
                 })}
@@ -459,7 +477,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                                 selected && styles.bankRowSelected,
                               ]}
                             >
-                              <BankLogo bankId={bank.id} size={28} />
+                              <BankLogo bankId={bank.id} size={36} />
                               <Text style={styles.bankName}>{bank.name}</Text>
                               {selected && (
                                 <View style={styles.checkBadge}>
@@ -514,7 +532,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
             </ScrollView>
 
             {/* CTA */}
-            <SafeAreaView>
+            <SafeAreaView style={styles.ctaContainer}>
               <Pressable
                 onPress={handleCreate}
                 disabled={!canCreate}
@@ -524,9 +542,9 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                   pressed && canCreate && { opacity: 0.9 },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Create account"
+                accessibilityLabel="Add account"
               >
-                <Text style={[t.cta, { fontSize: 18, fontWeight: '600', color: colors.white }]}>Create Account</Text>
+                <Text style={[t.cta, { fontSize: 18, fontWeight: '600', color: colors.white }]}>Add Account</Text>
               </Pressable>
             </SafeAreaView>
           </Animated.View>
@@ -601,12 +619,12 @@ const styles = StyleSheet.create({
   },
   typeCard: {
     width: '48.5%',
-    minHeight: 130,
+    minHeight: 92,
     backgroundColor: colors.cardBg,
     borderWidth: 1.4,
     borderColor: colors.border,
-    borderRadius: 20,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -621,24 +639,24 @@ const styles = StyleSheet.create({
     borderColor: '#D7E3C8',
   },
   typeLabel: {
-    marginTop: 8,
-    fontSize: 15,
+    marginTop: 4,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   typeSubLabel: {
-    marginTop: 2,
-    fontSize: 12,
+    marginTop: 1,
+    fontSize: 9,
     color: colors.textSecondaryMockup,
   },
   indicatorWrap: {
-    marginTop: 8,
+    marginTop: 6,
   },
   radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.2,
     borderColor: '#C9BFAE',
     alignItems: 'center',
     justifyContent: 'center',
@@ -648,15 +666,15 @@ const styles = StyleSheet.create({
     borderColor: colors.forest,
   },
   radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.forest,
   },
   checkBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: colors.forest,
     alignItems: 'center',
     justifyContent: 'center',
@@ -784,6 +802,10 @@ const styles = StyleSheet.create({
     bottom: -6,
   },
   // CTA
+  ctaContainer: {
+    paddingBottom: Platform.OS === 'ios' ? 24 : 32,
+    backgroundColor: colors.surface,
+  },
   cta: {
     height: 50,
     borderRadius: radii.card - 4,
