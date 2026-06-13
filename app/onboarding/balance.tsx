@@ -330,6 +330,11 @@ export default function BalanceSetup() {
 
       logger.info('[ONBOARDING] exit transition start');
       setIsExiting(true);
+      
+      logger.info('[ONBOARDING] router.replace start');
+      shouldPreventRemoveRef.current = false;
+      router.replace('/');
+      logger.info('[ONBOARDING] router.replace executed');
     } catch (error: any) {
       console.error('[Onboarding Account Creation]', error);
       const errorMessage = error.message || 'Failed to save accounts. Please try again.';
@@ -345,11 +350,6 @@ export default function BalanceSetup() {
       const action = pendingActionRef.current;
       pendingActionRef.current = null;
       navigation.dispatch(action);
-    } else {
-      logger.info('[ONBOARDING] router.replace start');
-      shouldPreventRemoveRef.current = false;
-      router.replace('/');
-      logger.info('[ONBOARDING] router.replace executed');
     }
   };
 

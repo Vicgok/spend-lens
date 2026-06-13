@@ -83,7 +83,6 @@ export const OnboardingTransition = React.memo(({
         styles.container,
         style,
         {
-          opacity,
           transform: [{ translateX }],
         },
       ]}
