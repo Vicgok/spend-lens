@@ -32,3 +32,20 @@ export const iconSizes = {
   xl: 36,
   '2xl': 48,
 } as const;
+
+export const sheetRadii = {
+  sheet: 32,
+  card: 20,
+  input: 18,
+  inputSm: 14,
+  pill: 999,
+} as const;
+
+export const sheetSpacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  '2xl': 24,
+} as const;

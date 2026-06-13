@@ -144,3 +144,12 @@ export const typography = {
   },
 } as const;
 
+export const sheetType = {
+  title: { fontSize: 32, fontWeight: '700' as const, color: '#745143' },
+  subtitle: { fontSize: 16, fontWeight: '400' as const, color: '#54554B', lineHeight: 22 },
+  section: { fontSize: 18, fontWeight: '600' as const, color: '#745143' },
+  body: { fontSize: 16, fontWeight: '400' as const, color: '#745143' },
+  bodyMuted: { fontSize: 14, fontWeight: '400' as const, color: '#54554B' },
+  cta: { fontSize: 20, fontWeight: '600' as const, color: '#FFF8EE' },
+} as const;
+

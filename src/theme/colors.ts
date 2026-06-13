@@ -120,3 +120,56 @@ export const categoryColors = [
 export type ThemeMode = 'dark' | 'light';
 export type ThemeColors = typeof colors.dark;
 
+export const sheetColors = {
+  // Surfaces
+  overlay: 'rgba(0,0,0,0.35)',
+  background: '#E1D7C2',
+  surface: '#FFF8EE',
+  surfaceRaised: '#FFFDF8',
+  border: '#E8DDD0',
+  cardBg: '#FFFDF8',
+
+  // Text
+  textPrimary: '#745143',
+  textSecondary: '#54554B',
+  textSecondaryMockup: '#7A7669',
+
+  // Brand greens
+  forest: '#3E5A2A',
+  forestSoft: '#4F6D3A',
+  leafLight: '#EEF4E6',
+
+  // Illustration
+  notebookCream: '#F5E9D8',
+  illoOutline: '#9B7B5B',
+  illoFace: '#5B4333',
+  leafFill: '#D4D0A1',
+  leafStroke: '#9B966A',
+  ground: '#DCCFBB',
+  pencilWood: '#D8B58A',
+  pencilEraser: '#C97B6B',
+
+  // AddFinancialSourceSheet Mockup specific colors
+  iconOutline: '#6B4A39',
+  walletBrown: '#8C5A3C',
+  walletDark: '#5B3A28',
+  cardYellow: '#E8C66A',
+  cardStripe: '#3E5A2A',
+  cashGreen: '#9FC07A',
+  cashGreenDark: '#5D7E45',
+  rupeeRed: '#C0533A',
+
+  // SproutCoinMascot specific colors
+  sproutBodyFill: '#E2E6C4',
+  sproutBodyStroke: '#8C9A6B',
+  sproutLeafFill: '#C8D29A',
+  sproutLeafStroke: '#7E8B58',
+  sproutTwig: '#A78463',
+  sproutFace: '#5B4A37',
+  sproutCheek: '#E8B7A0',
+  sproutGround: '#E7DFC9',
+  sproutSparkle: '#D8C98A',
+
+  white: '#FFFFFF',
+} as const;
+

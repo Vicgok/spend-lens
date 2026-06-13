@@ -92,3 +92,13 @@ export const shadows = {
       },
     }),
 } as const;
+
+export const sheetShadow = {
+  sheet: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+} as const;
