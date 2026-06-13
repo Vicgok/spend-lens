@@ -34,8 +34,21 @@ SplashScreen.preventAutoHideAsync();
 function RootNavigator() {
   const { theme, isDark } = useTheme();
   const segments = useSegments();
-  const isOnboarding = segments[0] === 'onboarding';
-  const rootBg = isOnboarding ? theme.onboarding.background : theme.background;
+  const [rootBg, setRootBg] = React.useState(theme.onboarding.background);
+
+  useEffect(() => {
+    const isOnboarding = segments[0] === 'onboarding';
+    const targetBg = isOnboarding ? theme.onboarding.background : theme.background;
+
+    if (!isOnboarding && rootBg === theme.onboarding.background) {
+      const timer = setTimeout(() => {
+        setRootBg(targetBg);
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
+      setRootBg(targetBg);
+    }
+  }, [segments, theme, isDark]);
 
   useEffect(() => {
     async function configureAndroidNavbar() {

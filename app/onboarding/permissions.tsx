@@ -303,6 +303,8 @@ export default function OnboardingPermissions() {
       setIsExiting(false);
       setExitDirection('left');
       shouldPreventRemoveRef.current = true;
+    } else {
+      shouldPreventRemoveRef.current = false;
     }
   }, [isFocused]);
 

@@ -33,6 +33,30 @@ function getAccountTypeLabel(type: string): string {
   return map[type] || 'Savings Account';
 }
 
+function getTimeOfDayGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) {
+    return 'Good morning';
+  } else if (hour >= 11 && hour < 13) {
+    return 'Happy brunch';
+  } else if (hour >= 13 && hour < 17) {
+    return 'Good afternoon';
+  } else if (hour >= 17 && hour < 22) {
+    return 'Good evening';
+  } else {
+    return 'Good night';
+  }
+}
+
+function getFormattedMonth(): string {
+  const date = new Date();
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  return `${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
 const COLOR_FOREST_GREEN = '#3E5A2A';
 const COLOR_DEEP_BROWN = '#745143';
 const COLOR_ACCENT_BROWN = '#B7884E';
@@ -61,12 +85,12 @@ const logger = {
 const SavingsJarIllustration = React.memo(() => (
   <Svg width={100} height={90} viewBox="0 0 110 100">
     <Circle cx={65} cy={55} r={32} fill="rgba(62, 90, 42, 0.04)" />
-    
+
     {/* Coins outside */}
     <Rect x={38} y={72} width={12} height={4} rx={1.5} fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={38} y={75} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={38} y={78} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    
+
     <Rect x={50} y={66} width={12} height={4} rx={1.5} fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={50} y={69} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={50} y={72} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
@@ -80,12 +104,12 @@ const SavingsJarIllustration = React.memo(() => (
       stroke={COLOR_DEEP_BROWN}
       strokeWidth={1.5}
     />
-    
+
     {/* Coins inside */}
     <Rect x={58} y={70} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={66} y={64} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
     <Rect x={66} y={67.5} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    
+
     {/* Jar neck */}
     <Path d="M 54 32 L 82 32 L 80 28 L 56 28 Z" fill="#FFFFFF" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
     {/* Lid */}
@@ -95,7 +119,7 @@ const SavingsJarIllustration = React.memo(() => (
     <Path d="M 44 82 Q 42 70 48 64 Q 50 60 49 55" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
     <Path d="M 43 72 C 40 70, 39 74, 43 72 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_FOREST_GREEN} strokeWidth={0.5} />
     <Path d="M 46 66 C 48 64, 48 68, 46 66 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_FOREST_GREEN} strokeWidth={0.5} />
-    
+
     {/* Sparkles */}
     <Path d="M 32 40 L 34 40 M 33 39 L 33 41" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
     <Path d="M 94 48 L 96 48 M 95 47 L 95 49" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
@@ -107,7 +131,7 @@ const TopMascotIllustration = React.memo(() => (
     <Path d="M 30 82 Q 60 78 90 82 Z" fill="rgba(62, 90, 42, 0.05)" />
     <Path d="M 45 82 Q 52 74 58 82 M 52 82 Q 55 77 58 82" stroke={COLOR_FOREST_GREEN} strokeWidth={1} strokeLinecap="round" />
     <Path d="M 75 82 Q 78 74 80 82" stroke={COLOR_FOREST_GREEN} strokeWidth={1} strokeLinecap="round" />
-    
+
     {/* Body */}
     <Circle cx={65} cy={48} r={20} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
     <Circle cx={65} cy={48} r={17} fill="rgba(62, 90, 42, 0.05)" />
@@ -116,14 +140,14 @@ const TopMascotIllustration = React.memo(() => (
     {/* Eyes */}
     <Circle cx={59} cy={46} r={2.2} fill={COLOR_DEEP_BROWN} />
     <Circle cx={71} cy={46} r={2.2} fill={COLOR_DEEP_BROWN} />
-    
+
     {/* Cheeks */}
     <Circle cx={54} cy={49} r={2} fill={COLOR_FOREST_GREEN} opacity={0.3} />
     <Circle cx={76} cy={49} r={2} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    
+
     {/* Smile */}
     <Path d="M 62 51 Q 65 54 68 51" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-    
+
     {/* Antenna */}
     <Path d="M 65 28 L 65 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
     <Path d="M 65 24 C 69 22, 69 26, 65 24 C 61 26, 61 22, 65 24 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
@@ -144,10 +168,71 @@ const TopMascotIllustration = React.memo(() => (
     <Path d="M 95 38 L 97 38 M 96 37 L 96 39" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
   </Svg>
 ));
+const LEAF_FILL = '#D8D4A8';
+const LEAF_STROKE = '#9B9469';
+const STEM = '#6E7B4B';
+const GROUND = '#DDD3C6';
 
 const CardLeafIllustration = React.memo(() => (
-  <Svg width={42} height={42} viewBox="0 0 50 50" style={{ position: 'absolute', right: 8, bottom: 8, opacity: 0.12 }}>
-    {/* Minimal, elegant plant accents matching editorial notebook */}
+  <View style={{ position: 'absolute', right: 24, bottom: 0, opacity: 0.25, zIndex: 0 }} pointerEvents="none">
+    <Svg width={65} height={48} viewBox="0 0 65 48" fill="none">
+      {/* Stem */}
+      <Path
+        d="M54 47C54 36 53 27 55 18C56 13 58 9 61 5"
+        stroke={STEM}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+
+      {/* Small Left Leaf */}
+      <Ellipse
+        cx="50"
+        cy="26"
+        rx="4"
+        ry="8"
+        transform="rotate(-35 50 26)"
+        fill={LEAF_FILL}
+        stroke={LEAF_STROKE}
+        strokeWidth={1}
+      />
+
+      {/* Large Center Leaf */}
+      <Ellipse
+        cx="56"
+        cy="16"
+        rx="5.5"
+        ry="12"
+        transform="rotate(15 56 16)"
+        fill={LEAF_FILL}
+        stroke={LEAF_STROKE}
+        strokeWidth={1}
+      />
+
+      {/* Right Leaf */}
+      <Ellipse
+        cx="63"
+        cy="23"
+        rx="4"
+        ry="9"
+        transform="rotate(28 63 23)"
+        fill={LEAF_FILL}
+        stroke={LEAF_STROKE}
+        strokeWidth={1}
+      />
+
+      {/* Ground */}
+      <Path
+        d="M40 47H65"
+        stroke={GROUND}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  </View>
+));
+
+const AccountCardIllustration = React.memo(() => (
+  <Svg width={42} height={42} viewBox="0 0 50 50" style={{ position: 'absolute', right: 8, bottom: 8, opacity: 0.10 }}>
     <Path
       d="M 12 38 Q 24 26 38 12"
       fill="none"
@@ -166,6 +251,40 @@ const CardLeafIllustration = React.memo(() => (
   </Svg>
 ));
 
+const NotebookIllustration = React.memo(() => (
+  <Svg width={72} height={72} viewBox="0 0 80 80">
+    <Rect x={10} y={15} width={60} height={52} rx={6} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} />
+    {/* Page rings */}
+    <Circle cx={24} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
+    <Circle cx={40} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
+    <Circle cx={56} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
+    {/* Page writing guidelines */}
+    <Line x1={18} y1={28} x2={62} y2={28} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
+    <Line x1={18} y1={36} x2={58} y2={36} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
+    <Line x1={18} y1={44} x2={52} y2={44} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
+    <Line x1={18} y1={52} x2={60} y2={52} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
+    {/* Little plant accents inside notebook */}
+    <Path d="M 58 58 Q 62 50 64 60" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
+    <Circle cx={62} cy={50} r={1.5} fill={COLOR_FOREST_GREEN} />
+  </Svg>
+));
+
+const QuickOverviewLeafIllustration = React.memo(() => (
+  <Svg width={24} height={24} viewBox="0 0 30 30" style={{ position: 'absolute', right: 4, bottom: 4, opacity: 0.08 }}>
+    <Path
+      d="M 6 24 C 12 18, 18 12, 24 6"
+      fill="none"
+      stroke={COLOR_FOREST_GREEN}
+      strokeWidth={1.2}
+      strokeLinecap="round"
+    />
+    <Path
+      d="M 24 6 C 20 8, 18 12, 20 15 Z"
+      fill={COLOR_FOREST_GREEN}
+    />
+  </Svg>
+));
+
 const MascotWaiting = React.memo(() => (
   <Svg width={72} height={72} viewBox="0 0 80 80">
     {/* Clipboard */}
@@ -175,7 +294,7 @@ const MascotWaiting = React.memo(() => (
     <Line x1={16} y1={33} x2={34} y2={33} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
     <Line x1={16} y1={40} x2={30} y2={40} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
     <Line x1={16} y1={47} x2={36} y2={47} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
-    
+
     <Circle cx={14} cy={26} r={1.5} fill={COLOR_FOREST_GREEN} />
     <Circle cx={14} cy={33} r={1.5} fill={COLOR_FOREST_GREEN} />
     <Circle cx={14} cy={40} r={1.5} fill={COLOR_FOREST_GREEN} />
@@ -184,14 +303,14 @@ const MascotWaiting = React.memo(() => (
     {/* Mascot */}
     <Circle cx={52} cy={46} r={18} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
     <Circle cx={52} cy={46} r={15} fill="rgba(62, 90, 42, 0.05)" />
-    
+
     {/* Face */}
     <Circle cx={46} cy={44} r={2.2} fill={COLOR_DEEP_BROWN} />
     <Circle cx={58} cy={44} r={2.2} fill={COLOR_DEEP_BROWN} />
     <Circle cx={41} cy={47} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
     <Circle cx={63} cy={47} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
     <Path d="M 49 49 Q 52 52 55 49" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-    
+
     {/* Antenna */}
     <Path d="M 52 28 L 52 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
     <Circle cx={52} cy={22} r={2.5} fill={COLOR_FOREST_GREEN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
@@ -207,18 +326,21 @@ const MascotWaiting = React.memo(() => (
   </Svg>
 ));
 
-const MascotReading = React.memo(() => (
+
+
+
+const InsightMascotIllustration = React.memo(() => (
   <Svg width={90} height={72} viewBox="0 0 100 80">
     <Circle cx={38} cy={46} r={18} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
     <Circle cx={38} cy={46} r={15} fill="rgba(62, 90, 42, 0.05)" />
-    
+
     {/* Eyes */}
     <Path d="M 29 46 Q 31 48 33 46" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
     <Path d="M 43 46 Q 45 48 47 46" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-    
+
     <Circle cx={24} cy={49} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
     <Circle cx={52} cy={49} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    
+
     {/* Antenna */}
     <Path d="M 38 28 L 38 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
     <Circle cx={38} cy={22} r={2.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
@@ -276,16 +398,16 @@ const MoneyLeaksIcon = React.memo(() => (
   </Svg>
 ));
 
-const CashIcon = React.memo(() => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.8}>
+const CashIcon = React.memo(({ size = 20 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.8}>
     <Rect x={2} y={6} width={20} height={12} rx={2} />
     <Circle cx={12} cy={12} r={3} />
     <Path d="M6 12h.01M18 12h.01" strokeWidth={2.2} strokeLinecap="round" />
   </Svg>
 ));
 
-const BankIcon = React.memo(() => (
-  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8}>
+const BankIcon = React.memo(({ size = 20 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8}>
     <Path d="M3 21h18M3 10h18M3 10l9-7 9 7M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
   </Svg>
 ));
@@ -472,9 +594,11 @@ export default function DashboardScreen() {
     return 0;
   });
 
+  const previewAccounts = displayAccounts.slice(0, 3);
+
   // Calculate dynamic balances
   const activeBalanceTotal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-  const displayedTotalBalance = accounts.length > 0 ? activeBalanceTotal : 2000;
+  const displayedTotalBalance = displayAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
 
   const totalIncome = monthlyTotals?.totalIncome || 0;
   const totalExpense = monthlyTotals?.totalExpense || 0;
@@ -520,7 +644,7 @@ export default function DashboardScreen() {
           <View style={styles.headerRow1}>
             <Text style={styles.microHeader}>FINANCIAL NOTEBOOK</Text>
             <View style={styles.headerRow1Right}>
-              <Text style={styles.monthLabel}>June 2026</Text>
+              <Text style={styles.monthLabel}>{getFormattedMonth()}</Text>
               <Pressable
                 onPress={() => router.push('/add-transaction')}
                 style={({ pressed }) => [
@@ -543,7 +667,7 @@ export default function DashboardScreen() {
           {/* Row 3: Greeting & Mascot */}
           <View style={styles.headerRow3}>
             <Text style={styles.subtitle}>
-              Good evening! Your finances look{' '}
+              {getTimeOfDayGreeting()}! Your finances look{' '}
               <Text style={{ color: COLOR_FOREST_GREEN, fontWeight: 'bold' }}>calm and under control</Text>.
             </Text>
             <View style={styles.topMascotContainer}>
@@ -560,7 +684,7 @@ export default function DashboardScreen() {
               <Text style={styles.heroAmount}>
                 {formatCurrency(displayedTotalBalance)}
               </Text>
-              
+
               {/* Status Chip */}
               <View style={styles.statusChip}>
                 <View style={styles.statusDot} />
@@ -599,7 +723,7 @@ export default function DashboardScreen() {
 
         {/* Pending Bank Banner */}
         {pendingBanks.length > 0 && (
-          <Pressable 
+          <Pressable
             onPress={() => setAddingBank(pendingBanks[0])}
             style={styles.pendingBankBanner}
           >
@@ -619,8 +743,9 @@ export default function DashboardScreen() {
             </View>
             <Text style={styles.insightTitle}>No unusual spending</Text>
             <Text style={[styles.insightSubtext, { color: COLOR_FOREST_GREEN }]}>Great job!</Text>
+            <QuickOverviewLeafIllustration />
           </View>
-          
+
           {/* Card 2 */}
           <View style={styles.insightCard}>
             <View style={[styles.insightIconWrapper, { backgroundColor: 'rgba(183, 136, 78, 0.06)' }]}>
@@ -628,6 +753,7 @@ export default function DashboardScreen() {
             </View>
             <Text style={styles.insightTitle}>No upcoming bills</Text>
             <Text style={[styles.insightSubtext, { color: COLOR_ACCENT_BROWN }]}>You're all set</Text>
+            <QuickOverviewLeafIllustration />
           </View>
 
           {/* Card 3 */}
@@ -637,82 +763,101 @@ export default function DashboardScreen() {
             </View>
             <Text style={styles.insightTitle}>No money leaks detected</Text>
             <Text style={[styles.insightSubtext, { color: COLOR_FOREST_GREEN }]}>You're safe</Text>
+            <QuickOverviewLeafIllustration />
           </View>
         </View>
 
         {/* Accounts Section */}
         <View style={styles.accountsHeader}>
-          <Text style={styles.accountsTitle}>ACCOUNTS</Text>
-          <Pressable onPress={() => router.push('/accounts')}>
-            <Text style={styles.viewAllText}>View all ›</Text>
+          <Text style={styles.accountsSectionTitle}>ACCOUNTS</Text>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/accounts');
+            }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          >
+            <Text style={styles.viewAllText}>View all  {'>'}</Text>
           </Pressable>
         </View>
 
-        {/* Parent Accounts Card Container */}
+        {/* Accounts List Card */}
         <View style={styles.accountsParentCard}>
-          {displayAccounts.slice(0, 3).map((acc, index) => {
-            const cardZIndex = 3 - index;
-            const isCash = acc.name.toLowerCase().includes('cash');
-            const isOverlapped = index > 0;
+          <View style={styles.accountStackContainer}>
+            {previewAccounts[2] && (
+              <View style={[styles.stackCard, styles.backCard]}>
+                <View style={styles.peekContent}>
+                  {previewAccounts[2].name.toLowerCase().includes('cash') ? <CashIcon size={14} /> : <BankIcon size={14} />}
+                  <Text style={styles.peekTitle} numberOfLines={1}>
+                    {previewAccounts[2].name}
+                  </Text>
+                </View>
+              </View>
+            )}
 
-            return (
+            {previewAccounts[1] && (
+              <View style={[styles.stackCard, styles.middleCard]}>
+                <View style={styles.peekContent}>
+                  {previewAccounts[1].name.toLowerCase().includes('cash') ? <CashIcon size={14} /> : <BankIcon size={14} />}
+                  <Text style={styles.peekTitle} numberOfLines={1}>
+                    {previewAccounts[1].name}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {previewAccounts[0] && (
               <Pressable
-                key={acc.id}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   router.push('/accounts');
                 }}
                 style={({ pressed }) => [
-                  styles.stackedCard,
+                  styles.stackCard,
+                  styles.frontCard,
                   {
-                    zIndex: cardZIndex,
-                    marginTop: isOverlapped ? -10 : 0,
-                    transform: [
-                      { scale: pressed ? 0.985 : 1 }
-                    ],
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingHorizontal: 16,
+                    transform: [{ scale: pressed ? 0.985 : 1.0 }]
                   }
                 ]}
               >
-                <View style={styles.cardMainRow}>
-                  <View style={styles.cardLeft}>
-                    <View style={[styles.bankIconContainer, { backgroundColor: isCash ? 'rgba(62, 90, 42, 0.06)' : 'rgba(116, 81, 67, 0.06)' }]}>
-                      {isCash ? <CashIcon /> : <BankIcon />}
-                    </View>
-                    <View>
-                      <Text style={styles.cardAccountName}>{acc.name}</Text>
-                      <Text style={styles.cardAccountType}>{getAccountTypeLabel(acc.type)}</Text>
-                    </View>
+                <View style={styles.cardLeft}>
+                  <View style={[styles.bankIconContainer, { backgroundColor: previewAccounts[0].name.toLowerCase().includes('cash') ? 'rgba(62, 90, 42, 0.06)' : 'rgba(116, 81, 67, 0.06)' }]}>
+                    {previewAccounts[0].name.toLowerCase().includes('cash') ? <CashIcon /> : <BankIcon />}
                   </View>
-                  <View style={styles.cardRight}>
-                    <Text style={styles.cardBalanceText}>{formatCurrency(acc.balance)}</Text>
-                    <ChevronRight />
-                  </View>
+                  <Text style={styles.cardAccountName}>{previewAccounts[0].name}</Text>
                 </View>
-                {/* Decorative SVG plant illustration */}
+                <View style={styles.cardRight}>
+                  <View style={styles.balanceColumn}>
+                    <Text style={styles.availableBalanceLabel}>Available Balance</Text>
+                    <Text style={styles.cardBalanceText}>{formatCurrency(previewAccounts[0].balance)}</Text>
+                  </View>
+                  <ChevronRight />
+                </View>
                 <CardLeafIllustration />
               </Pressable>
-            );
-          })}
+            )}
+          </View>
 
-          {/* Integrated Add Account Card */}
+          {/* Add Account Card */}
           <Pressable
-            onPress={() => router.push('/accounts')}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/accounts');
+            }}
             style={({ pressed }) => [
-              styles.addAccountStackedCard,
-              {
-                transform: [
-                  { scale: pressed ? 0.99 : 1 }
-                ],
-              }
+              styles.addAccountCard,
+              { transform: [{ scale: pressed ? 0.99 : 1 }] }
             ]}
           >
             <View style={styles.addAccountContent}>
-              <View style={styles.addIconWrapper}>
-                <Text style={styles.addAccountPlus}>+</Text>
-              </View>
-              <Text style={styles.addAccountText}>Add Account</Text>
+              <Text style={styles.addAccountPlus}>+</Text>
+              <Text style={styles.addAccountLabel}>Add Account</Text>
             </View>
-            <ChevronRight />
+            <CardLeafIllustration />
           </Pressable>
         </View>
 
@@ -720,7 +865,7 @@ export default function DashboardScreen() {
         <Text style={styles.sectionHeading}>TODAY'S SNAPSHOT</Text>
         <View style={styles.snapshotCard}>
           <View style={styles.snapshotMascot}>
-            <MascotWaiting />
+            <NotebookIllustration />
           </View>
           <View style={styles.snapshotContent}>
             <Text style={styles.snapshotTextTitle}>No transactions yet today.</Text>
@@ -745,7 +890,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
           <View style={styles.insightMascot}>
-            <MascotReading />
+            <InsightMascotIllustration />
           </View>
         </View>
       </ScrollView>
@@ -813,7 +958,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 110,
+    paddingBottom: 160,
   },
   headerBlock: {
     flexDirection: 'column',
@@ -888,7 +1033,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
+
   // Hero Card
   heroCard: {
     backgroundColor: COLOR_PAPER_WHITE,
@@ -1040,14 +1185,14 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
 
-  // Accounts Header
+  // Accounts Section
   accountsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  accountsTitle: {
+  accountsSectionTitle: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 11,
     letterSpacing: 0.5,
@@ -1058,9 +1203,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLOR_FOREST_GREEN,
   },
-
   accountsParentCard: {
-    backgroundColor: '#FFF8EE',
+    backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
     borderRadius: 28,
@@ -1071,99 +1215,126 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 14,
     elevation: 2,
+    overflow: 'hidden',
   },
-  stackedCard: {
+  accountStackContainer: {
+    height: 150,
     position: 'relative',
-    height: 90,
-    borderWidth: 1,
-    borderColor: COLOR_BORDER,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.015,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  cardMainRow: {
+  stackCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E8DFD1',
+    overflow: 'hidden',
+  },
+  backCard: {
+    position: 'absolute',
+    top: 0,
+    left: 18,
+    right: 18,
+    height: 42,
+    zIndex: 1,
+    backgroundColor: '#F5F0E6',
+  },
+  middleCard: {
+    position: 'absolute',
+    top: 18,
+    left: 12,
+    right: 12,
+    height: 42,
+    zIndex: 2,
+    backgroundColor: '#F8F4EC',
+  },
+  frontCard: {
+    position: 'absolute',
+    top: 42,
+    left: 0,
+    right: 0,
+    minHeight: 92,
+    zIndex: 3,
+    backgroundColor: '#FFF8EE',
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  peekContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 10,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 3,
+    height: 20, // keeps it thin inside the 18px visible space
+  },
+  peekTitle: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 10,
+    color: COLOR_DEEP_BROWN,
   },
   cardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   bankIconContainer: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardAccountName: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 14,
+    fontSize: 13,
     color: COLOR_DEEP_BROWN,
-  },
-  cardAccountType: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 11,
-    color: COLOR_MUTED_TEXT,
-    marginTop: 2,
   },
   cardRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+  },
+  balanceColumn: {
+    alignItems: 'flex-end',
+  },
+  availableBalanceLabel: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 9,
+    color: COLOR_MUTED_TEXT,
+    letterSpacing: 0.2,
+    marginBottom: 1,
   },
   cardBalanceText: {
     fontFamily: typography.fontFamily.monoBold,
-    fontSize: 15,
+    fontSize: 16,
     color: COLOR_DEEP_BROWN,
   },
-  addAccountStackedCard: {
-    height: 90,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLOR_BORDER,
+  addAccountCard: {
+    marginTop: 10,
+    height: 52,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#E0D6CA',
     borderStyle: 'dashed',
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 248, 238, 0.5)',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginTop: 12,
+    justifyContent: 'center',
   },
   addAccountContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  addIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(62, 90, 42, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
   },
   addAccountPlus: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 14,
+    fontSize: 16,
     color: COLOR_FOREST_GREEN,
-    marginTop: -1,
   },
-  addAccountText: {
-    fontFamily: typography.fontFamily.bold,
+  addAccountLabel: {
+    fontFamily: typography.fontFamily.semibold,
     fontSize: 12,
-    color: COLOR_DEEP_BROWN,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    color: COLOR_FOREST_GREEN,
+    letterSpacing: 0.3,
   },
 
   // Snapshot Card

@@ -1,14 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tabs, router } from 'expo-router';
-import { View, StyleSheet, Pressable, Dimensions, Text } from 'react-native';
+import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/theme-provider';
 import { typography } from '@/theme';
@@ -30,25 +24,33 @@ function TabBarButton({
   index: number;
   tabWidth: number;
 }) {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(isFocused ? 1.0 : 0.6);
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(isFocused ? 1.0 : 0.6)).current;
 
   useEffect(() => {
-    opacity.value = withTiming(isFocused ? 1.0 : 0.6, { duration: 200 });
+    Animated.timing(opacity, {
+      toValue: isFocused ? 1.0 : 0.6,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   }, [isFocused]);
 
   const handlePressIn = () => {
-    scale.value = withTiming(0.93, { duration: 100 });
+    Animated.timing(scale, {
+      toValue: 0.93,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1.0, { damping: 15, stiffness: 150 });
+    Animated.spring(scale, {
+      toValue: 1.0,
+      friction: 5,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
   };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
 
   const activeColor = '#3E5A2A'; // Forest green
   const inactiveColor = '#8E8A82'; // Muted text
@@ -73,7 +75,7 @@ function TabBarButton({
       onPressOut={handlePressOut}
       style={{ width: tabWidth, height: 70, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Animated.View style={[styles.iconContainer, animatedStyle]}>
+      <Animated.View style={[styles.iconContainer, { transform: [{ scale }], opacity }]}>
         {index === 0 && (
           <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <Path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -123,22 +125,17 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const tabWidth = tabBarWidth / 5;
   const activeIndex = state.index;
 
-  const translateX = useSharedValue(state.index * tabWidth + (tabWidth - 16) / 2);
-  const underlineOpacity = useSharedValue(1);
+  const translateX = useRef(new Animated.Value(state.index * tabWidth + (tabWidth - 16) / 2)).current;
 
   useEffect(() => {
     const targetX = activeIndex * tabWidth + (tabWidth - 16) / 2;
-    translateX.value = withSpring(targetX, {
-      damping: 20,
-      stiffness: 150,
-      mass: 0.5,
-    });
+    Animated.spring(translateX, {
+      toValue: targetX,
+      friction: 7,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
   }, [activeIndex, tabWidth]);
-
-  const animatedUnderlineStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: underlineOpacity.value,
-  }));
 
   return (
     <View style={styles.standardTabBar}>
@@ -148,8 +145,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           {
             backgroundColor: '#3E5A2A',
             bottom: 6,
+            transform: [{ translateX }],
           },
-          animatedUnderlineStyle,
         ]}
       />
       {state.routes.map((route, index) => {
@@ -228,19 +225,19 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 24,
     height: 70,
-    borderRadius: 35,
+    borderRadius: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     backgroundColor: '#FFF8EE',
     borderWidth: 1,
     borderColor: '#E6E1D8',
-    // Soft, diffused editorial shadow
+    // Soft diffused editorial shadow
     shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowRadius: 20,
+    elevation: 8,
   },
   activeUnderline: {
     width: 16,
