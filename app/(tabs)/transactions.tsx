@@ -8,19 +8,39 @@ import {
   TextInput,
   RefreshControl,
   Dimensions,
-  LayoutAnimation,
+  ScrollView,
+  Modal,
 } from 'react-native';
-import Svg, { Rect, Path, Circle, Text as SvgText, G, Line } from 'react-native-svg';
+import Svg, { Rect, Circle, Path, Line, Text as SvgText, G } from 'react-native-svg';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing } from '@/theme';
+import { typography } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency, formatSignedAmount } from '@/utils/currency';
-import { formatDate, formatTime } from '@/utils/date';
+import { formatTime } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { Transaction, TransactionType } from '@/types';
 import { TransactionSkeleton } from '@/components/ui/Skeleton';
+import { getMonthlyTotals } from '@/lib/database';
+import { getMonthRange } from '@/utils/date';
+
+// Import newly created SVG components
+import NotebookMascot from '@/components/ui/NotebookMascot';
+import ReadingNotebookMascot from '@/components/ui/ReadingNotebookMascot';
+import LeafCluster from '@/components/ui/LeafCluster';
+import CornerPlant from '@/components/ui/CornerPlant';
+
+// Theme Constants
+const COLOR_BACKGROUND = '#E1D7C2';
+const COLOR_SURFACE = '#FFF8EE';
+const COLOR_PRIMARY_TEXT = '#745143';
+const COLOR_SECONDARY_TEXT = '#54554B';
+const COLOR_FOREST_GREEN = '#3E5A2A';
+const COLOR_BORDER = '#E8DDD0';
+const COLOR_EXPENSE = '#A86A2A';
+const COLOR_SAVINGS = '#AFA56A';
+const COLOR_GRID = '#EFE8DE';
 
 const TABS: { label: string; value: TransactionType }[] = [
   { label: 'Expense', value: 'expense' },
@@ -29,15 +49,6 @@ const TABS: { label: string; value: TransactionType }[] = [
 ];
 
 const { width } = Dimensions.get('window');
-
-function getCategoryEmoji(iconName: string): string {
-  const emojiMap: Record<string, string> = {
-    'utensils': '🍔', 'shopping-cart': '🛒', 'car': '🚗', 'home': '🏠',
-    'shopping-bag': '🛍️', 'heart-pulse': '💊', 'film': '🎬', 'receipt': '📱',
-    'graduation-cap': '📚', 'wallet': '💰', 'arrow-right-left': '💸', 'circle-help': '❓',
-  };
-  return emojiMap[iconName] || '💰';
-}
 
 type ChartMode = 'day' | 'week' | 'month' | 'year';
 
@@ -49,26 +60,18 @@ interface ChartDataPoint {
   categories: string[];
 }
 
-const formatChartAmount = (amount: number) => {
-  if (amount >= 100000) {
-    return `${(amount / 100000).toFixed(1)}L`;
-  }
-  if (amount >= 1000) {
-    return `${(amount / 1000).toFixed(1)}k`;
-  }
-  return Math.round(amount).toString();
-};
-
-const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDataPoint[] => {
+const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate: Date): ChartDataPoint[] => {
   const now = new Date();
-  
+  const isCurrentMonth = baseDate.getFullYear() === now.getFullYear() && baseDate.getMonth() === now.getMonth();
+  const dRef = isCurrentMonth ? now : new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+
   if (mode === 'day') {
     const list: ChartDataPoint[] = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const d = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - i);
       const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
       const dayEnd = dayStart + 24 * 60 * 60 * 1000;
       
@@ -91,7 +94,7 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDat
       
       list.push({
         label: dayNames[d.getDay()],
-        fullLabel: `${fullDayNames[d.getDay()]}, ${formattedDate}`,
+        fullLabel: `${fullDayNames[d.getDay()]} ${formattedDate}`,
         actual,
         budget,
         categories: categoryNames,
@@ -103,8 +106,8 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDat
   if (mode === 'week') {
     const list: ChartDataPoint[] = [];
     for (let i = 3; i >= 0; i--) {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7 + 7)).getTime();
-      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7)).getTime();
+      const start = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7 + 7)).getTime();
+      const end = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7)).getTime();
       
       const weekTxs = txs.filter(tx => {
         const t = new Date(tx.date).getTime();
@@ -134,7 +137,7 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDat
   if (mode === 'month') {
     const list: ChartDataPoint[] = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(dRef.getFullYear(), dRef.getMonth() - i, 1);
       const year = d.getFullYear();
       const month = d.getMonth();
       
@@ -169,7 +172,7 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDat
   if (mode === 'year') {
     const list: ChartDataPoint[] = [];
     for (let i = 2; i >= 0; i--) {
-      const year = now.getFullYear() - i;
+      const year = dRef.getFullYear() - i;
       const yearStart = new Date(year, 0, 1).getTime();
       const yearEnd = new Date(year + 1, 0, 1).getTime();
       
@@ -201,64 +204,135 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode): ChartDat
   return [];
 };
 
+// Search & Filter SVGs
+const SearchSvg = React.memo(() => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLOR_PRIMARY_TEXT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Circle cx={11} cy={11} r={8} />
+    <Line x1={21} y1={21} x2={16.65} y2={16.65} />
+  </Svg>
+));
+
+const FilterSvg = React.memo(() => (
+  <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLOR_PRIMARY_TEXT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M4 6h16M6 12h12M8 18h8" />
+  </Svg>
+));
+
+const ChevronRight = React.memo(() => (
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOR_PRIMARY_TEXT} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M9 18l6-6-6-6" />
+  </Svg>
+));
+
+// Editorial Text-based Category Icon
+const CategoryIcon = React.memo(({ categoryName, merchantName }: { categoryName: string; merchantName: string | null }) => {
+  const displayLetter = (merchantName || categoryName || 'O').charAt(0).toUpperCase();
+  const colors = ['#A86A2A', '#3E5A2A', '#AFA56A', '#745143', '#B7884E', '#8C9168'];
+  const charCode = displayLetter.charCodeAt(0) || 0;
+  const color = colors[charCode % colors.length];
+
+  return (
+    <View style={[styles.txIcon, { backgroundColor: color + '15', borderColor: color + '30' }]}>
+      <Text style={[styles.txIconText, { color }]}>{displayLetter}</Text>
+    </View>
+  );
+});
+
 export default function TransactionsScreen() {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  
+  // Local States
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TransactionType>('expense');
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<ChartMode>('day');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  
+  // Redesign local states
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [monthlyStats, setMonthlyStats] = useState({ totalIncome: 0, totalExpense: 0, netSavings: 0 });
 
-  const { transactions, loadTransactions, setFilter, isLoading } = useTransactionStore();
+  // Store bindings
+  const { transactions, loadTransactions, setFilter, isLoading, categories, loadCategories } = useTransactionStore();
 
   const timelineData = useMemo(() => {
-    return getTimelineAnalyticsData(transactions, chartMode);
-  }, [transactions, chartMode]);
+    return getTimelineAnalyticsData(transactions, chartMode, selectedMonth);
+  }, [transactions, chartMode, selectedMonth]);
 
   const maxAmount = useMemo(() => {
     return Math.max(...timelineData.map((d) => Math.max(d.actual, d.budget)), 1000);
   }, [timelineData]);
 
+  // Initial and reactive data fetching
+  const fetchStats = useCallback(async () => {
+    try {
+      const { start, end } = getMonthRange(selectedMonth);
+      const totals = await getMonthlyTotals(start, end);
+      const net = totals.totalIncome - totals.totalExpense;
+      setMonthlyStats({
+        totalIncome: totals.totalIncome,
+        totalExpense: totals.totalExpense,
+        netSavings: net,
+      });
+    } catch (e) {
+      console.warn('Failed to fetch monthly stats:', e);
+    }
+  }, [selectedMonth]);
+
   useEffect(() => {
-    // Initial filter setup
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const { start, end } = getMonthRange(selectedMonth);
     setFilter({
       type: activeTab,
       searchQuery: searchQuery || undefined,
+      categoryId: selectedCategory || undefined,
+      dateFrom: start,
+      dateTo: end,
     });
-  }, []);
+    fetchStats();
+  }, [selectedMonth, activeTab, searchQuery, selectedCategory, fetchStats]);
 
   const handleTabChange = (tab: TransactionType) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setActiveTab(tab);
     setSelectedDayIndex(null);
-    setFilter({
-      type: tab,
-      searchQuery: searchQuery || undefined,
-    });
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setFilter({
-      type: activeTab,
-      searchQuery: query || undefined,
-    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCategory(null);
+    setSearchQuery('');
   };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadTransactions();
+    const { start, end } = getMonthRange(selectedMonth);
+    await Promise.all([
+      loadTransactions({
+        type: activeTab,
+        searchQuery: searchQuery || undefined,
+        categoryId: selectedCategory || undefined,
+        dateFrom: start,
+        dateTo: end,
+      }),
+      fetchStats(),
+    ]);
     setRefreshing(false);
-  }, []);
+  }, [selectedMonth, activeTab, searchQuery, selectedCategory, fetchStats, loadTransactions]);
 
   // Chronological Grouping Logic
   const getGroupedSections = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const yesterday = today - 1000 * 60 * 60 * 24;
-    
-    // Start of the week: 7 days ago
     const startOfWeek = today - 1000 * 60 * 60 * 24 * 7;
 
     const todayTxs: Transaction[] = [];
@@ -290,80 +364,145 @@ export default function TransactionsScreen() {
 
   const sections = getGroupedSections();
 
+  // Dynamic Spending Observation
+  const getFinancialObservation = () => {
+    if (transactions.length === 0) {
+      return "No spending data available for observations yet.";
+    }
+    
+    const categorySpending: Record<string, number> = {};
+    transactions
+      .filter(tx => tx.type === 'expense')
+      .forEach(tx => {
+        const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
+        categorySpending[category.name] = (categorySpending[category.name] || 0) + tx.amount;
+      });
+      
+    const categoriesList = Object.keys(categorySpending);
+    if (categoriesList.length === 0) {
+      return "No expenses recorded this month.";
+    }
+    
+    let maxCategory = categoriesList[0];
+    let maxAmt = categorySpending[maxCategory];
+    for (const cat of categoriesList) {
+      if (categorySpending[cat] > maxAmt) {
+        maxCategory = cat;
+        maxAmt = categorySpending[cat];
+      }
+    }
+    
+    return `Most spending this month comes from ${maxCategory}.`;
+  };
+
+  // List of last 12 months for picker
+  const getMonthsList = () => {
+    const list = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      list.push(d);
+    }
+    return list;
+  };
+
   const renderTransaction = ({ item: tx }: { item: Transaction }) => {
     const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
     return (
       <Pressable
         style={({ pressed }) => [
-          styles.txRow,
-          { borderBottomColor: theme.borderLight },
-          pressed && { opacity: 0.7 }
+          styles.txCard,
+          pressed && { opacity: 0.7, transform: [{ scale: 0.99 }] }
         ]}
         onPress={() => router.push(`/transaction/${tx.id}`)}
       >
-        <View style={[styles.txIcon, { backgroundColor: theme.primary + '20', borderColor: theme.border }]}>
-          <Text style={styles.txIconText}>{getCategoryEmoji(category.icon)}</Text>
-        </View>
+        <CategoryIcon categoryName={category.name} merchantName={tx.merchant} />
+        
         <View style={styles.txInfo}>
-          <Text style={[styles.txMerchant, { color: theme.text, fontFamily: typography.fontFamily.bold }]} numberOfLines={1}>
+          <Text style={styles.txMerchant} numberOfLines={1}>
             {tx.merchant || category.name}
           </Text>
-          <Text style={[styles.txMeta, { color: theme.textSecondary }]}>
-            {formatTime(tx.date)} · {category.name}
+          <Text style={styles.txMeta}>
+            {category.name}
           </Text>
         </View>
+        
         <View style={styles.txRight}>
-          <Text
-            style={[
-              styles.txAmount,
-              {
-                color: tx.type === 'income' ? theme.income : theme.expense,
-                fontFamily: typography.fontFamily.monoBold,
-              },
-            ]}
-          >
-            {formatSignedAmount(tx.amount, tx.type)}
+          <Text style={styles.txTime}>
+            {formatTime(tx.date)}
           </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <Text
+              style={[
+                styles.txAmount,
+                { color: tx.type === 'income' ? COLOR_FOREST_GREEN : COLOR_EXPENSE },
+              ]}
+            >
+              {formatSignedAmount(tx.amount, tx.type)}
+            </Text>
+            <ChevronRight />
+          </View>
         </View>
       </Pressable>
     );
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={[styles.microHeader, { color: theme.textSecondary }]}>LEDGER SYSTEM</Text>
-          <Text style={[styles.title, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>Transactions</Text>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.microHeader}>FINANCIAL NOTEBOOK</Text>
+          <Text style={styles.title}>History</Text>
+          <Text style={styles.subtitle}>Review where your money has been.</Text>
         </View>
-        <Pressable
-          onPress={() => router.push('/add-transaction')}
-          style={({ pressed }) => [
-            styles.headerAddBtn,
-            { borderColor: theme.border, opacity: pressed ? 0.7 : 1 }
-          ]}
-        >
-          <Text style={[styles.headerAddBtnText, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>+</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          <Pressable
+            onPress={() => setMonthPickerVisible(true)}
+            style={({ pressed }) => [
+              styles.monthSelectorBtn,
+              pressed && { opacity: 0.8 }
+            ]}
+          >
+            <Text style={styles.monthSelectorText}>
+              {selectedMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} ▾
+            </Text>
+          </Pressable>
+          <NotebookMascot />
+        </View>
       </View>
 
-      {/* Search Input (Tactile paper look) */}
+      {/* Search Input */}
       <View style={styles.searchWrapper}>
-        <View style={[styles.searchBar, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={styles.searchIcon}>🔍</Text>
+        <View style={styles.searchBar}>
+          <SearchSvg />
           <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
+            style={styles.searchInput}
             placeholder="Search details..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor="#8E8A82"
             value={searchQuery}
             onChangeText={handleSearch}
           />
+          {selectedCategory || searchQuery ? (
+            <Pressable onPress={handleClearFilters} style={styles.clearBtn}>
+              <Text style={styles.clearBtnText}>Clear</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={() => setCategoryPickerVisible(true)}
+            style={({ pressed }) => [
+              styles.filterBtn,
+              pressed && { opacity: 0.7 }
+            ]}
+          >
+            <FilterSvg />
+            {selectedCategory && <View style={styles.filterDot} />}
+          </Pressable>
         </View>
       </View>
 
-      {/* Sliding Tabs Indicator Row */}
-      <View style={[styles.tabSliderWrapper, { borderColor: theme.border, backgroundColor: theme.card }]}>
+      {/* Segmented Pills Control */}
+      <View style={styles.tabSliderWrapper}>
         {TABS.map((tab) => {
           const isSelected = activeTab === tab.value;
           return (
@@ -372,11 +511,9 @@ export default function TransactionsScreen() {
               onPress={() => handleTabChange(tab.value)}
               style={[
                 styles.tabButton,
-                isSelected && {
-                  backgroundColor: theme.primary,
-                  borderColor: theme.border,
-                  borderWidth: 1,
-                  borderRadius: 2,
+                {
+                  backgroundColor: isSelected ? COLOR_FOREST_GREEN : COLOR_SURFACE,
+                  borderColor: isSelected ? COLOR_FOREST_GREEN : COLOR_BORDER,
                 },
               ]}
             >
@@ -384,7 +521,7 @@ export default function TransactionsScreen() {
                 style={[
                   styles.tabLabel,
                   {
-                    color: isSelected ? '#1B1B1B' : theme.textSecondary,
+                    color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT,
                     fontFamily: isSelected ? typography.fontFamily.bold : typography.fontFamily.regular,
                   },
                 ]}
@@ -406,372 +543,805 @@ export default function TransactionsScreen() {
           sections={sections}
           renderItem={renderTransaction}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={[styles.sectionHeader, { backgroundColor: theme.background }]}>
-              <Text style={[styles.sectionHeaderText, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>
                 {title.toUpperCase()}
               </Text>
-              <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+              <View style={styles.sectionDivider} />
             </View>
           )}
           ListHeaderComponent={
-            <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <View style={styles.chartHeader}>
-                <Text style={[styles.chartTitle, { color: theme.textSecondary, fontFamily: typography.fontFamily.bold }]}>
-                  {activeTab.toUpperCase()} ANALYTICS
-                </Text>
-                <View style={[styles.chartModeSelector, { borderColor: theme.border }]}>
-                  {(['day', 'week', 'month', 'year'] as ChartMode[]).map((mode) => {
-                    const isSelected = chartMode === mode;
-                    return (
-                      <Pressable
-                        key={mode}
-                        onPress={() => {
-                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                          setChartMode(mode);
-                          setSelectedDayIndex(null);
-                        }}
-                        style={[
-                          styles.chartModeButton,
-                          isSelected && { backgroundColor: theme.primary },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.chartModeLabel,
-                            {
-                              color: isSelected ? '#1B1B1B' : theme.textSecondary,
-                              fontFamily: isSelected ? typography.fontFamily.bold : typography.fontFamily.regular,
-                            },
-                          ]}
-                        >
-                          {mode.toUpperCase()}
+            <View>
+              {/* Monthly Snapshot Card */}
+              <View style={styles.card}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>Monthly Snapshot</Text>
+                    <View style={styles.snapshotRow}>
+                      <View style={styles.snapshotCol}>
+                        <Text style={styles.snapshotLabel}>INCOME</Text>
+                        <Text style={[styles.snapshotValue, { color: COLOR_FOREST_GREEN }]}>
+                          {formatCurrency(monthlyStats.totalIncome)}
                         </Text>
-                      </Pressable>
-                    );
-                  })}
+                      </View>
+                      <View style={[styles.snapshotCol, { borderLeftWidth: 1, borderLeftColor: COLOR_BORDER, borderRightWidth: 1, borderRightColor: COLOR_BORDER }]}>
+                        <Text style={styles.snapshotLabel}>EXPENSE</Text>
+                        <Text style={[styles.snapshotValue, { color: COLOR_EXPENSE }]}>
+                          {formatCurrency(monthlyStats.totalExpense)}
+                        </Text>
+                      </View>
+                      <View style={styles.snapshotCol}>
+                        <Text style={styles.snapshotLabel}>SAVINGS</Text>
+                        <Text style={[styles.snapshotValue, { color: COLOR_FOREST_GREEN }]}>
+                          {formatCurrency(monthlyStats.netSavings)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={styles.leafClusterContainer}>
+                    <LeafCluster />
+                  </View>
+                </View>
+                <View style={styles.cornerPlantDecoration} pointerEvents="none">
+                  <CornerPlant />
                 </View>
               </View>
 
-              {/* Dynamic Svg Analytics Chart */}
-              <View style={styles.chartWrapperContainer}>
-                <Svg width="100%" height={200} viewBox="0 0 320 200">
-                  {/* Dashed Grid Lines (low contrast, in background) */}
-                  {[20, 63, 106, 150].map((yVal, idx) => (
-                    <Line
-                      key={idx}
-                      x1={25}
-                      y1={yVal}
-                      x2={295}
-                      y2={yVal}
-                      stroke="#1F1F1F"
-                      strokeOpacity={0.05}
-                      strokeDasharray="3 3"
-                      strokeWidth={1}
-                    />
-                  ))}
-
-                  {/* Columns (Budget vs Actual) */}
-                  {timelineData.map((d, idx) => {
-                    const N = timelineData.length;
-                    const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                    const yActual = 150 - (d.actual / maxAmount) * 130;
-                    const yBudget = 150 - (d.budget / maxAmount) * 130;
-                    const isSelected = selectedDayIndex === idx;
-
-                    return (
-                      <G key={idx}>
-                        {/* Background Budget Column (represented at 8% opacity) */}
-                        <Rect
-                          x={x - 6}
-                          y={yBudget}
-                          width={12}
-                          height={150 - yBudget}
-                          fill="#1F1F1F"
-                          fillOpacity={0.08}
-                          rx={3}
-                          ry={3}
-                        />
-
-                        {/* Foreground Actual Column (thin elegant appearance, enlarges when active) */}
-                        <Rect
-                          x={x - (isSelected ? 5 : 3)}
-                          y={yActual}
-                          width={isSelected ? 10 : 6}
-                          height={150 - yActual}
-                          fill={d.actual > d.budget ? '#C84B31' : '#A0C42C'}
-                          rx={2}
-                          ry={2}
-                        />
-
-                        {/* Axis Text Label (Mon, Tue...) */}
-                        <SvgText
-                          x={x}
-                          y={172}
-                          fill="#666666"
-                          fontSize={9}
-                          fontFamily="Poppins"
-                          textAnchor="middle"
+              {/* Spending Trend (Reduced Chart Height Card) */}
+              <View style={styles.chartCard}>
+                <View style={styles.chartHeader}>
+                  <Text style={styles.cardTitle}>
+                    {activeTab.toUpperCase()} TREND
+                  </Text>
+                  <View style={styles.chartModeSelector}>
+                    {(['day', 'week', 'month', 'year'] as ChartMode[]).map((mode) => {
+                      const isSelected = chartMode === mode;
+                      return (
+                        <Pressable
+                          key={mode}
+                          onPress={() => {
+                            setChartMode(mode);
+                            setSelectedDayIndex(null);
+                          }}
+                          style={[
+                            styles.chartModeButton,
+                            isSelected && { backgroundColor: COLOR_FOREST_GREEN },
+                          ]}
                         >
-                          {d.label}
-                        </SvgText>
-                      </G>
-                    );
-                  })}
+                          <Text
+                            style={[
+                              styles.chartModeLabel,
+                              {
+                                color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT,
+                                fontFamily: isSelected ? typography.fontFamily.bold : typography.fontFamily.regular,
+                              },
+                            ]}
+                          >
+                            {mode.toUpperCase()}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
 
-                  {/* Transparent Interactive Rect Overlays (accessible 44px width targets) */}
-                  {timelineData.map((d, idx) => {
-                    const N = timelineData.length;
-                    const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                    return (
-                      <Rect
+                {/* Svg Analytics Chart */}
+                <View style={styles.chartWrapperContainer}>
+                  <Svg width="100%" height={150} viewBox="0 0 320 150">
+                    {/* Dashed Grid Lines */}
+                    {[20, 55, 90, 125].map((yVal, idx) => (
+                      <Line
                         key={idx}
-                        x={x - 22}
-                        y={10}
-                        width={44}
-                        height={150}
-                        fill="transparent"
-                        onPress={() => {
-                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                          setSelectedDayIndex(selectedDayIndex === idx ? null : idx);
-                        }}
+                        x1={25}
+                        y1={yVal}
+                        x2={295}
+                        y2={yVal}
+                        stroke={COLOR_GRID}
+                        strokeDasharray="3 3"
+                        strokeWidth={1}
                       />
-                    );
-                  })}
+                    ))}
 
-                  {/* Tooltip rendering */}
-                  {selectedDayIndex !== null && (() => {
-                    const N = timelineData.length;
-                    const d = timelineData[selectedDayIndex];
-                    const x = 30 + selectedDayIndex * (260 / (N > 1 ? N - 1 : 1));
-                    const yActual = 150 - (d.actual / maxAmount) * 130;
+                    {/* Columns (Budget vs Actual) */}
+                    {timelineData.map((d, idx) => {
+                      const N = timelineData.length;
+                      const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
+                      const yActual = 125 - (d.actual / maxAmount) * 105;
+                      const yBudget = 125 - (d.budget / maxAmount) * 105;
+                      const isSelected = selectedDayIndex === idx;
 
-                    let tooltipX = x - 65;
-                    if (tooltipX < 10) tooltipX = 10;
-                    if (tooltipX > 180) tooltipX = 180;
+                      const activeColor = activeTab === 'expense'
+                        ? COLOR_EXPENSE
+                        : activeTab === 'income'
+                          ? COLOR_FOREST_GREEN
+                          : COLOR_SAVINGS;
 
-                    let tooltipY = yActual - 56;
-                    if (tooltipY < 15) tooltipY = yActual + 15;
+                      return (
+                        <G key={idx}>
+                          {/* Background Budget Column */}
+                          <Rect
+                            x={x - 6}
+                            y={yBudget}
+                            width={12}
+                            height={125 - yBudget}
+                            fill={activeColor}
+                            fillOpacity={0.08}
+                            rx={3}
+                            ry={3}
+                          />
 
-                    return (
-                      <G pointerEvents="none">
-                        {/* Tooltip Card Box */}
+                          {/* Foreground Actual Column */}
+                          <Rect
+                            x={x - (isSelected ? 5 : 3)}
+                            y={yActual}
+                            width={isSelected ? 10 : 6}
+                            height={125 - yActual}
+                            fill={activeColor}
+                            rx={2}
+                            ry={2}
+                          />
+
+                          {/* Axis Text Label */}
+                          <SvgText
+                            x={x}
+                            y={142}
+                            fill={COLOR_SECONDARY_TEXT}
+                            fontSize={9}
+                            fontFamily={typography.fontFamily.medium}
+                            textAnchor="middle"
+                          >
+                            {d.label}
+                          </SvgText>
+                        </G>
+                      );
+                    })}
+
+                    {/* Transparent Interactive Rect Overlays */}
+                    {timelineData.map((d, idx) => {
+                      const N = timelineData.length;
+                      const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
+                      return (
                         <Rect
-                          x={tooltipX}
-                          y={tooltipY}
-                          width={130}
-                          height={48}
-                          fill="#FDFCF8"
-                          stroke="#1F1F1F"
-                          strokeWidth="1"
-                          strokeOpacity={0.1}
-                          rx={4}
-                          ry={4}
+                          key={idx}
+                          x={x - 22}
+                          y={10}
+                          width={44}
+                          height={125}
+                          fill="transparent"
+                          onPress={() => {
+                            setSelectedDayIndex(selectedDayIndex === idx ? null : idx);
+                          }}
                         />
-                        {/* Tooltip Title */}
-                        <SvgText
-                          x={tooltipX + 8}
-                          y={tooltipY + 14}
-                          fill="#1B1B1B"
-                          fontSize={9}
-                          fontWeight="bold"
-                          fontFamily="Poppins"
-                        >
-                          {d.fullLabel}
-                        </SvgText>
-                        {/* Spent value */}
-                        <SvgText
-                          x={tooltipX + 8}
-                          y={tooltipY + 27}
-                          fill="#1B1B1B"
-                          fontSize={8.5}
-                          fontFamily="Poppins"
-                        >
-                          Spent: ₹{Math.round(d.actual)} (Limit: ₹{d.budget})
-                        </SvgText>
-                        {/* Spent Categories */}
-                        <SvgText
-                          x={tooltipX + 8}
-                          y={tooltipY + 38}
-                          fill="#666666"
-                          fontSize={7}
-                          fontFamily="Poppins"
-                        >
-                          {d.categories.length > 0 ? d.categories.join(', ') : 'No spending'}
-                        </SvgText>
-                      </G>
-                    );
-                  })()}
-                </Svg>
+                      );
+                    })}
+
+                    {/* Tooltip */}
+                    {selectedDayIndex !== null && (() => {
+                      const N = timelineData.length;
+                      const d = timelineData[selectedDayIndex];
+                      const x = 30 + selectedDayIndex * (260 / (N > 1 ? N - 1 : 1));
+                      const yActual = 125 - (d.actual / maxAmount) * 105;
+
+                      let tooltipX = x - 65;
+                      if (tooltipX < 10) tooltipX = 10;
+                      if (tooltipX > 180) tooltipX = 180;
+
+                      let tooltipY = yActual - 56;
+                      if (tooltipY < 15) tooltipY = yActual + 15;
+
+                      return (
+                        <G pointerEvents="none">
+                          <Rect
+                            x={tooltipX}
+                            y={tooltipY}
+                            width={130}
+                            height={48}
+                            fill={COLOR_SURFACE}
+                            stroke={COLOR_BORDER}
+                            strokeWidth="1"
+                            rx={8}
+                            ry={8}
+                          />
+                          <SvgText
+                            x={tooltipX + 8}
+                            y={tooltipY + 14}
+                            fill={COLOR_PRIMARY_TEXT}
+                            fontSize={9}
+                            fontWeight="bold"
+                            fontFamily={typography.fontFamily.bold}
+                          >
+                            {d.fullLabel}
+                          </SvgText>
+                          <SvgText
+                            x={tooltipX + 8}
+                            y={tooltipY + 27}
+                            fill={COLOR_PRIMARY_TEXT}
+                            fontSize={8.5}
+                            fontFamily={typography.fontFamily.medium}
+                          >
+                            Amt: ₹{Math.round(d.actual)} (Limit: ₹{d.budget})
+                          </SvgText>
+                          <SvgText
+                            x={tooltipX + 8}
+                            y={tooltipY + 38}
+                            fill={COLOR_SECONDARY_TEXT}
+                            fontSize={7}
+                            fontFamily={typography.fontFamily.regular}
+                          >
+                            {d.categories.length > 0 ? d.categories.join(', ') : 'No activity'}
+                          </SvgText>
+                        </G>
+                      );
+                    })()}
+                  </Svg>
+                </View>
+                <View style={styles.cornerPlantDecoration} pointerEvents="none">
+                  <CornerPlant />
+                </View>
               </View>
             </View>
           }
           keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
+          contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.text} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLOR_PRIMARY_TEXT} />
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>📭</Text>
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                No records found
+              <ReadingNotebookMascot />
+              <Text style={styles.emptyText}>
+                No transactions yet.
               </Text>
+              <Text style={styles.emptySubtitle}>
+                Your spending story will appear here.
+              </Text>
+              <View style={styles.cornerPlantDecoration} pointerEvents="none">
+                <CornerPlant />
+              </View>
+            </View>
+          }
+          ListFooterComponent={
+            <View style={{ paddingBottom: 140 }}>
+              {/* Financial Observation Card */}
+              {transactions.length > 0 && (
+                <View style={styles.card}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flex: 1.2, paddingRight: 8 }}>
+                      <Text style={styles.cardTitle}>Financial Observation</Text>
+                      <Text style={styles.observationText}>
+                        {getFinancialObservation()}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 0.8, alignItems: 'flex-end' }}>
+                      <ReadingNotebookMascot />
+                    </View>
+                  </View>
+                  <View style={styles.cornerPlantDecoration} pointerEvents="none">
+                    <CornerPlant />
+                  </View>
+                </View>
+              )}
             </View>
           }
         />
       )}
+
+      {/* Month Picker Modal */}
+      <Modal
+        visible={monthPickerVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setMonthPickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Month</Text>
+              <Pressable onPress={() => setMonthPickerVisible(false)} style={styles.modalCloseButton}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </Pressable>
+            </View>
+            <ScrollView style={styles.modalScroll}>
+              {getMonthsList().map((date, idx) => {
+                const isSelected =
+                  date.getFullYear() === selectedMonth.getFullYear() &&
+                  date.getMonth() === selectedMonth.getMonth();
+                return (
+                  <Pressable
+                    key={idx}
+                    onPress={() => {
+                      setSelectedMonth(date);
+                      setMonthPickerVisible(false);
+                    }}
+                    style={[
+                      styles.modalItem,
+                      { backgroundColor: isSelected ? COLOR_FOREST_GREEN : 'transparent' }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        { color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT },
+                      ]}
+                    >
+                      {date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Category Filter Modal */}
+      <Modal
+        visible={categoryPickerVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setCategoryPickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter by Category</Text>
+              <Pressable onPress={() => setCategoryPickerVisible(false)} style={styles.modalCloseButton}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </Pressable>
+            </View>
+            <ScrollView style={styles.modalScroll}>
+              <Pressable
+                onPress={() => {
+                  setSelectedCategory(null);
+                  setCategoryPickerVisible(false);
+                }}
+                style={[
+                  styles.modalItem,
+                  { backgroundColor: selectedCategory === null ? COLOR_FOREST_GREEN : 'transparent' }
+                ]}
+              >
+                <Text style={[styles.modalItemText, { color: selectedCategory === null ? '#FFF' : COLOR_PRIMARY_TEXT }]}>
+                  All Categories
+                </Text>
+              </Pressable>
+              {categories.map((cat) => {
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <Pressable
+                    key={cat.id}
+                    onPress={() => {
+                      setSelectedCategory(cat.id);
+                      setCategoryPickerVisible(false);
+                    }}
+                    style={[
+                      styles.modalItem,
+                      { backgroundColor: isSelected ? COLOR_FOREST_GREEN : 'transparent' }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        { color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT },
+                      ]}
+                    >
+                      {cat.name}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: COLOR_BACKGROUND,
+  },
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerAddBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  headerAddBtnText: {
-    fontSize: 18,
-    lineHeight: 20,
-    textAlign: 'center',
+  headerRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 4,
   },
   microHeader: {
-    fontSize: 11,
-    letterSpacing: 2,
-    marginBottom: 4,
+    fontSize: 10,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_SECONDARY_TEXT,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
-  title: { fontSize: 28, letterSpacing: -0.5 },
+  title: {
+    fontSize: 28,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_PRIMARY_TEXT,
+    marginTop: 2,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontFamily: typography.fontFamily.medium,
+    color: COLOR_SECONDARY_TEXT,
+    marginTop: 4,
+  },
+  monthSelectorBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: COLOR_SURFACE,
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    alignSelf: 'flex-end',
+  },
+  monthSelectorText: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 11,
+    color: COLOR_PRIMARY_TEXT,
+  },
 
-  searchWrapper: { paddingHorizontal: 16, marginBottom: 16 },
+  // Search Bar
+  searchWrapper: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 20,
+    backgroundColor: COLOR_SURFACE,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    height: 48,
+    borderColor: COLOR_BORDER,
+    paddingHorizontal: 16,
+    height: 56,
   },
-  searchIcon: { fontSize: 16, marginRight: 10 },
   searchInput: {
     flex: 1,
     fontSize: 15,
-    padding: 0,
+    paddingLeft: 12,
+    color: COLOR_PRIMARY_TEXT,
+    fontFamily: typography.fontFamily.medium,
+  },
+  clearBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginRight: 8,
+  },
+  clearBtnText: {
+    color: COLOR_PRIMARY_TEXT,
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
+  },
+  filterBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    position: 'relative',
+  },
+  filterDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLOR_FOREST_GREEN,
   },
 
+  // Segmented control
   tabSliderWrapper: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 4,
     marginBottom: 16,
-    justifyContent: 'space-between',
+    gap: 8,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 10,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   tabLabel: {
-    fontSize: 14,
+    fontSize: 13,
   },
 
-  listContent: { paddingHorizontal: 16 },
+  // List layout
+  listContent: {
+    paddingHorizontal: 16,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 16,
     paddingBottom: 8,
+    backgroundColor: COLOR_BACKGROUND,
     gap: 12,
   },
   sectionHeaderText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_SECONDARY_TEXT,
     letterSpacing: 1.5,
   },
   sectionDivider: {
     flex: 1,
-    height: 0.5,
-    opacity: 0.5,
+    height: 1,
+    backgroundColor: COLOR_BORDER,
+    opacity: 0.8,
   },
-  txRow: {
+
+  // Transaction card
+  txCard: {
+    backgroundColor: COLOR_SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+    padding: 12,
+    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
     gap: 12,
   },
   txIcon: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
-    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  txIconText: { fontSize: 20 },
-  txInfo: { flex: 1 },
+  txIconText: {
+    fontSize: 16,
+    fontFamily: typography.fontFamily.bold,
+  },
+  txInfo: {
+    flex: 1,
+  },
   txMerchant: {
-    fontSize: 15,
+    fontSize: 14,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_PRIMARY_TEXT,
     marginBottom: 2,
   },
-  txMeta: { fontSize: 12 },
-  txRight: { alignItems: 'flex-end', justifyContent: 'center' },
-  txAmount: { fontSize: 15 },
+  txMeta: {
+    fontSize: 11,
+    fontFamily: typography.fontFamily.medium,
+    color: COLOR_SECONDARY_TEXT,
+  },
+  txRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  txTime: {
+    fontSize: 9,
+    fontFamily: typography.fontFamily.regular,
+    color: COLOR_SECONDARY_TEXT,
+  },
+  txAmount: {
+    fontSize: 14,
+    fontFamily: typography.fontFamily.monoBold,
+  },
 
-  empty: { alignItems: 'center', paddingTop: 60 },
-  emptyEmoji: { fontSize: 40, marginBottom: 12 },
-  emptyText: { fontSize: 15 },
-  chartCard: {
+  // Cards layout
+  card: {
+    backgroundColor: COLOR_SURFACE,
+    borderRadius: 24,
     borderWidth: 1,
-    borderRadius: 4,
+    borderColor: COLOR_BORDER,
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
     padding: 16,
     marginBottom: 16,
-    marginTop: 8,
+    position: 'relative',
+    overflow: 'hidden',
   },
+  chartCard: {
+    backgroundColor: COLOR_SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+    padding: 16,
+    marginBottom: 16,
+    height: 240,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cardTitle: {
+    fontSize: 11,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_SECONDARY_TEXT,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  observationText: {
+    fontSize: 14,
+    fontFamily: typography.fontFamily.medium,
+    color: COLOR_PRIMARY_TEXT,
+    lineHeight: 20,
+  },
+
+  // Snapshot details
+  snapshotRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  snapshotCol: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  snapshotLabel: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: 9,
+    color: COLOR_SECONDARY_TEXT,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  snapshotValue: {
+    fontFamily: typography.fontFamily.monoBold,
+    fontSize: 15,
+  },
+  leafClusterContainer: {
+    marginLeft: 8,
+    marginTop: -8,
+  },
+  cornerPlantDecoration: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    opacity: 0.1,
+  },
+
+  // Chart layout
   chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  chartTitle: {
-    fontSize: 10,
-    letterSpacing: 1.5,
+    marginBottom: 12,
   },
   chartModeSelector: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 4,
+    borderColor: COLOR_BORDER,
+    borderRadius: 12,
     padding: 2,
-    alignItems: 'center',
+    backgroundColor: COLOR_SURFACE,
   },
   chartModeButton: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 2,
+    borderRadius: 10,
   },
   chartModeLabel: {
     fontSize: 9,
     letterSpacing: 0.5,
   },
   chartWrapperContainer: {
-    paddingTop: 8,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+  },
+
+  // Empty state
+  empty: {
+    backgroundColor: COLOR_SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_PRIMARY_TEXT,
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    fontFamily: typography.fontFamily.regular,
+    color: COLOR_SECONDARY_TEXT,
+    textAlign: 'center',
+  },
+
+  // Modals layout
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(116, 81, 67, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: COLOR_SURFACE,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    width: '100%',
+    maxHeight: '70%',
+    paddingTop: 16,
+    paddingBottom: 24,
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 16,
+    color: COLOR_PRIMARY_TEXT,
+  },
+  modalCloseButton: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    color: COLOR_SECONDARY_TEXT,
+  },
+  modalScroll: {
+    paddingHorizontal: 16,
+  },
+  modalItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 6,
+  },
+  modalItemText: {
+    fontSize: 14,
+    fontFamily: typography.fontFamily.medium,
   },
 });

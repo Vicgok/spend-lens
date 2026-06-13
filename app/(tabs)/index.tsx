@@ -22,6 +22,17 @@ import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 import { getPendingDetections, updateDetectionStatus, DetectedBank, writeLog } from '@/lib/database';
 import Svg, { Path, Rect, Circle, Line, Ellipse } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
+import { AccountIcon } from '@/components/ui/BankLogo';
+import SproutCoinMascot from '@/components/ui/SproutCoinMascot';
+import SavingsJarIllustration from '@/components/ui/SavingsJarIllustration';
+import CardLeafIllustration from '@/components/ui/CardLeafIllustration';
+import AccountCardIllustration from '@/components/ui/AccountCardIllustration';
+import NotebookIllustration from '@/components/ui/NotebookIllustration';
+import QuickOverviewLeafIllustration from '@/components/ui/QuickOverviewLeafIllustration';
+import MascotWaiting from '@/components/ui/MascotWaiting';
+import InsightMascotIllustration from '@/components/ui/InsightMascotIllustration';
+import AddFinancialSourceSheet from '@/components/ui/AddFinancialSourceSheet';
+import { AccountType } from '@/types';
 
 function getAccountTypeLabel(type: string): string {
   const map: Record<string, string> = {
@@ -80,294 +91,7 @@ const logger = {
   },
 };
 
-// ─── SVG Illustrations ────────────────────────────────────────────────────────
 
-const SavingsJarIllustration = React.memo(() => (
-  <Svg width={100} height={90} viewBox="0 0 110 100">
-    <Circle cx={65} cy={55} r={32} fill="rgba(62, 90, 42, 0.04)" />
-
-    {/* Coins outside */}
-    <Rect x={38} y={72} width={12} height={4} rx={1.5} fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={38} y={75} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={38} y={78} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-
-    <Rect x={50} y={66} width={12} height={4} rx={1.5} fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={50} y={69} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={50} y={72} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={50} y={75} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={50} y={78} width={12} height={4} rx={1.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-
-    {/* Jar Body */}
-    <Path
-      d="M 52 32 C 52 32, 48 37, 48 48 C 48 68, 54 78, 68 78 C 82 78, 88 68, 88 48 C 88 37, 84 32, 84 32 Z"
-      fill="rgba(255, 255, 255, 0.7)"
-      stroke={COLOR_DEEP_BROWN}
-      strokeWidth={1.5}
-    />
-
-    {/* Coins inside */}
-    <Rect x={58} y={70} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={66} y={64} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-    <Rect x={66} y={67.5} width={10} height={3.5} rx={1} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-
-    {/* Jar neck */}
-    <Path d="M 54 32 L 82 32 L 80 28 L 56 28 Z" fill="#FFFFFF" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    {/* Lid */}
-    <Path d="M 58 28 L 78 28 C 78 28, 77 22, 68 22 C 59 22, 58 28, 58 28 Z" fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-
-    {/* Plant Vine */}
-    <Path d="M 44 82 Q 42 70 48 64 Q 50 60 49 55" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
-    <Path d="M 43 72 C 40 70, 39 74, 43 72 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_FOREST_GREEN} strokeWidth={0.5} />
-    <Path d="M 46 66 C 48 64, 48 68, 46 66 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_FOREST_GREEN} strokeWidth={0.5} />
-
-    {/* Sparkles */}
-    <Path d="M 32 40 L 34 40 M 33 39 L 33 41" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
-    <Path d="M 94 48 L 96 48 M 95 47 L 95 49" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
-  </Svg>
-));
-
-const TopMascotIllustration = React.memo(() => (
-  <Svg width={100} height={85} viewBox="0 0 120 100">
-    <Path d="M 30 82 Q 60 78 90 82 Z" fill="rgba(62, 90, 42, 0.05)" />
-    <Path d="M 45 82 Q 52 74 58 82 M 52 82 Q 55 77 58 82" stroke={COLOR_FOREST_GREEN} strokeWidth={1} strokeLinecap="round" />
-    <Path d="M 75 82 Q 78 74 80 82" stroke={COLOR_FOREST_GREEN} strokeWidth={1} strokeLinecap="round" />
-
-    {/* Body */}
-    <Circle cx={65} cy={48} r={20} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
-    <Circle cx={65} cy={48} r={17} fill="rgba(62, 90, 42, 0.05)" />
-    <Circle cx={65} cy={48} r={14} fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={0.6} opacity={0.3} />
-
-    {/* Eyes */}
-    <Circle cx={59} cy={46} r={2.2} fill={COLOR_DEEP_BROWN} />
-    <Circle cx={71} cy={46} r={2.2} fill={COLOR_DEEP_BROWN} />
-
-    {/* Cheeks */}
-    <Circle cx={54} cy={49} r={2} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    <Circle cx={76} cy={49} r={2} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-
-    {/* Smile */}
-    <Path d="M 62 51 Q 65 54 68 51" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-
-    {/* Antenna */}
-    <Path d="M 65 28 L 65 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Path d="M 65 24 C 69 22, 69 26, 65 24 C 61 26, 61 22, 65 24 Z" fill={COLOR_FOREST_GREEN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-
-    {/* Hand holding leaf */}
-    <Path d="M 45 52 Q 40 48 44 44" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-    <Path d="M 44 44 C 42 40, 46 40, 44 44 Z" fill={COLOR_FOREST_GREEN} />
-
-    {/* Other arm */}
-    <Path d="M 85 52 Q 90 48 88 44" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-
-    {/* Legs */}
-    <Path d="M 59 68 L 57 76" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} strokeLinecap="round" />
-    <Path d="M 71 68 L 73 76" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} strokeLinecap="round" />
-
-    {/* Sparkles */}
-    <Path d="M 35 32 L 37 32 M 36 31 L 36 33" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
-    <Path d="M 95 38 L 97 38 M 96 37 L 96 39" stroke={COLOR_ACCENT_BROWN} strokeWidth={0.8} />
-  </Svg>
-));
-const LEAF_FILL = '#D8D4A8';
-const LEAF_STROKE = '#9B9469';
-const STEM = '#6E7B4B';
-const GROUND = '#DDD3C6';
-
-const CardLeafIllustration = React.memo(() => (
-  <View style={{ position: 'absolute', right: 24, bottom: 0, opacity: 0.25, zIndex: 0 }} pointerEvents="none">
-    <Svg width={65} height={48} viewBox="0 0 65 48" fill="none">
-      {/* Stem */}
-      <Path
-        d="M54 47C54 36 53 27 55 18C56 13 58 9 61 5"
-        stroke={STEM}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-      />
-
-      {/* Small Left Leaf */}
-      <Ellipse
-        cx="50"
-        cy="26"
-        rx="4"
-        ry="8"
-        transform="rotate(-35 50 26)"
-        fill={LEAF_FILL}
-        stroke={LEAF_STROKE}
-        strokeWidth={1}
-      />
-
-      {/* Large Center Leaf */}
-      <Ellipse
-        cx="56"
-        cy="16"
-        rx="5.5"
-        ry="12"
-        transform="rotate(15 56 16)"
-        fill={LEAF_FILL}
-        stroke={LEAF_STROKE}
-        strokeWidth={1}
-      />
-
-      {/* Right Leaf */}
-      <Ellipse
-        cx="63"
-        cy="23"
-        rx="4"
-        ry="9"
-        transform="rotate(28 63 23)"
-        fill={LEAF_FILL}
-        stroke={LEAF_STROKE}
-        strokeWidth={1}
-      />
-
-      {/* Ground */}
-      <Path
-        d="M40 47H65"
-        stroke={GROUND}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
-  </View>
-));
-
-const AccountCardIllustration = React.memo(() => (
-  <Svg width={42} height={42} viewBox="0 0 50 50" style={{ position: 'absolute', right: 8, bottom: 8, opacity: 0.10 }}>
-    <Path
-      d="M 12 38 Q 24 26 38 12"
-      fill="none"
-      stroke={COLOR_FOREST_GREEN}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-    />
-    <Path
-      d="M 38 12 C 32 14, 28 20, 31 25 C 34 30, 40 24, 38 12 Z"
-      fill={COLOR_FOREST_GREEN}
-    />
-    <Path
-      d="M 24 24 C 18 26, 14 32, 17 37 C 20 42, 26 38, 24 24 Z"
-      fill={COLOR_FOREST_GREEN}
-    />
-  </Svg>
-));
-
-const NotebookIllustration = React.memo(() => (
-  <Svg width={72} height={72} viewBox="0 0 80 80">
-    <Rect x={10} y={15} width={60} height={52} rx={6} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} />
-    {/* Page rings */}
-    <Circle cx={24} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Circle cx={40} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Circle cx={56} cy={15} r={2.5} fill="#B7884E" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    {/* Page writing guidelines */}
-    <Line x1={18} y1={28} x2={62} y2={28} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
-    <Line x1={18} y1={36} x2={58} y2={36} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
-    <Line x1={18} y1={44} x2={52} y2={44} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
-    <Line x1={18} y1={52} x2={60} y2={52} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.4} />
-    {/* Little plant accents inside notebook */}
-    <Path d="M 58 58 Q 62 50 64 60" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
-    <Circle cx={62} cy={50} r={1.5} fill={COLOR_FOREST_GREEN} />
-  </Svg>
-));
-
-const QuickOverviewLeafIllustration = React.memo(() => (
-  <Svg width={24} height={24} viewBox="0 0 30 30" style={{ position: 'absolute', right: 4, bottom: 4, opacity: 0.08 }}>
-    <Path
-      d="M 6 24 C 12 18, 18 12, 24 6"
-      fill="none"
-      stroke={COLOR_FOREST_GREEN}
-      strokeWidth={1.2}
-      strokeLinecap="round"
-    />
-    <Path
-      d="M 24 6 C 20 8, 18 12, 20 15 Z"
-      fill={COLOR_FOREST_GREEN}
-    />
-  </Svg>
-));
-
-const MascotWaiting = React.memo(() => (
-  <Svg width={72} height={72} viewBox="0 0 80 80">
-    {/* Clipboard */}
-    <Rect x={10} y={15} width={34} height={48} rx={4} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} />
-    <Rect x={22} y={11} width={10} height={5} rx={1} fill="#D4A373" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Line x1={16} y1={26} x2={38} y2={26} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
-    <Line x1={16} y1={33} x2={34} y2={33} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
-    <Line x1={16} y1={40} x2={30} y2={40} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
-    <Line x1={16} y1={47} x2={36} y2={47} stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} opacity={0.6} />
-
-    <Circle cx={14} cy={26} r={1.5} fill={COLOR_FOREST_GREEN} />
-    <Circle cx={14} cy={33} r={1.5} fill={COLOR_FOREST_GREEN} />
-    <Circle cx={14} cy={40} r={1.5} fill={COLOR_FOREST_GREEN} />
-    <Circle cx={14} cy={47} r={1.5} fill={COLOR_FOREST_GREEN} />
-
-    {/* Mascot */}
-    <Circle cx={52} cy={46} r={18} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
-    <Circle cx={52} cy={46} r={15} fill="rgba(62, 90, 42, 0.05)" />
-
-    {/* Face */}
-    <Circle cx={46} cy={44} r={2.2} fill={COLOR_DEEP_BROWN} />
-    <Circle cx={58} cy={44} r={2.2} fill={COLOR_DEEP_BROWN} />
-    <Circle cx={41} cy={47} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    <Circle cx={63} cy={47} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    <Path d="M 49 49 Q 52 52 55 49" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-
-    {/* Antenna */}
-    <Path d="M 52 28 L 52 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Circle cx={52} cy={22} r={2.5} fill={COLOR_FOREST_GREEN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-
-    {/* Legs & Arm */}
-    <Path d="M 47 64 L 45 71" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-    <Path d="M 57 64 L 59 71" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-    <Path d="M 38 48 Q 42 46 45 48" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-
-    {/* Tiny plant */}
-    <Path d="M 8 72 Q 12 66 10 74" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
-    <Circle cx={12} cy={66} r={1.5} fill={COLOR_FOREST_GREEN} />
-  </Svg>
-));
-
-
-
-
-const InsightMascotIllustration = React.memo(() => (
-  <Svg width={90} height={72} viewBox="0 0 100 80">
-    <Circle cx={38} cy={46} r={18} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8} />
-    <Circle cx={38} cy={46} r={15} fill="rgba(62, 90, 42, 0.05)" />
-
-    {/* Eyes */}
-    <Path d="M 29 46 Q 31 48 33 46" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-    <Path d="M 43 46 Q 45 48 47 46" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" fill="none" />
-
-    <Circle cx={24} cy={49} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-    <Circle cx={52} cy={49} r={1.8} fill={COLOR_FOREST_GREEN} opacity={0.3} />
-
-    {/* Antenna */}
-    <Path d="M 38 28 L 38 24" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Circle cx={38} cy={22} r={2.5} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-
-    {/* Book */}
-    <Rect x={44} y={44} width={22} height={16} rx={3} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.5} />
-    <Line x1={48} y1={49} x2={58} y2={49} stroke={COLOR_DEEP_BROWN} strokeWidth={1} opacity={0.6} />
-    <Line x1={48} y1={54} x2={62} y2={54} stroke={COLOR_DEEP_BROWN} strokeWidth={1} opacity={0.6} />
-
-    <Path d="M 32 64 L 30 71" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-    <Path d="M 42 64 L 44 71" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} strokeLinecap="round" />
-
-    {/* Thought Bubble */}
-    <Path d="M 68 28 C 68 22, 74 18, 80 20 C 86 18, 92 22, 92 28 C 94 34, 90 38, 84 38 C 78 38, 74 36, 68 28 Z" fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1.2} />
-    <Circle cx={62} cy={34} r={3} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-    <Circle cx={56} cy={38} r={1.5} fill="#FAF9F7" stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-
-    {/* Bulb */}
-    <Circle cx={80} cy={26} r={4} fill={COLOR_ACCENT_BROWN} stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-    <Path d="M 78 30 L 82 30" stroke={COLOR_DEEP_BROWN} strokeWidth={1} />
-    <Line x1={80} y1={22} x2={80} y2={20} stroke={COLOR_DEEP_BROWN} strokeWidth={0.8} />
-
-    {/* Plant Sprout */}
-    <Path d="M 85 72 Q 88 64 92 70" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.2} />
-    <Circle cx={88} cy={64} r={1.5} fill={COLOR_FOREST_GREEN} />
-  </Svg>
-));
 
 const ChevronRight = React.memo(() => (
   <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -429,6 +153,9 @@ export default function DashboardScreen() {
   const [initialBalance, setInitialBalance] = React.useState('');
   const [isAppReady, setIsAppReady] = React.useState(false);
   const [initError, setInitError] = React.useState<string | null>(null);
+
+  // Grouped custom account form states
+  const [isAddingCustomAccount, setIsAddingCustomAccount] = React.useState(false);
 
   const smsInitialized = useRef(false);
 
@@ -566,35 +293,85 @@ export default function DashboardScreen() {
     }
   };
 
+  const handleCreateCustomAccount = async (payload: { type: AccountType; bankId?: string; startingBalance: number }) => {
+    let name = '';
+    let icon = '🏦';
+    let color = '#004C8F';
+
+    if (payload.type === 'bank') {
+      const bankNameMap: Record<string, string> = {
+        hdfc: 'HDFC Bank',
+        icici: 'ICICI Bank',
+        axis: 'Axis Bank',
+        sbi: 'State Bank of India',
+        kotak: 'Kotak Mahindra Bank',
+      };
+      name = bankNameMap[payload.bankId || ''] || 'Bank Account';
+      icon = '🏦';
+      
+      const bankColorMap: Record<string, string> = {
+        hdfc: '#004C8F',
+        icici: '#B02A30',
+        axis: '#800020',
+        sbi: '#0038A8',
+        kotak: '#EC1C24',
+      };
+      color = bankColorMap[payload.bankId || ''] || '#004C8F';
+    } else if (payload.type === 'wallet') {
+      name = 'Digital Wallet';
+      icon = '📱';
+      color = '#00B9F1';
+    } else if (payload.type === 'cash') {
+      name = 'Cash';
+      icon = '💵';
+      color = '#3E5A2A';
+    } else if (payload.type === 'credit_card') {
+      name = 'Credit Card';
+      icon = '💳';
+      color = '#745143';
+    }
+
+    try {
+      await useTransactionStore.getState().createAccount({
+        name,
+        type: payload.type,
+        balance: payload.startingBalance,
+        currency: 'INR',
+        icon,
+        color,
+        bankId: payload.bankId,
+      });
+
+      setIsAddingCustomAccount(false);
+      await loadData();
+      Alert.alert('Account Added', `Account for ${name} added successfully.`);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to add account.');
+    }
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   }, [loadData]);
 
-  // Construct stacked accounts matching design deck (Cash on top, HDFC underneath, ICICI underneath)
+  // Construct stacked accounts matching user entered data only
   const displayAccounts = [...accounts];
-  const mockFallbacks = [
-    { id: 'mock-cash', name: 'Cash', type: 'cash', balance: 1000, icon: '💵' },
-    { id: 'mock-hdfc', name: 'HDFC Bank', type: 'bank', balance: 1000, icon: '🏦' },
-    { id: 'mock-icici', name: 'ICICI Bank', type: 'bank', balance: 12000, icon: '🏦' },
-  ];
 
-  for (const mock of mockFallbacks) {
-    if (displayAccounts.length >= 3) break;
-    if (!displayAccounts.some((a) => a.name.toLowerCase() === mock.name.toLowerCase())) {
-      displayAccounts.push(mock as any);
+  // Dynamic stack logic based on selectedAccountId
+  const currentSelectedId = selectedAccountId || (displayAccounts[0] ? displayAccounts[0].id : null);
+  let orderedAccounts = [...displayAccounts];
+  if (currentSelectedId) {
+    const selectedIdx = orderedAccounts.findIndex((a) => a.id === currentSelectedId);
+    if (selectedIdx > -1) {
+      const selectedAcc = orderedAccounts[selectedIdx];
+      orderedAccounts.splice(selectedIdx, 1);
+      orderedAccounts.unshift(selectedAcc);
     }
   }
 
-  // Soft sort so Cash is at top index 0, HDFC is at index 1 to mirror expected image layer ordering
-  displayAccounts.sort((a, b) => {
-    if (a.name.toLowerCase().includes('cash')) return -1;
-    if (b.name.toLowerCase().includes('cash')) return 1;
-    return 0;
-  });
-
-  const previewAccounts = displayAccounts.slice(0, 3);
+  const previewAccounts = orderedAccounts.slice(0, 3);
 
   // Calculate dynamic balances
   const activeBalanceTotal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
@@ -671,7 +448,7 @@ export default function DashboardScreen() {
               <Text style={{ color: COLOR_FOREST_GREEN, fontWeight: 'bold' }}>calm and under control</Text>.
             </Text>
             <View style={styles.topMascotContainer}>
-              <TopMascotIllustration />
+              <SproutCoinMascot width={90} height={75} />
             </View>
           </View>
         </View>
@@ -682,7 +459,7 @@ export default function DashboardScreen() {
             <View style={styles.heroLeft}>
               <Text style={styles.heroLabel}>AVAILABLE BALANCE</Text>
               <Text style={styles.heroAmount}>
-                {formatCurrency(displayedTotalBalance)}
+                {formatCurrency(activeBalanceTotal)}
               </Text>
 
               {/* Status Chip */}
@@ -784,61 +561,104 @@ export default function DashboardScreen() {
         {/* Accounts List Card */}
         <View style={styles.accountsParentCard}>
           <View style={styles.accountStackContainer}>
-            {previewAccounts[2] && (
-              <View style={[styles.stackCard, styles.backCard]}>
-                <View style={styles.peekContent}>
-                  {previewAccounts[2].name.toLowerCase().includes('cash') ? <CashIcon size={14} /> : <BankIcon size={14} />}
-                  <Text style={styles.peekTitle} numberOfLines={1}>
-                    {previewAccounts[2].name}
-                  </Text>
-                </View>
+            {previewAccounts.length === 0 ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 }}>
+                <Text style={{ fontFamily: typography.fontFamily.medium, fontSize: 13, color: COLOR_MUTED_TEXT }}>
+                  No accounts connected yet.
+                </Text>
+                <Text style={{ fontFamily: typography.fontFamily.regular, fontSize: 11, color: COLOR_MUTED_TEXT, textAlign: 'center', paddingHorizontal: 20 }}>
+                  Tap "Add Account" below to start tracking your balances.
+                </Text>
               </View>
-            )}
+            ) : (
+              <>
+                {previewAccounts[2] && (
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedAccountId(previewAccounts[2].id);
+                    }}
+                    style={[styles.stackCard, styles.backCard]}
+                  >
+                    <View style={styles.peekContent}>
+                      <AccountIcon
+                        bankId={previewAccounts[2].bankId}
+                        accountType={previewAccounts[2].type}
+                        icon={previewAccounts[2].icon}
+                        color={previewAccounts[2].color}
+                        size={14}
+                      />
+                      <Text style={styles.peekTitle} numberOfLines={1}>
+                        {previewAccounts[2].name}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )}
 
-            {previewAccounts[1] && (
-              <View style={[styles.stackCard, styles.middleCard]}>
-                <View style={styles.peekContent}>
-                  {previewAccounts[1].name.toLowerCase().includes('cash') ? <CashIcon size={14} /> : <BankIcon size={14} />}
-                  <Text style={styles.peekTitle} numberOfLines={1}>
-                    {previewAccounts[1].name}
-                  </Text>
-                </View>
-              </View>
-            )}
+                {previewAccounts[1] && (
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedAccountId(previewAccounts[1].id);
+                    }}
+                    style={[styles.stackCard, styles.middleCard]}
+                  >
+                    <View style={styles.peekContent}>
+                      <AccountIcon
+                        bankId={previewAccounts[1].bankId}
+                        accountType={previewAccounts[1].type}
+                        icon={previewAccounts[1].icon}
+                        color={previewAccounts[1].color}
+                        size={14}
+                      />
+                      <Text style={styles.peekTitle} numberOfLines={1}>
+                        {previewAccounts[1].name}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )}
 
-            {previewAccounts[0] && (
-              <Pressable
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push('/accounts');
-                }}
-                style={({ pressed }) => [
-                  styles.stackCard,
-                  styles.frontCard,
-                  {
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    transform: [{ scale: pressed ? 0.985 : 1.0 }]
-                  }
-                ]}
-              >
-                <View style={styles.cardLeft}>
-                  <View style={[styles.bankIconContainer, { backgroundColor: previewAccounts[0].name.toLowerCase().includes('cash') ? 'rgba(62, 90, 42, 0.06)' : 'rgba(116, 81, 67, 0.06)' }]}>
-                    {previewAccounts[0].name.toLowerCase().includes('cash') ? <CashIcon /> : <BankIcon />}
-                  </View>
-                  <Text style={styles.cardAccountName}>{previewAccounts[0].name}</Text>
-                </View>
-                <View style={styles.cardRight}>
-                  <View style={styles.balanceColumn}>
-                    <Text style={styles.availableBalanceLabel}>Available Balance</Text>
-                    <Text style={styles.cardBalanceText}>{formatCurrency(previewAccounts[0].balance)}</Text>
-                  </View>
-                  <ChevronRight />
-                </View>
-                <CardLeafIllustration />
-              </Pressable>
+                {previewAccounts[0] && (
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push('/accounts');
+                    }}
+                    style={({ pressed }) => [
+                      styles.stackCard,
+                      styles.frontCard,
+                      {
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingHorizontal: 16,
+                        transform: [{ scale: pressed ? 0.985 : 1.0 }]
+                      }
+                    ]}
+                  >
+                    <View style={styles.cardLeft}>
+                      <View style={{ marginRight: 6 }}>
+                        <AccountIcon
+                          bankId={previewAccounts[0].bankId}
+                          accountType={previewAccounts[0].type}
+                          icon={previewAccounts[0].icon}
+                          color={previewAccounts[0].color}
+                          size={36}
+                        />
+                      </View>
+                      <Text style={styles.cardAccountName}>{previewAccounts[0].name}</Text>
+                    </View>
+                    <View style={styles.cardRight}>
+                      <View style={styles.balanceColumn}>
+                        <Text style={styles.availableBalanceLabel}>Available Balance</Text>
+                        <Text style={styles.cardBalanceText}>{formatCurrency(previewAccounts[0].balance)}</Text>
+                      </View>
+                      <ChevronRight />
+                    </View>
+                    <CardLeafIllustration />
+                  </Pressable>
+                )}
+              </>
             )}
           </View>
 
@@ -846,7 +666,7 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/accounts');
+              setIsAddingCustomAccount(true);
             }}
             style={({ pressed }) => [
               styles.addAccountCard,
@@ -946,6 +766,19 @@ export default function DashboardScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal for adding custom bank account directly on the home screen */}
+      <AddFinancialSourceSheet
+        visible={isAddingCustomAccount}
+        onClose={() => setIsAddingCustomAccount(false)}
+        onCreate={handleCreateCustomAccount}
+        disabledTypes={accounts.reduce<AccountType[]>((acc, a) => {
+          if (a.type === 'cash' && !acc.includes('cash')) acc.push('cash');
+          if (a.type === 'credit_card' && !acc.includes('credit_card')) acc.push('credit_card');
+          return acc;
+        }, [])}
+        existingBankIds={accounts.map(a => a.bankId).filter((id): id is string => !!id)}
+      />
     </View>
   );
 }
