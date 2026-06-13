@@ -56,6 +56,7 @@ export default function DashboardScreen() {
   const [addingBank, setAddingBank] = React.useState<DetectedBank | null>(null);
   const [initialBalance, setInitialBalance] = React.useState('');
   const [isAppReady, setIsAppReady] = React.useState(false);
+  const [initError, setInitError] = React.useState<string | null>(null);
 
   // Pulse animation for pending bank cards
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
@@ -114,6 +115,7 @@ export default function DashboardScreen() {
       logger.info('[TABS_READY]');
     } catch (err: any) {
       logger.error('[TABS_RENDER_ERROR]', err);
+      setInitError(err.message || String(err));
     }
   }, []); // Stable store actions do not change reference
 
@@ -309,11 +311,25 @@ export default function DashboardScreen() {
 
   if (!isAppReady) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: typography.fontFamily.medium }]}>
-          Loading your financial observatory...
-        </Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background, padding: 20 }]}>
+        {initError ? (
+          <>
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#C84B31', marginBottom: 12 }}>
+              Initialization Failure
+            </Text>
+            <Text style={{ fontSize: 14, color: theme.text || '#1B1B1B', textAlign: 'center', lineHeight: 20 }}>
+              {initError}
+            </Text>
+          </>
+        ) : (
+          <>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary, fontFamily: typography.fontFamily.medium }]}>
+              Loading your financial observatory...
+            </Text>
+          </>
+        )}
       </View>
     );
   }

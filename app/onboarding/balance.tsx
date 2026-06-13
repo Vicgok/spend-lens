@@ -13,7 +13,6 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,8 +25,8 @@ import { AccountType } from '@/types';
 import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
 import { AccountIcon, BankLogo } from '@/components/ui/BankLogo';
 import { writeLog } from '@/lib/database';
+import Svg, { Rect, Path, Line, Circle } from 'react-native-svg';
 import {
-  MoneyBagIcon,
   SearchIcon,
   BankIcon,
   CashIcon,
@@ -76,18 +75,130 @@ function formatIndianNumber(valStr: string): string {
 
 const renderPresetIcon = (type: AccountType, color: string) => {
   switch (type) {
-    case 'bank': return <BankIcon color={color} size={15} />;
-    case 'cash': return <CashIcon color={color} size={15} />;
-    case 'credit_card': return <CreditCardIcon color={color} size={15} />;
-    case 'wallet': return <WalletIcon color={color} size={15} />;
+    case 'bank': return <BankIcon color={color} size={14} />;
+    case 'cash': return <CashIcon color={color} size={14} />;
+    case 'credit_card': return <CreditCardIcon color={color} size={14} />;
+    case 'wallet': return <WalletIcon color={color} size={14} />;
     default: return null;
   }
 };
 
+// ── Financial Foundation SVG Illustration ──────────────────────────────────────
+const FinancialFoundationIllustration = React.memo(() => {
+  const { theme } = useTheme();
+  const obTheme = theme.onboarding;
 
+  return (
+    <View style={styles.illustrationContainer}>
+      <Svg width={140} height={100} viewBox="0 0 140 100" style={styles.illustrationSvg}>
+        {/* Soft background dotted grid */}
+        {Array.from({ length: 4 }).map((_, row) =>
+          Array.from({ length: 6 }).map((_, col) => (
+            <Circle
+              key={`grid-${row}-${col}`}
+              cx={col * 24 + 10}
+              cy={row * 24 + 10}
+              r={1}
+              fill={obTheme.brandGreen}
+              opacity={0.12}
+            />
+          ))
+        )}
+
+        {/* Protection / Trust Arch (editorial element) */}
+        <Path
+          d="M 20 85 A 50 50 0 0 1 120 85"
+          stroke={obTheme.brandGreen}
+          strokeWidth={1.5}
+          strokeDasharray="3 5"
+          opacity={0.25}
+          fill="none"
+        />
+
+        {/* Financial Baseline */}
+        <Line
+          x1={10}
+          y1={85}
+          x2={130}
+          y2={85}
+          stroke={obTheme.primary}
+          strokeWidth={1.5}
+          opacity={0.3}
+          strokeLinecap="round"
+        />
+
+        {/* Stacked Balance Blocks (isometric/layered editorial feel) */}
+        {/* Block 1 (Base Left) */}
+        <Rect
+          x={32}
+          y={60}
+          width={36}
+          height={24}
+          rx={6}
+          fill="rgba(255, 255, 255, 0.85)"
+          stroke={obTheme.primary}
+          strokeWidth={1.5}
+        />
+        <Line x1={40} y1={72} x2={60} y2={72} stroke={obTheme.primary} strokeWidth={1} opacity={0.3} />
+
+        {/* Block 2 (Base Right) */}
+        <Rect
+          x={74}
+          y={50}
+          width={40}
+          height={34}
+          rx={8}
+          fill={obTheme.accentCardBg} // Accent brown
+          opacity={0.15}
+        />
+        <Rect
+          x={74}
+          y={50}
+          width={40}
+          height={34}
+          rx={8}
+          fill="none"
+          stroke={obTheme.primary}
+          strokeWidth={1.5}
+        />
+        <Line x1={84} y1={62} x2={104} y2={62} stroke={obTheme.primary} strokeWidth={1} opacity={0.3} />
+        <Line x1={84} y1={68} x2={100} y2={68} stroke={obTheme.primary} strokeWidth={1} opacity={0.3} />
+
+        {/* Block 3 (Top Balanced Layer) */}
+        <Rect
+          x={52}
+          y={32}
+          width={42}
+          height={26}
+          rx={6}
+          fill={obTheme.brandGreen}
+          opacity={0.12}
+        />
+        <Rect
+          x={52}
+          y={32}
+          width={42}
+          height={26}
+          rx={6}
+          fill="none"
+          stroke={obTheme.brandGreen}
+          strokeWidth={1.8}
+        />
+        
+        {/* Starting Point Marker / Pin on top of Stack */}
+        <Circle cx={73} cy={20} r={4.5} fill={obTheme.brandGreen} stroke={obTheme.primary} strokeWidth={1.2} />
+        <Line x1={73} y1={24} x2={73} y2={32} stroke={obTheme.primary} strokeWidth={1.2} strokeLinecap="round" />
+
+        {/* Subtle decorative stars/crosses for starting baseline */}
+        <Path d="M 15 50 L 21 50 M 18 47 L 18 53" stroke={obTheme.brandGreen} strokeWidth={1} opacity={0.4} />
+        <Circle cx={124} cy={45} r={2.5} fill={obTheme.brandGreen} opacity={0.3} />
+      </Svg>
+    </View>
+  );
+});
 
 export default function BalanceSetup() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const obTheme = theme.onboarding;
   const createAccountsBatch = useTransactionStore((s) => s.createAccountsBatch);
@@ -101,6 +212,8 @@ export default function BalanceSetup() {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pickerType, setPickerType] = useState<'bank' | 'wallet'>('bank');
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const [isExiting, setIsExiting] = useState(false);
 
@@ -234,7 +347,8 @@ export default function BalanceSetup() {
       navigation.dispatch(action);
     } else {
       logger.info('[ONBOARDING] router.replace start');
-      router.replace('/(tabs)');
+      shouldPreventRemoveRef.current = false;
+      router.replace('/');
       logger.info('[ONBOARDING] router.replace executed');
     }
   };
@@ -251,7 +365,7 @@ export default function BalanceSetup() {
       style={[styles.container, { backgroundColor: obTheme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
       
       <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
         <ScrollView
@@ -264,59 +378,90 @@ export default function BalanceSetup() {
           ]}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Hero Illustration */}
+          <FinancialFoundationIllustration />
+
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerIconContainer}>
-              <MoneyBagIcon color={theme.primary} size={48} />
-            </View>
-            <Text style={[styles.title, { color: theme.text }]}>
-              What's your current balance?
+            <Text style={[styles.title, { color: obTheme.primary }]}>
+              Let's establish your starting point
             </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Enter your current balance for each account. This helps us track your
-              finances accurately.
+            <Text style={[styles.subtitle, { color: obTheme.mutedText }]}>
+              Add the accounts you use most often. SpendLens will use this as a baseline to understand your spending and financial health.
             </Text>
           </View>
 
           {/* Account Cards */}
-          {accounts.map((acc, index) => (
-            <View
-              key={index}
-              style={[
-                styles.accountCard,
-                { backgroundColor: theme.card, borderColor: theme.border },
-                acc.color ? { borderLeftColor: acc.color, borderLeftWidth: 4 } : null
-              ]}
-            >
-              <View style={styles.accountHeader}>
-                <View style={styles.accountInfo}>
-                  <AccountIcon bankId={acc.bankId || null} accountType={acc.type} icon={acc.icon} color={acc.color || null} size={28} />
-                  <Text style={[styles.accountName, { color: theme.text }]} numberOfLines={1}>
-                    {acc.name}
-                  </Text>
+          {accounts.map((acc, index) => {
+            return (
+              <Pressable
+                key={index}
+                style={[
+                  styles.accountCard,
+                  {
+                    backgroundColor: '#FFF8EE',
+                    borderColor: 'rgba(116, 81, 67, 0.08)',
+                    shadowColor: obTheme.primary,
+                  },
+                  acc.color ? { borderLeftColor: acc.color, borderLeftWidth: 4 } : null
+                ]}
+                onPress={() => {
+                  inputRefs.current[index]?.focus();
+                }}
+              >
+                {/* Header row: Icon, Name (Top Left) & Remove button (Top Right) */}
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.cardInfoGroup}>
+                    <View style={[styles.iconWrapper, { backgroundColor: acc.color ? `${acc.color}12` : 'rgba(116, 81, 67, 0.05)' }]}>
+                      <AccountIcon
+                        bankId={acc.bankId || null}
+                        accountType={acc.type}
+                        icon={acc.icon}
+                        color={acc.color || null}
+                        size={20}
+                      />
+                    </View>
+                    <Text style={[styles.accountLabel, { color: obTheme.mutedText }]} numberOfLines={1}>
+                      {acc.name}
+                    </Text>
+                  </View>
+                  {accounts.length > 1 && (
+                    <Pressable
+                      onPress={() => removeAccount(index)}
+                      style={({ pressed }) => [
+                        styles.removeBtn,
+                        { opacity: pressed ? 0.6 : 1 }
+                      ]}
+                    >
+                      <Text style={[styles.removeText, { color: obTheme.mutedText }]}>Remove</Text>
+                    </Pressable>
+                  )}
                 </View>
-                {accounts.length > 1 && (
-                  <Pressable onPress={() => removeAccount(index)} style={styles.removeBtn}>
-                    <Text style={[styles.removeText, { color: theme.expense }]}>Remove</Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={[styles.inputContainer, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-                <Text style={[styles.currencySymbol, { color: theme.primary }]}>₹</Text>
-                <TextInput
-                  style={[styles.balanceInput, { color: theme.text }]}
-                  placeholder="0"
-                  placeholderTextColor={theme.textMuted}
-                  keyboardType="decimal-pad"
-                  value={acc.balance}
-                  onChangeText={(text) => updateBalance(index, text)}
-                />
-              </View>
-            </View>
-          ))}
 
-          {/* Add Account Buttons */}
-          <Text style={[styles.addLabel, { color: theme.textSecondary }]}>
+                {/* Large Editable Amount */}
+                <View style={styles.inputContainer}>
+                  <Text style={[styles.currencySymbol, { color: obTheme.primary }]}>₹</Text>
+                  <TextInput
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
+                    style={[styles.balanceInput, { color: obTheme.primary }]}
+                    placeholder="0"
+                    placeholderTextColor="rgba(116, 81, 67, 0.3)"
+                    keyboardType="decimal-pad"
+                    value={acc.balance}
+                    onChangeText={(text) => updateBalance(index, text)}
+                    onFocus={() => setFocusedIndex(index)}
+                    onBlur={() => setFocusedIndex(null)}
+                    underlineColorAndroid="transparent"
+                  />
+                </View>
+              </Pressable>
+            );
+          })}
+
+          {/* Add Account Area */}
+          <Text style={[styles.addLabel, { color: obTheme.mutedText }]}>
             Add another account
           </Text>
           <View style={styles.presetRow}>
@@ -331,7 +476,13 @@ export default function BalanceSetup() {
               return (
                 <Pressable
                   key={preset.type}
-                  style={[styles.presetChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={({ pressed }) => [
+                    styles.presetChip,
+                    {
+                      backgroundColor: pressed ? 'rgba(116, 81, 67, 0.08)' : '#FAF9F7',
+                      borderColor: 'rgba(116, 81, 67, 0.25)',
+                    }
+                  ]}
                   onPress={() => {
                     if (preset.type === 'bank' || preset.type === 'wallet') {
                       setPickerType(preset.type);
@@ -343,9 +494,9 @@ export default function BalanceSetup() {
                   }}
                 >
                   <View style={styles.presetIconContainer}>
-                    {renderPresetIcon(preset.type, theme.textSecondary)}
+                    {renderPresetIcon(preset.type, obTheme.primary)}
                   </View>
-                  <Text style={[styles.presetLabel, { color: theme.textSecondary }]}>
+                  <Text style={[styles.presetLabel, { color: obTheme.primary }]}>
                     {preset.label}
                   </Text>
                 </Pressable>
@@ -355,18 +506,22 @@ export default function BalanceSetup() {
         </ScrollView>
 
         {/* Bottom CTA */}
-        <View style={[styles.bottomSection, { backgroundColor: theme.background, paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
-          <Pressable onPress={handleFinish} disabled={isSubmitting} style={styles.ctaWrapper}>
-            <LinearGradient
-              colors={theme.gradientPrimary}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.ctaButton, isSubmitting && styles.ctaDisabled]}
-            >
-              <Text style={styles.ctaText}>
-                {isSubmitting ? 'Setting up...' : 'Start Tracking'}
-              </Text>
-            </LinearGradient>
+        <View style={[styles.bottomSection, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+          <Pressable
+            onPress={handleFinish}
+            disabled={isSubmitting}
+            style={({ pressed }) => [
+              styles.ctaButton,
+              {
+                backgroundColor: obTheme.brandGreen,
+                opacity: isSubmitting ? 0.6 : (pressed ? 0.9 : 1),
+                transform: [{ scale: pressed ? 0.98 : 1 }],
+              }
+            ]}
+          >
+            <Text style={[styles.ctaText, { color: '#FFF8EE' }]}>
+              {isSubmitting ? 'Setting up...' : 'Start Tracking'}
+            </Text>
           </Pressable>
         </View>
       </OnboardingTransition>
@@ -379,23 +534,23 @@ export default function BalanceSetup() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={[styles.modalContent, { backgroundColor: '#FAF9F7', borderColor: 'rgba(116, 81, 67, 0.15)' }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>
+              <Text style={[styles.modalTitle, { color: obTheme.primary }]}>
                 Select {pickerType === 'bank' ? 'Bank Account' : 'Digital Wallet'}
               </Text>
               <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
-                <Text style={[styles.modalCloseText, { color: theme.textSecondary }]}>✕</Text>
+                <Text style={[styles.modalCloseText, { color: obTheme.mutedText }]}>✕</Text>
               </Pressable>
             </View>
 
             {/* Search Input */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-              <SearchIcon color={theme.textMuted} size={16} />
+            <View style={[styles.searchContainer, { backgroundColor: 'rgba(116, 81, 67, 0.05)', borderColor: 'rgba(116, 81, 67, 0.15)' }]}>
+              <SearchIcon color="rgba(116, 81, 67, 0.4)" size={16} />
               <TextInput
-                style={[styles.searchInput, { color: theme.text }]}
+                style={[styles.searchInput, { color: obTheme.primary }]}
                 placeholder={`Search ${pickerType === 'bank' ? 'banks' : 'wallets'}...`}
-                placeholderTextColor={theme.textMuted}
+                placeholderTextColor="rgba(116, 81, 67, 0.4)"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoFocus={true}
@@ -405,7 +560,7 @@ export default function BalanceSetup() {
             {/* Bank/Wallet List */}
             {filteredBanks.length === 0 ? (
               <View style={styles.modalEmptyState}>
-                <Text style={[styles.modalEmptyText, { color: theme.textSecondary }]}>
+                <Text style={[styles.modalEmptyText, { color: obTheme.mutedText }]}>
                   No {pickerType === 'bank' ? 'banks' : 'wallets'} found or all already added.
                 </Text>
               </View>
@@ -417,15 +572,15 @@ export default function BalanceSetup() {
                 keyboardShouldPersistTaps="handled"
                 renderItem={({ item }) => (
                   <Pressable
-                    style={[styles.bankItem, { borderBottomColor: theme.border }]}
+                    style={[styles.bankItem, { borderBottomColor: 'rgba(116, 81, 67, 0.1)' }]}
                     onPress={() => handleSelectBank(item)}
                   >
                     <View style={[styles.bankLogoBg, { backgroundColor: item.color + '15' }]}>
                       <BankLogo bankId={item.id} size={30} />
                     </View>
                     <View style={styles.bankItemInfo}>
-                      <Text style={[styles.bankItemName, { color: theme.text }]}>{item.name}</Text>
-                      <Text style={[styles.bankItemType, { color: theme.textMuted }]}>
+                      <Text style={[styles.bankItemName, { color: obTheme.primary }]}>{item.name}</Text>
+                      <Text style={[styles.bankItemType, { color: obTheme.mutedText }]}>
                         {item.type === 'bank' ? 'Indian Bank' : 'Digital Wallet'}
                       </Text>
                     </View>
@@ -441,117 +596,133 @@ export default function BalanceSetup() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 12,
     paddingBottom: 160,
+  },
+  illustrationContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+  },
+  illustrationSvg: {
+    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  headerIconContainer: {
-    marginBottom: 16,
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 28,
   },
   title: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: typography.sizes.xl,
+    fontSize: 22,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
+    lineHeight: 28,
   },
   subtitle: {
-    fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.base,
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 14,
     lineHeight: 22,
     textAlign: 'center',
     maxWidth: 320,
   },
   accountCard: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.base,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
     borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
   },
-  accountHeader: {
+  cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 10,
   },
-  accountInfo: {
+  cardInfoGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 8,
     flex: 1,
     paddingRight: 8,
   },
-  accountName: {
-    fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.base,
-    flexShrink: 1,
+  iconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   removeBtn: {
     paddingVertical: 4,
     paddingHorizontal: 8,
+    borderRadius: 6,
   },
   removeText: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 11,
+    letterSpacing: 0.1,
+  },
+  accountLabel: {
+    fontFamily: typography.fontFamily.medium,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flexShrink: 1,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.base,
-    height: 56,
-    borderWidth: 1,
+    marginTop: 2,
   },
   currencySymbol: {
-    fontFamily: typography.fontFamily.monoBold,
-    fontSize: 22,
-    marginRight: spacing.sm,
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 32,
+    marginRight: 2,
   },
   balanceInput: {
     flex: 1,
-    fontFamily: typography.fontFamily.mono,
-    fontSize: 22,
+    fontFamily: typography.fontFamily.bold,
+    fontSize: 32,
     padding: 0,
   },
   addLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+    fontSize: 13,
+    marginTop: 20,
+    marginBottom: 12,
   },
   presetRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 10,
+    marginTop: 4,
   },
   presetChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
     borderWidth: 1,
   },
   presetIconContainer: {
-    width: 16,
-    height: 16,
+    width: 14,
+    height: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   presetLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 13,
   },
   bottomSection: {
     position: 'absolute',
@@ -559,31 +730,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 24,
-    paddingBottom: 48,
     paddingTop: 16,
-  },
-  ctaWrapper: {
-    width: '100%',
   },
   ctaButton: {
     height: 56,
-    borderRadius: borderRadius.lg,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
   },
   ctaText: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: typography.sizes.md,
-    color: '#FFFFFF',
+    fontSize: 16,
+    letterSpacing: 0.1,
   },
-
-  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -675,6 +841,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-
-
 });
