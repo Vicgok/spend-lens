@@ -5,7 +5,8 @@ import Svg, { Circle, Path } from 'react-native-svg';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing } from '@/theme';
+import { TabHeader } from '@/components/ui';
+import { typography, spacing, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { generateAllInsights, InsightCardData } from '@/features/insights-engine/detector';
 import { calculateSalarySurvivalScore, calculatePredictedMonthEndBalance } from '@/features/insights-engine/formulas';
@@ -154,21 +155,16 @@ export default function InsightsScreen() {
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={[
         styles.contentContainer,
-        { paddingTop: insets.top + 20, paddingBottom: 100 },
+        { paddingTop: insets.top + 16, paddingBottom: 100 },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Editorial Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.microHeader, { color: theme.textSecondary }]}>
-              SPENDING OBSERVATORY
-            </Text>
-            <Text style={[styles.mainHeader, { color: theme.text, fontFamily: typography.fontFamily.bold }]} numberOfLines={1}>
-              Investigation Board
-            </Text>
-          </View>
+      <TabHeader
+        microHeader="SPENDING OBSERVATORY"
+        title="Investigation Board"
+        variant="dynamic"
+        showDivider
+        renderRight={() => (
           <Pressable
             onPress={runSmsSimulation}
             disabled={isScanning}
@@ -185,9 +181,8 @@ export default function InsightsScreen() {
               {isScanning ? 'SCANNING...' : 'TRY DEMO'}
             </Text>
           </Pressable>
-        </View>
-        <View style={[styles.thickDivider, { backgroundColor: theme.border }]} />
-      </View>
+        )}
+      />
 
       {/* Spending Anomaly Distribution Chart */}
       <View style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -463,20 +458,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
   },
   header: {
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
   microHeader: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     letterSpacing: 2,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   mainHeader: {
     fontSize: 28,
     letterSpacing: -0.5,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   thickDivider: {
     height: 2,
@@ -485,34 +480,34 @@ const styles = StyleSheet.create({
   summaryGrid: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   summaryItem: {
     flex: 1,
-    padding: 16,
+    padding: spacing.base,
     alignItems: 'center',
   },
   summaryLabel: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     letterSpacing: 1,
     marginBottom: 6,
   },
   summaryValue: {
-    fontSize: 24,
+    fontSize: typography.sizes.heading,
     marginBottom: 2,
   },
   summarySub: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
   },
   feedContainer: {
     position: 'relative',
-    paddingLeft: 20,
+    paddingLeft: spacing.lg,
   },
   dashedLine: {
     position: 'absolute',
-    left: 4,
+    left: spacing.xs,
     top: 10,
     bottom: 10,
     borderWidth: 1,
@@ -521,12 +516,12 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     position: 'relative',
-    marginBottom: 20,
-    paddingLeft: 12,
+    marginBottom: spacing.lg,
+    paddingLeft: spacing.md,
   },
   connectorDot: {
     position: 'absolute',
-    left: -20,
+    left: -spacing.lg,
     top: 24,
     width: 10,
     height: 10,
@@ -536,19 +531,19 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 16,
+    borderRadius: borderRadius.xs,
+    padding: spacing.base,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   priorityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: borderRadius.xs / 2,
   },
   priorityText: {
     fontSize: 10,
@@ -558,25 +553,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   cardTitle: {
-    fontSize: 18,
-    marginBottom: 4,
+    fontSize: typography.sizes.section,
+    marginBottom: spacing.xs,
   },
   cardSubtitle: {
-    fontSize: 13,
-    marginBottom: 12,
+    fontSize: typography.sizes.caption,
+    marginBottom: spacing.md,
   },
   thinDivider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: spacing.md,
   },
   qaSection: {
-    gap: 12,
+    gap: spacing.md,
   },
   qaItem: {},
   qaLabel: {
     fontSize: 10,
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   qaContent: {
     fontSize: 14,
@@ -584,11 +579,11 @@ const styles = StyleSheet.create({
   },
   actionHighlight: {
     padding: 10,
-    borderRadius: 2,
-    marginTop: 4,
+    borderRadius: borderRadius.xs / 2,
+    marginTop: spacing.xs,
   },
   actionText: {
-    fontSize: 13,
+    fontSize: typography.sizes.caption,
     lineHeight: 18,
   },
 
@@ -597,42 +592,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   headerScanBtn: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     paddingHorizontal: 10,
     paddingVertical: 6,
     alignSelf: 'flex-end',
   },
   headerScanText: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     letterSpacing: 0.5,
   },
   scannerContainer: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 16,
-    marginBottom: 24,
+    borderRadius: borderRadius.xs,
+    padding: spacing.base,
+    marginBottom: spacing.xl,
   },
   scannerHeader: {
     fontSize: 14,
-    marginBottom: 12,
+    marginBottom: spacing.md,
     letterSpacing: 0.5,
   },
   scannerConsole: {
-    padding: 12,
-    borderRadius: 4,
+    padding: spacing.md,
+    borderRadius: borderRadius.xs,
     backgroundColor: '#0D1117',
     borderWidth: 1,
     borderColor: '#333330',
     minHeight: 160,
-    marginBottom: 16,
+    marginBottom: spacing.base,
     justifyContent: 'center',
   },
   consoleLine: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     lineHeight: 18,
   },
   progressBarBg: {
@@ -645,15 +640,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   progressPct: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     letterSpacing: 0.5,
   },
   emptyScanCard: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 24,
+    borderRadius: borderRadius.xs,
+    padding: spacing.xl,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   emptyScanEmoji: {
     fontSize: 32,
@@ -661,20 +656,20 @@ const styles = StyleSheet.create({
   },
   emptyScanTitle: {
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   emptyScanSub: {
-    fontSize: 13,
+    fontSize: typography.sizes.caption,
     lineHeight: 18,
     textAlign: 'center',
     marginBottom: 18,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
   },
   emptyScanBtn: {
-    borderRadius: 4,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   emptyScanBtnText: {
     fontSize: 12,
@@ -682,24 +677,24 @@ const styles = StyleSheet.create({
   },
   chartCard: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: borderRadius.xs,
+    padding: spacing.base,
+    marginBottom: spacing.lg,
   },
   chartTitle: {
     fontSize: 14,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     letterSpacing: 0.5,
   },
   chartSubtitle: {
-    fontSize: 11,
-    marginBottom: 16,
+    fontSize: typography.sizes.micro,
+    marginBottom: spacing.base,
   },
   chartRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: spacing.base,
   },
   chartContainerRelative: {
     position: 'relative',
@@ -727,12 +722,12 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     flex: 1,
-    gap: 8,
+    gap: spacing.sm,
   },
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   legendIndicator: {
     width: 8,
@@ -743,6 +738,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   legendValue: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
   },
 });

@@ -15,32 +15,32 @@ import Svg, { Rect, Circle, Path, Line, Text as SvgText, G } from 'react-native-
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
+import { typography, tokens, shadows, spacing, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
+import { getMonthlyTotals } from '@/lib/database';
+import { getMonthRange } from '@/utils/date';
 import { formatCurrency, formatSignedAmount } from '@/utils/currency';
 import { formatTime } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { Transaction, TransactionType } from '@/types';
-import { TransactionSkeleton } from '@/components/ui/Skeleton';
-import { getMonthlyTotals } from '@/lib/database';
-import { getMonthRange } from '@/utils/date';
-
-// Import newly created SVG components
-import NotebookMascot from '@/components/ui/NotebookMascot';
-import ReadingNotebookMascot from '@/components/ui/ReadingNotebookMascot';
-import LeafCluster from '@/components/ui/LeafCluster';
-import CornerPlant from '@/components/ui/CornerPlant';
+import {
+  TransactionSkeleton,
+  TabHeader,
+  ReadingNotebookMascot,
+  LeafCluster,
+  CornerPlant,
+} from '@/components/ui';
 
 // Theme Constants
-const COLOR_BACKGROUND = '#E1D7C2';
-const COLOR_SURFACE = '#FFF8EE';
-const COLOR_PRIMARY_TEXT = '#745143';
-const COLOR_SECONDARY_TEXT = '#54554B';
-const COLOR_FOREST_GREEN = '#3E5A2A';
-const COLOR_BORDER = '#E8DDD0';
-const COLOR_EXPENSE = '#A86A2A';
-const COLOR_SAVINGS = '#AFA56A';
-const COLOR_GRID = '#EFE8DE';
+const COLOR_BACKGROUND = tokens.colors.tactileBackground;
+const COLOR_SURFACE = tokens.colors.surface;
+const COLOR_PRIMARY_TEXT = tokens.colors.textPrimary;
+const COLOR_SECONDARY_TEXT = tokens.colors.textSecondary;
+const COLOR_FOREST_GREEN = tokens.colors.forest;
+const COLOR_BORDER = tokens.colors.border;
+const COLOR_EXPENSE = tokens.colors.tactileExpense;
+const COLOR_SAVINGS = tokens.colors.tactileSavings;
+const COLOR_GRID = tokens.colors.tactileGrid;
 
 const TABS: { label: string; value: TransactionType }[] = [
   { label: 'Expense', value: 'expense' },
@@ -69,29 +69,29 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate:
     const list: ChartDataPoint[] = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
+
     for (let i = 6; i >= 0; i--) {
       const d = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - i);
       const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
       const dayEnd = dayStart + 24 * 60 * 60 * 1000;
-      
+
       const dayTxs = txs.filter(tx => {
         const t = new Date(tx.date).getTime();
         return t >= dayStart && t < dayEnd;
       });
-      
+
       const actual = dayTxs.reduce((sum, tx) => sum + tx.amount, 0);
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
       const budget = isWeekend ? 1800 : 1000;
-      
+
       const categoryNames = Array.from(
         new Set(
           dayTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
         )
       ).slice(0, 2);
-      
+
       const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      
+
       list.push({
         label: dayNames[d.getDay()],
         fullLabel: `${fullDayNames[d.getDay()]} ${formattedDate}`,
@@ -102,27 +102,27 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate:
     }
     return list;
   }
-  
+
   if (mode === 'week') {
     const list: ChartDataPoint[] = [];
     for (let i = 3; i >= 0; i--) {
       const start = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7 + 7)).getTime();
       const end = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7)).getTime();
-      
+
       const weekTxs = txs.filter(tx => {
         const t = new Date(tx.date).getTime();
         return t >= start && t < end;
       });
-      
+
       const actual = weekTxs.reduce((sum, tx) => sum + tx.amount, 0);
       const budget = 8000;
-      
+
       const categoryNames = Array.from(
         new Set(
           weekTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
         )
       ).slice(0, 2);
-      
+
       list.push({
         label: i === 0 ? 'This Wk' : `W-${i}`,
         fullLabel: i === 0 ? 'Current Week' : `Week - ${i} Ago`,
@@ -133,31 +133,31 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate:
     }
     return list;
   }
-  
+
   if (mode === 'month') {
     const list: ChartDataPoint[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(dRef.getFullYear(), dRef.getMonth() - i, 1);
       const year = d.getFullYear();
       const month = d.getMonth();
-      
+
       const monthStart = new Date(year, month, 1).getTime();
       const monthEnd = new Date(year, month + 1, 1).getTime();
-      
+
       const monthTxs = txs.filter(tx => {
         const t = new Date(tx.date).getTime();
         return t >= monthStart && t < monthEnd;
       });
-      
+
       const actual = monthTxs.reduce((sum, tx) => sum + tx.amount, 0);
       const budget = 30000;
-      
+
       const categoryNames = Array.from(
         new Set(
           monthTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
         )
       ).slice(0, 2);
-      
+
       list.push({
         label: d.toLocaleDateString('en-US', { month: 'short' }),
         fullLabel: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
@@ -168,28 +168,28 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate:
     }
     return list;
   }
-  
+
   if (mode === 'year') {
     const list: ChartDataPoint[] = [];
     for (let i = 2; i >= 0; i--) {
       const year = dRef.getFullYear() - i;
       const yearStart = new Date(year, 0, 1).getTime();
       const yearEnd = new Date(year + 1, 0, 1).getTime();
-      
+
       const yearTxs = txs.filter(tx => {
         const t = new Date(tx.date).getTime();
         return t >= yearStart && t < yearEnd;
       });
-      
+
       const actual = yearTxs.reduce((sum, tx) => sum + tx.amount, 0);
       const budget = 360000;
-      
+
       const categoryNames = Array.from(
         new Set(
           yearTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
         )
       ).slice(0, 2);
-      
+
       list.push({
         label: String(year),
         fullLabel: `Year ${year}`,
@@ -200,7 +200,7 @@ const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate:
     }
     return list;
   }
-  
+
   return [];
 };
 
@@ -240,14 +240,14 @@ const CategoryIcon = React.memo(({ categoryName, merchantName }: { categoryName:
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
-  
+
   // Local States
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TransactionType>('expense');
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<ChartMode>('day');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
-  
+
   // Redesign local states
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
@@ -369,7 +369,7 @@ export default function TransactionsScreen() {
     if (transactions.length === 0) {
       return "No spending data available for observations yet.";
     }
-    
+
     const categorySpending: Record<string, number> = {};
     transactions
       .filter(tx => tx.type === 'expense')
@@ -377,12 +377,12 @@ export default function TransactionsScreen() {
         const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
         categorySpending[category.name] = (categorySpending[category.name] || 0) + tx.amount;
       });
-      
+
     const categoriesList = Object.keys(categorySpending);
     if (categoriesList.length === 0) {
       return "No expenses recorded this month.";
     }
-    
+
     let maxCategory = categoriesList[0];
     let maxAmt = categorySpending[maxCategory];
     for (const cat of categoriesList) {
@@ -391,7 +391,7 @@ export default function TransactionsScreen() {
         maxAmt = categorySpending[cat];
       }
     }
-    
+
     return `Most spending this month comes from ${maxCategory}.`;
   };
 
@@ -417,7 +417,7 @@ export default function TransactionsScreen() {
         onPress={() => router.push(`/transaction/${tx.id}`)}
       >
         <CategoryIcon categoryName={category.name} merchantName={tx.merchant} />
-        
+
         <View style={styles.txInfo}>
           <Text style={styles.txMerchant} numberOfLines={1}>
             {tx.merchant || category.name}
@@ -426,7 +426,7 @@ export default function TransactionsScreen() {
             {category.name}
           </Text>
         </View>
-        
+
         <View style={styles.txRight}>
           <Text style={styles.txTime}>
             {formatTime(tx.date)}
@@ -449,28 +449,29 @@ export default function TransactionsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flex: 1, paddingRight: 8 }}>
-          <Text style={styles.microHeader}>FINANCIAL NOTEBOOK</Text>
-          <Text style={styles.title}>History</Text>
-          <Text style={styles.subtitle}>Review where your money has been.</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable
-            onPress={() => setMonthPickerVisible(true)}
-            style={({ pressed }) => [
-              styles.monthSelectorBtn,
-              pressed && { opacity: 0.8 }
-            ]}
-          >
-            <Text style={styles.monthSelectorText}>
-              {selectedMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} ▾
-            </Text>
-          </Pressable>
-          <NotebookMascot />
-        </View>
-      </View>
+      <TabHeader
+        microHeader="FINANCIAL NOTEBOOK"
+        title="History"
+        subtitle="Review where your money has been."
+        variant="tactile"
+        style={{ paddingHorizontal: 16, paddingTop: 16, marginBottom: 12 }}
+        renderRight={() => (
+          <View style={styles.headerRight}>
+            <Pressable
+              onPress={() => setMonthPickerVisible(true)}
+              style={({ pressed }) => [
+                styles.monthSelectorBtn,
+                pressed && { opacity: 0.8 }
+              ]}
+            >
+              <Text style={styles.monthSelectorText}>
+                {selectedMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} ▾
+              </Text>
+            </Pressable>
+            <ReadingNotebookMascot width={90} height={72} />
+          </View>
+        )}
+      />
 
       {/* Search Input */}
       <View style={styles.searchWrapper}>
@@ -943,9 +944,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_BACKGROUND,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -953,7 +954,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'column',
     alignItems: 'flex-end',
-    gap: 4,
+    gap: spacing.xs,
   },
   microHeader: {
     fontSize: 10,
@@ -972,12 +973,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: typography.fontFamily.medium,
     color: COLOR_SECONDARY_TEXT,
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   monthSelectorBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.md,
     backgroundColor: COLOR_SURFACE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
@@ -991,30 +992,30 @@ const styles = StyleSheet.create({
 
   // Search Bar
   searchWrapper: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.base,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: borderRadius.xl,
     backgroundColor: COLOR_SURFACE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
     height: 56,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
-    paddingLeft: 12,
+    paddingLeft: spacing.md,
     color: COLOR_PRIMARY_TEXT,
     fontFamily: typography.fontFamily.medium,
   },
   clearBtn: {
-    paddingVertical: 6,
+    paddingVertical: spacing.xs + 2,
     paddingHorizontal: 10,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   clearBtnText: {
     color: COLOR_PRIMARY_TEXT,
@@ -1026,7 +1027,7 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     position: 'relative',
   },
   filterDot: {
@@ -1042,22 +1043,18 @@ const styles = StyleSheet.create({
   // Segmented control
   tabSliderWrapper: {
     flexDirection: 'row',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    gap: 8,
+    marginHorizontal: spacing.base,
+    marginBottom: spacing.base,
+    gap: spacing.sm,
   },
   tabButton: {
     flex: 1,
     height: 40,
-    borderRadius: 20,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadows.tactileTabButton,
   },
   tabLabel: {
     fontSize: 13,
@@ -1065,15 +1062,15 @@ const styles = StyleSheet.create({
 
   // List layout
   listContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: spacing.base,
+    paddingBottom: spacing.sm,
     backgroundColor: COLOR_BACKGROUND,
-    gap: 12,
+    gap: spacing.md,
   },
   sectionHeaderText: {
     fontSize: 10,
@@ -1091,19 +1088,15 @@ const styles = StyleSheet.create({
   // Transaction card
   txCard: {
     backgroundColor: COLOR_SURFACE,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
-    padding: 12,
+    ...shadows.tactileRaisedCard,
+    padding: spacing.md,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   txIcon: {
     width: 42,
@@ -1148,31 +1141,23 @@ const styles = StyleSheet.create({
   // Cards layout
   card: {
     backgroundColor: COLOR_SURFACE,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
-    padding: 16,
-    marginBottom: 16,
+    ...shadows.tactileRaisedCard,
+    padding: spacing.base,
+    marginBottom: spacing.base,
     position: 'relative',
     overflow: 'hidden',
   },
   chartCard: {
     backgroundColor: COLOR_SURFACE,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
-    padding: 16,
-    marginBottom: 16,
+    ...shadows.tactileRaisedCard,
+    padding: spacing.base,
+    marginBottom: spacing.base,
     height: 240,
     position: 'relative',
     overflow: 'hidden',
@@ -1183,7 +1168,7 @@ const styles = StyleSheet.create({
     color: COLOR_SECONDARY_TEXT,
     letterSpacing: 1,
     textTransform: 'uppercase',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   observationText: {
     fontSize: 14,
@@ -1195,7 +1180,7 @@ const styles = StyleSheet.create({
   // Snapshot details
   snapshotRow: {
     flexDirection: 'row',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   snapshotCol: {
     flex: 1,
@@ -1207,15 +1192,15 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: COLOR_SECONDARY_TEXT,
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   snapshotValue: {
     fontFamily: typography.fontFamily.monoBold,
     fontSize: 15,
   },
   leafClusterContainer: {
-    marginLeft: 8,
-    marginTop: -8,
+    marginLeft: spacing.sm,
+    marginTop: -spacing.sm,
   },
   cornerPlantDecoration: {
     position: 'absolute',
@@ -1229,19 +1214,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   chartModeSelector: {
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     padding: 2,
     backgroundColor: COLOR_SURFACE,
   },
   chartModeButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: 10,
   },
   chartModeLabel: {
@@ -1257,15 +1242,11 @@ const styles = StyleSheet.create({
   // Empty state
   empty: {
     backgroundColor: COLOR_SURFACE,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
-    padding: 32,
+    ...shadows.tactileRaisedCard,
+    padding: spacing['2xl'],
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
@@ -1276,8 +1257,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_PRIMARY_TEXT,
-    marginTop: 16,
-    marginBottom: 4,
+    marginTop: spacing.base,
+    marginBottom: spacing.xs,
   },
   emptySubtitle: {
     fontSize: 13,
@@ -1296,25 +1277,21 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: COLOR_SURFACE,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
     borderColor: COLOR_BORDER,
     width: '100%',
     maxHeight: '70%',
-    paddingTop: 16,
-    paddingBottom: 24,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 4,
+    paddingTop: spacing.base,
+    paddingBottom: spacing.xl,
+    ...shadows.tactileRaisedCard,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   modalTitle: {
     fontFamily: typography.fontFamily.bold,
@@ -1322,8 +1299,8 @@ const styles = StyleSheet.create({
     color: COLOR_PRIMARY_TEXT,
   },
   modalCloseButton: {
-    width: 28,
-    height: 28,
+    width: spacing.xxl,
+    height: spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1332,13 +1309,13 @@ const styles = StyleSheet.create({
     color: COLOR_SECONDARY_TEXT,
   },
   modalScroll: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
   },
   modalItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 6,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.xs + 2,
   },
   modalItemText: {
     fontSize: 14,

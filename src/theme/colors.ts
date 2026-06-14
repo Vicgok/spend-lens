@@ -171,5 +171,29 @@ export const sheetColors = {
   sproutSparkle: '#D8C98A',
 
   white: '#FFFFFF',
+
+  // Tactile Theme Specifics
+  tactileBackground: '#F6F3EC',
+  tactileBorder: '#E6E1D8',
+  tactileMuted: '#8E8A82',
+  tactilePaperWhite: '#FDFDFB',
+  tactileAccentBrown: '#B7884E',
+  tactileExpense: '#A86A2A',
+  tactileSavings: '#AFA56A',
+  tactileCardBack: '#F5F0E6',
+  tactileCardMiddle: '#F8F4EC',
+  tactileGrid: '#EFE8DE',
 } as const;
+
+export function hexToRgba(hex: string, alpha: number): string {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map((char) => char + char).join('');
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 

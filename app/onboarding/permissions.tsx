@@ -26,24 +26,14 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
+import { typography, spacing, borderRadius, tokens, hexToRgba } from '@/theme';
 import {
   checkSMSPermission,
   requestSMSPermission,
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
-import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui/OnboardingIcons';
-import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
-
-// Helper to convert hex to rgba dynamically
-function hexToRgba(hex: string, alpha: number): string {
-  if (!hex || hex.length < 7) return 'rgba(0,0,0,0)';
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+import { LockIcon, ShieldIcon, CheckCircleIcon, OnboardingTransition } from '@/components/ui';
 
 // ── SMS Hero Illustration (Staticized) ──────────────────────────────────────
 const SmsHeroIllustration = React.memo(() => {
@@ -609,20 +599,20 @@ const styles = StyleSheet.create({
   // ── Header ──
   header: {
     alignItems: 'center',
-    marginVertical: 4,
+    marginVertical: spacing.xs,
   },
   microHeader: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     fontFamily: typography.fontFamily.bold,
     fontWeight: '700',
     letterSpacing: 2,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     textAlign: 'center',
   },
   title: {
     fontSize: 28,
     letterSpacing: -0.5,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtitle: {
@@ -637,8 +627,8 @@ const styles = StyleSheet.create({
   // ── Automation Flow Card ──
   flowCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    paddingHorizontal: 16,
+    borderRadius: tokens.radii.input,
+    paddingHorizontal: spacing.base,
     paddingVertical: 14,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
@@ -660,9 +650,9 @@ const styles = StyleSheet.create({
   },
   flowCardStep: {
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -676,8 +666,8 @@ const styles = StyleSheet.create({
   // ── Privacy Manifest Card ──
   privacyManifestCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: tokens.radii.input,
+    padding: spacing.base,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
@@ -687,19 +677,19 @@ const styles = StyleSheet.create({
   privacyManifestHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
     marginBottom: 10,
   },
   privacyIconBox: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   privacyManifestTitle: {
-    fontSize: 13,
+    fontSize: typography.sizes.sm,
     fontFamily: typography.fontFamily.bold,
     fontWeight: '700',
     lineHeight: 18,
@@ -710,7 +700,7 @@ const styles = StyleSheet.create({
   privacyManifestPoint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
+    gap: spacing.sm,
   },
   privacyBullet: {
     width: 5,
@@ -728,11 +718,11 @@ const styles = StyleSheet.create({
   // ── Action Buttons ──
   bottomSection: {
     gap: 10,
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   primaryButton: {
     height: 54,
-    borderRadius: 18,
+    borderRadius: tokens.radii.input,
     justifyContent: 'center',
     alignItems: 'center',
     shadowOffset: { width: 0, height: 6 },
@@ -749,7 +739,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     height: 54,
-    borderRadius: 18,
+    borderRadius: tokens.radii.input,
     borderWidth: 1.5,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
@@ -781,9 +771,9 @@ const styles = StyleSheet.create({
   alertCard: {
     width: '100%',
     maxWidth: 328,
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
-    padding: 24,
+    padding: spacing.xl,
     alignItems: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
@@ -801,34 +791,34 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontFamily: typography.fontFamily.bold,
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: typography.sizes.section,
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: spacing.base,
   },
   alertMessage: {
     fontFamily: typography.fontFamily.medium,
     fontWeight: '500',
-    fontSize: 13,
+    fontSize: typography.sizes.caption,
     lineHeight: 18,
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    paddingHorizontal: 8,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.sm,
   },
   alertButtonContainer: {
     width: '100%',
-    gap: 8,
+    gap: spacing.sm,
   },
   alertBtnPrimary: {
     height: 48,
-    borderRadius: 14,
+    borderRadius: borderRadius.md + 2,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
   alertBtnSecondary: {
     height: 48,
-    borderRadius: 14,
+    borderRadius: borderRadius.md + 2,
     borderWidth: 1.5,
     backgroundColor: 'transparent',
     alignItems: 'center',

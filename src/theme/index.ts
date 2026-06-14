@@ -1,4 +1,4 @@
-export { colors, categoryColors, sheetColors } from './colors';
+export { colors, categoryColors, sheetColors, hexToRgba } from './colors';
 export type { ThemeMode, ThemeColors } from './colors';
 export { typography, sheetType } from './types';
 export { spacing, borderRadius, iconSizes, sheetRadii, sheetSpacing } from './spacings';

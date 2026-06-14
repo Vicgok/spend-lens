@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
+import { typography, spacing, borderRadius, tokens, hexToRgba } from '@/theme';
 import { useIsFocused } from '@react-navigation/native';
 import Svg, {
   Circle,
@@ -26,23 +26,14 @@ import {
   ArrowUpIcon,
   CheckCircleIcon,
   GraphUpIcon,
-} from '@/components/ui/OnboardingIcons';
-import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
+  OnboardingTransition,
+} from '@/components/ui';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = 300;
 
 const DOT_AMBER = '#F59E0B';
 const DOT_GRAY = '#9CA3AF';
-
-// Helper to convert hex to rgba dynamically
-function hexToRgba(hex: string, alpha: number): string {
-  if (!hex || hex.length < 7) return 'rgba(0,0,0,0)';
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 // ── Signal Card Data ───────────────────────────────────────────────────────
 type SignalCardData = {
@@ -52,6 +43,7 @@ type SignalCardData = {
   dotColor: string;
   accent?: boolean;
   position: { top?: number; bottom?: number; left?: number; right?: number };
+  floatDelay: number;
 };
 
 const SIGNAL_CARDS: SignalCardData[] = [
@@ -61,6 +53,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     sublabel: 'Electricity · 3 days',
     dotColor: DOT_AMBER,
     position: { top: 10, left: 16 },
+    floatDelay: 0,
   },
   {
     icon: 'refresh',
@@ -68,6 +61,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     sublabel: 'Netflix · ₹199',
     dotColor: DOT_GRAY,
     position: { top: 22, right: 16 },
+    floatDelay: 400,
   },
   {
     icon: 'shield',
@@ -76,6 +70,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     dotColor: 'brandGreen',
     accent: true,
     position: { top: 120, left: 12 },
+    floatDelay: 200,
   },
   {
     icon: 'arrow-up',
@@ -84,6 +79,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     dotColor: 'brandGreen',
     accent: true,
     position: { top: 124, right: 12 },
+    floatDelay: 600,
   },
   {
     icon: 'check-circle',
@@ -91,6 +87,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     sublabel: 'No anomalies found',
     dotColor: 'brandGreen',
     position: { bottom: 20, left: 16 },
+    floatDelay: 300,
   },
   {
     icon: 'graph-up',
@@ -98,6 +95,7 @@ const SIGNAL_CARDS: SignalCardData[] = [
     sublabel: '18% vs last week',
     dotColor: DOT_AMBER,
     position: { bottom: 16, right: 16 },
+    floatDelay: 500,
   },
 ];
 
@@ -122,30 +120,25 @@ const SignalCard = React.memo(({ card }: { card: SignalCardData }) => {
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const randomDelay = Math.random() * 800;
-    const randomDuration = 2200 + Math.random() * 600; // Between 2.2s and 2.8s
-
     const float = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
-          toValue: -6,
-          duration: randomDuration,
+          toValue: -5,
+          duration: 1800,
+          delay: card.floatDelay,
           useNativeDriver: true,
         }),
         Animated.timing(floatAnim, {
           toValue: 0,
-          duration: randomDuration,
+          duration: 1800,
           useNativeDriver: true,
         }),
       ])
     );
 
-    const timer = setTimeout(() => {
-      float.start();
-    }, randomDelay);
+    float.start();
 
     return () => {
-      clearTimeout(timer);
       float.stop();
     };
   }, []);
@@ -196,10 +189,37 @@ const SignalCard = React.memo(({ card }: { card: SignalCardData }) => {
   );
 });
 
-// ── Hero Illustration with Walking Figure (Staticized) ──────────────────────
+// ── Hero Illustration with Walking Figure ──────────────────────
 const HeroIllustration = React.memo(() => {
   const { theme } = useTheme();
   const obTheme = theme.onboarding;
+
+  const pulse1 = useRef(new Animated.Value(0)).current;
+  const pulse2 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(pulse1, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    const timer = setTimeout(() => {
+      Animated.loop(
+        Animated.timing(pulse2, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        })
+      ).start();
+    }, 1500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   const svgWidth = SCREEN_WIDTH;
   const svgHeight = HERO_HEIGHT;
@@ -209,8 +229,8 @@ const HeroIllustration = React.memo(() => {
 
   return (
     <View style={styles.heroContainer}>
-      {/* Subtle pulse ring (static background design element) */}
-      <View
+      {/* Pulse rings (behind SVG) */}
+      <Animated.View
         style={[
           styles.pulseRing,
           {
@@ -219,8 +239,42 @@ const HeroIllustration = React.memo(() => {
             width: 140,
             height: 140,
             borderColor: obTheme.brandGreen,
-            opacity: 0.12,
-            transform: [{ scale: 1.0 }],
+            opacity: pulse1.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.28, 0],
+            }),
+            transform: [
+              {
+                scale: pulse1.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.4, 1.4],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.pulseRing,
+          {
+            top: centerY * scale - 70,
+            left: centerX * scale - 70,
+            width: 140,
+            height: 140,
+            borderColor: obTheme.brandGreen,
+            opacity: pulse2.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.2, 0],
+            }),
+            transform: [
+              {
+                scale: pulse2.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.4, 1.4],
+                }),
+              },
+            ],
           },
         ]}
       />
@@ -442,8 +496,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-
-
   // ── Hero ──
   heroContainer: {
     height: HERO_HEIGHT,
@@ -466,7 +518,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 148,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: borderRadius.lg,
     paddingHorizontal: 11,
     paddingVertical: 9,
     flexDirection: 'row',
@@ -490,7 +542,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   signalLabel: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     fontWeight: '700',
     fontFamily: typography.fontFamily.bold,
     lineHeight: 14,
@@ -509,8 +561,8 @@ const styles = StyleSheet.create({
 
   // ── Content ──
   contentSection: {
-    paddingHorizontal: 24,
-    marginVertical: 12,
+    paddingHorizontal: spacing.xl,
+    marginVertical: spacing.md,
   },
   headline: {
     fontFamily: typography.fontFamily.bold,
@@ -518,33 +570,33 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 34,
     letterSpacing: -0.5,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: typography.fontFamily.medium,
     fontWeight: '500',
     fontSize: 14,
     lineHeight: 22,
-    marginTop: 12,
-    textAlign: 'left',
+    marginTop: spacing.md,
+    textAlign: 'center',
   },
 
   // ── Trust Card ──
   trustCardWrapper: {
-    paddingHorizontal: 24,
-    marginVertical: 12,
+    paddingHorizontal: spacing.xl,
+    marginVertical: spacing.md,
     alignItems: 'center',
   },
   trustCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    backgroundColor: hexToRgba(tokens.colors.white, 0.92),
     borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 12,
+    gap: spacing.md,
     width: '100%',
   },
   trustIconBox: {
@@ -559,14 +611,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   trustTitle: {
-    fontSize: 13,
+    fontSize: typography.sizes.sm,
     fontWeight: '700',
     fontFamily: typography.fontFamily.bold,
     lineHeight: 18,
     textAlign: 'left',
   },
   trustSubtitle: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     fontFamily: typography.fontFamily.regular,
     lineHeight: 16,
     marginTop: 2,
@@ -576,14 +628,14 @@ const styles = StyleSheet.create({
 
   // ── CTA ──
   ctaSection: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.base,
     marginTop: 'auto',
   },
   ctaButton: {
     width: '100%',
     paddingVertical: 17,
-    borderRadius: 18,
+    borderRadius: tokens.radii.input,
     alignItems: 'center',
     justifyContent: 'center',
     shadowOffset: { width: 0, height: 6 },

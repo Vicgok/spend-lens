@@ -4,7 +4,7 @@ import { useTheme } from '@/providers/theme-provider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { BackArrowIcon } from '@/components/ui/OnboardingIcons';
+import { BackArrowIcon } from '@/components/ui';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

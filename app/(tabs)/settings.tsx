@@ -4,7 +4,8 @@ import { router } from 'expo-router';
 import { simulateSMSScan } from '@/features/sms-parser/sms-reader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
+import { TabHeader } from '@/components/ui';
+import { typography, spacing, borderRadius } from '@/theme';
 import { APP_NAME, APP_VERSION } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useTransactionStore } from '@/stores/transaction-store';
@@ -190,11 +191,11 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Editorial Header */}
-        <View style={styles.header}>
-          <Text style={[styles.microHeader, { color: theme.textSecondary }]}>USER CONTROL PANEL</Text>
-          <Text style={[styles.title, { color: theme.text, fontFamily: typography.fontFamily.bold }]}>Settings</Text>
-        </View>
+        <TabHeader
+          microHeader="USER CONTROL PANEL"
+          title="Settings"
+          variant="dynamic"
+        />
 
         {/* Profile Card (Tactile Swiss Card) */}
         <View style={[styles.profileCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -301,21 +302,21 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100 },
-  header: { marginBottom: 20 },
+  scrollContent: { paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing['6xl'] + spacing.lg },
+  header: { marginBottom: spacing.lg },
   microHeader: {
-    fontSize: 11,
+    fontSize: typography.sizes.micro,
     letterSpacing: 2,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   title: { fontSize: 28, letterSpacing: -0.5 },
 
   profileCard: {
-    padding: 16,
-    borderRadius: 4,
+    padding: spacing.base,
+    borderRadius: borderRadius.xs,
     borderWidth: 1,
-    marginBottom: 24,
-    gap: 12,
+    marginBottom: spacing.xl,
+    gap: spacing.md,
   },
   avatar: {
     width: 44,
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderTopWidth: 1,
     borderTopColor: '#E5E3DE',
-    paddingTop: 8,
+    paddingTop: spacing.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -349,32 +350,32 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 10,
     letterSpacing: 1,
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
   },
   settingsGroup: {
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   settingsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
     borderBottomWidth: 1,
   },
-  settingsLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  settingsLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   settingsIcon: { fontSize: 20 },
   settingsLabel: { fontSize: 15 },
-  settingsRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  settingsRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
   settingsValue: { fontSize: 13 },
   settingsArrow: { fontSize: 16 },
 
-  footer: { alignItems: 'center', paddingVertical: 24 },
-  footerText: { fontSize: 11 },
+  footer: { alignItems: 'center', paddingVertical: spacing.xl },
+  footerText: { fontSize: typography.sizes.micro },
   profileEditBtn: {
     width: 32,
     height: 32,

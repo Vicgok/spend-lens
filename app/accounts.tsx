@@ -23,7 +23,7 @@ import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
 import { AccountType, Account } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 import * as Haptics from 'expo-haptics';
-import { AccountIcon, BankLogo } from '@/components/ui/BankLogo';
+import { AccountIcon, BankLogo } from '@/components/ui';
 
 const { width, height } = Dimensions.get('window');
 

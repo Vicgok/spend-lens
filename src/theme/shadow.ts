@@ -91,6 +91,78 @@ export const shadows = {
         shadowRadius: 12,
       },
     }),
+
+  tactileCard: Platform.select({
+    ios: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.04,
+      shadowRadius: 14,
+    },
+    android: {
+      elevation: 2,
+    },
+    default: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.04,
+      shadowRadius: 14,
+    },
+  }),
+
+  tactileRaisedCard: Platform.select({
+    ios: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 18,
+    },
+    android: {
+      elevation: 4,
+    },
+    default: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 18,
+    },
+  }),
+
+  tactileFrontCard: Platform.select({
+    ios: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+    },
+    android: {
+      elevation: 2,
+    },
+    default: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+    },
+  }),
+
+  tactileTabButton: Platform.select({
+    ios: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+    },
+    android: {
+      elevation: 1,
+    },
+    default: {
+      shadowColor: '#745143',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+    },
+  }),
 } as const;
 
 export const sheetShadow = {

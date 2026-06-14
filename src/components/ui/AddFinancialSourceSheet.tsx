@@ -19,9 +19,7 @@ import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 import { tokens } from '@/theme';
 import type { AccountType } from '@/types';
 import { PREDEFINED_BANKS } from '@/lib/banks';
-import NotebookMascot from './NotebookMascot';
-import CornerPlant from './CornerPlant';
-import { BankLogo } from './BankLogo';
+import { NotebookIllustration, CornerPlant, BankLogo } from './index';
 
 const { colors, radii, spacing, type: t, shadow } = tokens;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -181,11 +179,11 @@ const ACCOUNT_TYPES: {
   label: string;
   Icon: React.ComponentType<{ size?: number }>;
 }[] = [
-  { id: 'bank', label: 'Bank', Icon: BankIcon },
-  { id: 'wallet', label: 'Wallet', Icon: WalletIcon },
-  { id: 'credit_card', label: 'Card', Icon: CardIcon },
-  { id: 'cash', label: 'Cash', Icon: CashIcon },
-];
+    { id: 'bank', label: 'Bank', Icon: BankIcon },
+    { id: 'wallet', label: 'Wallet', Icon: WalletIcon },
+    { id: 'credit_card', label: 'Card', Icon: CardIcon },
+    { id: 'cash', label: 'Cash', Icon: CashIcon },
+  ];
 
 function formatINR(raw: string): string {
   const digits = raw.replace(/[^0-9]/g, '');
@@ -374,7 +372,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                   </Text>
                 </View>
                 <View style={styles.mascotWrap} pointerEvents="none">
-                  <NotebookMascot width={72} height={72} />
+                  <NotebookIllustration />
                 </View>
                 <Pressable
                   onPress={onClose}
@@ -404,27 +402,27 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                         disabled && styles.typeCardDisabled,
                       ]}
                     >
-                       <Icon size={34} />
-                       <Text
-                         style={[
-                           styles.typeLabel,
-                           (selected || disabled) && { color: colors.forest },
-                         ]}
-                       >
-                         {label}
-                       </Text>
-                       <Text style={styles.typeSubLabel}>
-                         {disabled ? 'Already Added' : 'Add from list'}
-                       </Text>
-                       <View style={styles.indicatorWrap}>
-                         {disabled ? (
-                           <View style={styles.checkBadge}>
-                             <CheckMark size={8} color={colors.surface} />
-                           </View>
-                         ) : (
-                           <RadioDot selected={selected} />
-                         )}
-                       </View>
+                      <Icon size={34} />
+                      <Text
+                        style={[
+                          styles.typeLabel,
+                          (selected || disabled) && { color: colors.forest },
+                        ]}
+                      >
+                        {label}
+                      </Text>
+                      <Text style={styles.typeSubLabel}>
+                        {disabled ? 'Already Added' : 'Add from list'}
+                      </Text>
+                      <View style={styles.indicatorWrap}>
+                        {disabled ? (
+                          <View style={styles.checkBadge}>
+                            <CheckMark size={8} color={colors.surface} />
+                          </View>
+                        ) : (
+                          <RadioDot selected={selected} />
+                        )}
+                      </View>
                     </Pressable>
                   );
                 })}

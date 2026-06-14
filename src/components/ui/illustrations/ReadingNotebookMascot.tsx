@@ -1,8 +1,6 @@
 import React from 'react';
 import Svg, { G, Rect, Circle, Path, Ellipse } from 'react-native-svg';
-import { tokens } from '@/theme';
-
-const colors = tokens.colors;
+import { sheetColors as colors } from '@/theme';
 
 type Props = { width?: number; height?: number };
 
@@ -57,5 +55,5 @@ const NotebookMascotBase: React.FC<Props> = ({ width = 150, height = 130 }) => (
 );
 
 export const NotebookMascot = React.memo(NotebookMascotBase);
-
-export default NotebookMascot;
+export const ReadingNotebookMascot = NotebookMascot;
+export default ReadingNotebookMascot;

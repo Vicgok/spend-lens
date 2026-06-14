@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { typography } from '@/theme';
+import { typography, tokens, shadows, spacing, borderRadius, hexToRgba } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency } from '@/utils/currency';
 import { syncSMSFromDevice, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
@@ -22,16 +22,19 @@ import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 import { getPendingDetections, updateDetectionStatus, DetectedBank, writeLog } from '@/lib/database';
 import Svg, { Path, Rect, Circle, Line, Ellipse } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { AccountIcon } from '@/components/ui/BankLogo';
-import SproutCoinMascot from '@/components/ui/SproutCoinMascot';
-import SavingsJarIllustration from '@/components/ui/SavingsJarIllustration';
-import CardLeafIllustration from '@/components/ui/CardLeafIllustration';
-import AccountCardIllustration from '@/components/ui/AccountCardIllustration';
-import NotebookIllustration from '@/components/ui/NotebookIllustration';
-import QuickOverviewLeafIllustration from '@/components/ui/QuickOverviewLeafIllustration';
-import MascotWaiting from '@/components/ui/MascotWaiting';
-import InsightMascotIllustration from '@/components/ui/InsightMascotIllustration';
-import AddFinancialSourceSheet from '@/components/ui/AddFinancialSourceSheet';
+import {
+  AccountIcon,
+  TabHeader,
+  SproutCoinMascot,
+  SavingsJarIllustration,
+  CardLeafIllustration,
+  AccountCardIllustration,
+  NotebookIllustration,
+  QuickOverviewLeafIllustration,
+  MascotWaiting,
+  InsightMascotIllustration,
+  AddFinancialSourceSheet,
+} from '@/components/ui';
 import { AccountType } from '@/types';
 
 function getAccountTypeLabel(type: string): string {
@@ -68,13 +71,13 @@ function getFormattedMonth(): string {
   return `${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-const COLOR_FOREST_GREEN = '#3E5A2A';
-const COLOR_DEEP_BROWN = '#745143';
-const COLOR_ACCENT_BROWN = '#B7884E';
-const COLOR_PAPER_WHITE = '#FDFDFB';
-const COLOR_BACKGROUND = '#F6F3EC';
-const COLOR_BORDER = '#E6E1D8';
-const COLOR_MUTED_TEXT = '#8E8A82';
+const COLOR_FOREST_GREEN = tokens.colors.forest;
+const COLOR_DEEP_BROWN = tokens.colors.textPrimary;
+const COLOR_ACCENT_BROWN = tokens.colors.tactileAccentBrown;
+const COLOR_PAPER_WHITE = tokens.colors.tactilePaperWhite;
+const COLOR_BACKGROUND = tokens.colors.tactileBackground;
+const COLOR_BORDER = tokens.colors.tactileBorder;
+const COLOR_MUTED_TEXT = tokens.colors.tactileMuted;
 
 const logger = {
   info: (msg: string) => {
@@ -308,7 +311,7 @@ export default function DashboardScreen() {
       };
       name = bankNameMap[payload.bankId || ''] || 'Bank Account';
       icon = '🏦';
-      
+
       const bankColorMap: Record<string, string> = {
         hdfc: '#004C8F',
         icici: '#B02A30',
@@ -415,43 +418,37 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLOR_DEEP_BROWN} />
         }
       >
-        {/* Header Block */}
-        <View style={styles.headerBlock}>
-          {/* Row 1: FINANCIAL NOTEBOOK & Date + Add Button */}
-          <View style={styles.headerRow1}>
-            <Text style={styles.microHeader}>FINANCIAL NOTEBOOK</Text>
-            <View style={styles.headerRow1Right}>
-              <Text style={styles.monthLabel}>{getFormattedMonth()}</Text>
-              <Pressable
-                onPress={() => router.push('/add-transaction')}
-                style={({ pressed }) => [
-                  styles.headerAddBtn,
-                  { opacity: pressed ? 0.8 : 1 }
-                ]}
-              >
-                <Text style={styles.headerAddBtnText}>+</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Row 2: SpendLens Title & version tag */}
-          <View style={styles.headerRow2}>
-            <Text style={styles.mainHeader}>
-              SpendLens <Text style={styles.versionText}>v1.0.2</Text>
-            </Text>
-          </View>
-
-          {/* Row 3: Greeting & Mascot */}
-          <View style={styles.headerRow3}>
+        <TabHeader
+          microHeader="FINANCIAL NOTEBOOK"
+          title="SpendLens"
+          titleSuffix={<Text style={styles.versionText}> v1.0.2</Text>}
+          variant="tactile"
+          subtitle={
             <Text style={styles.subtitle}>
               {getTimeOfDayGreeting()}! Your finances look{' '}
               <Text style={{ color: COLOR_FOREST_GREEN, fontWeight: 'bold' }}>calm and under control</Text>.
             </Text>
-            <View style={styles.topMascotContainer}>
-              <SproutCoinMascot width={90} height={75} />
+          }
+          renderRight={() => (
+            <View style={{ alignItems: 'flex-end', gap: 8 }}>
+              <View style={styles.headerRow1Right}>
+                <Text style={styles.monthLabel}>{getFormattedMonth()}</Text>
+                <Pressable
+                  onPress={() => router.push('/add-transaction')}
+                  style={({ pressed }) => [
+                    styles.headerAddBtn,
+                    { opacity: pressed ? 0.8 : 1 }
+                  ]}
+                >
+                  <Text style={styles.headerAddBtnText}>+</Text>
+                </Pressable>
+              </View>
+              <View style={styles.topMascotContainer}>
+                <SproutCoinMascot width={90} height={75} />
+              </View>
             </View>
-          </View>
-        </View>
+          )}
+        />
 
         {/* Hero Card */}
         <View style={styles.heroCard}>
@@ -789,27 +786,27 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_BACKGROUND,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 160,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.base,
+    paddingBottom: spacing['6xl'] * 2,
   },
   headerBlock: {
     flexDirection: 'column',
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   headerRow1: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.xs + 2,
   },
   headerRow1Right: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   headerRow2: {
-    marginBottom: 6,
+    marginBottom: spacing.xs + 2,
   },
   microHeader: {
     fontFamily: typography.fontFamily.bold,
@@ -832,7 +829,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   subtitle: {
     fontFamily: typography.fontFamily.medium,
@@ -847,15 +844,15 @@ const styles = StyleSheet.create({
     color: COLOR_DEEP_BROWN,
   },
   headerAddBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: spacing.xxl,
+    height: spacing.xxl,
+    borderRadius: spacing.xxl / 2,
     backgroundColor: COLOR_DEEP_BROWN,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerAddBtnText: {
-    color: '#FFF8EE',
+    color: tokens.colors.surface,
     fontSize: 18,
     lineHeight: 20,
     fontWeight: 'bold',
@@ -872,14 +869,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 28,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    elevation: 2,
+    borderRadius: borderRadius['3xl'],
+    padding: spacing.base,
+    marginBottom: spacing.lg,
+    ...shadows.tactileCard,
   },
   heroMainRow: {
     flexDirection: 'row',
@@ -905,12 +898,12 @@ const styles = StyleSheet.create({
   statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F1EFEB',
+    gap: spacing.xs + 2,
+    backgroundColor: tokens.colors.tactileGrid,
     borderWidth: 1,
-    borderColor: 'rgba(62, 90, 42, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
+    borderColor: hexToRgba(tokens.colors.forest, 0.1),
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     alignSelf: 'flex-start',
   },
@@ -961,9 +954,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_ACCENT_BROWN,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     padding: 10,
-    marginBottom: 16,
+    marginBottom: spacing.base,
     borderStyle: 'dashed',
   },
   pendingBankBannerText: {
@@ -985,15 +978,15 @@ const styles = StyleSheet.create({
   // Overview insights section
   overviewContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   insightCard: {
     flex: 1,
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
     padding: 10,
     alignItems: 'flex-start',
     gap: 4,
@@ -1040,14 +1033,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 28,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    elevation: 2,
+    borderRadius: borderRadius['3xl'],
+    padding: spacing.base,
+    marginBottom: spacing.lg,
+    ...shadows.tactileCard,
     overflow: 'hidden',
   },
   accountStackContainer: {
@@ -1055,9 +1044,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   stackCard: {
-    borderRadius: 24,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
-    borderColor: '#E8DFD1',
+    borderColor: tokens.colors.tactileBorder,
     overflow: 'hidden',
   },
   backCard: {
@@ -1067,7 +1056,7 @@ const styles = StyleSheet.create({
     right: 18,
     height: 42,
     zIndex: 1,
-    backgroundColor: '#F5F0E6',
+    backgroundColor: tokens.colors.tactileCardBack,
   },
   middleCard: {
     position: 'absolute',
@@ -1076,7 +1065,7 @@ const styles = StyleSheet.create({
     right: 12,
     height: 42,
     zIndex: 2,
-    backgroundColor: '#F8F4EC',
+    backgroundColor: tokens.colors.tactileCardMiddle,
   },
   frontCard: {
     position: 'absolute',
@@ -1085,18 +1074,14 @@ const styles = StyleSheet.create({
     right: 0,
     minHeight: 92,
     zIndex: 3,
-    backgroundColor: '#FFF8EE',
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: tokens.colors.surface,
+    ...shadows.tactileFrontCard,
   },
   peekContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.base,
     paddingTop: 3,
     height: 20, // keeps it thin inside the 18px visible space
   },
@@ -1145,9 +1130,9 @@ const styles = StyleSheet.create({
   addAccountCard: {
     marginTop: 10,
     height: 52,
-    borderRadius: 18,
+    borderRadius: borderRadius.lg + 2,
     borderWidth: 1.5,
-    borderColor: '#E0D6CA',
+    borderColor: tokens.colors.tactileBorder,
     borderStyle: 'dashed',
     backgroundColor: 'rgba(255, 248, 238, 0.5)',
     alignItems: 'center',
@@ -1175,17 +1160,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 28,
+    borderRadius: borderRadius['3xl'],
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 20,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    elevation: 2,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+    ...shadows.tactileCard,
   },
   snapshotMascot: {
     alignItems: 'center',
@@ -1208,9 +1189,9 @@ const styles = StyleSheet.create({
     color: COLOR_MUTED_TEXT,
   },
   snapshotArrowBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: spacing.xxl,
+    height: spacing.xxl,
+    borderRadius: spacing.xxl / 2,
     backgroundColor: '#FAF8F5',
     borderWidth: 1,
     borderColor: COLOR_BORDER,
@@ -1223,17 +1204,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_PAPER_WHITE,
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: 28,
+    borderRadius: borderRadius['3xl'],
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    shadowColor: '#745143',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    elevation: 2,
+    gap: spacing.md,
+    ...shadows.tactileCard,
   },
   insightBannerContent: {
     flex: 1.2,
@@ -1262,7 +1239,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR_BACKGROUND,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: spacing.base,
   },
   loadingText: {
     fontSize: 14,
@@ -1278,8 +1255,8 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: COLOR_PAPER_WHITE,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
     borderWidth: 1.5,
     borderColor: COLOR_DEEP_BROWN,
     borderBottomWidth: 0,
@@ -1291,7 +1268,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   modalTitle: {
     fontFamily: typography.fontFamily.bold,
@@ -1312,8 +1289,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.base,
     height: 52,
     borderWidth: 1.5,
     borderColor: COLOR_DEEP_BROWN,
@@ -1333,7 +1310,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     height: 50,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     borderWidth: 1.5,
     borderColor: COLOR_DEEP_BROWN,
     backgroundColor: COLOR_FOREST_GREEN,

@@ -18,22 +18,23 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing, borderRadius, tokens } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useOnboardingStore } from '@/stores/settings-store';
 import { AccountType } from '@/types';
 import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
-import { AccountIcon, BankLogo } from '@/components/ui/BankLogo';
 import { writeLog } from '@/lib/database';
 import Svg, { Rect, Path, Line, Circle } from 'react-native-svg';
 import {
+  AccountIcon,
+  BankLogo,
   SearchIcon,
   BankIcon,
   CashIcon,
   CreditCardIcon,
   WalletIcon,
-} from '@/components/ui/OnboardingIcons';
-import { OnboardingTransition } from '@/components/ui/OnboardingTransition';
+  OnboardingTransition,
+} from '@/components/ui';
 
 const { height } = Dimensions.get('window');
 
@@ -599,27 +600,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 160,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing['6xl'] * 2,
   },
   illustrationContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 12,
+    marginVertical: spacing.md,
   },
   illustrationSvg: {
     alignSelf: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: spacing.xxl,
   },
   title: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 22,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     lineHeight: 28,
   },
   subtitle: {
@@ -630,9 +631,9 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   accountCard: {
-    borderRadius: 16,
+    borderRadius: borderRadius.lg,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: spacing.md,
     borderWidth: 1,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.02,
@@ -648,21 +649,21 @@ const styles = StyleSheet.create({
   cardInfoGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
     flex: 1,
-    paddingRight: 8,
+    paddingRight: spacing.sm,
   },
   iconWrapper: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   removeBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.xs + 2,
   },
   removeText: {
     fontFamily: typography.fontFamily.medium,
@@ -694,23 +695,23 @@ const styles = StyleSheet.create({
   },
   addLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: 13,
-    marginTop: 20,
-    marginBottom: 12,
+    fontSize: typography.sizes.caption,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
   },
   presetRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   presetChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.base,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
   },
   presetIconContainer: {
@@ -721,19 +722,19 @@ const styles = StyleSheet.create({
   },
   presetLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: 13,
+    fontSize: typography.sizes.caption,
   },
   bottomSection: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.base,
   },
   ctaButton: {
     height: 56,
-    borderRadius: 18,
+    borderRadius: tokens.radii.input,
     justifyContent: 'center',
     alignItems: 'center',
     shadowOffset: { width: 0, height: 6 },
@@ -763,7 +764,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
   },
   modalTitle: {
@@ -785,12 +786,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: borderRadius.md,
-    marginHorizontal: 24,
+    marginHorizontal: spacing.xl,
     marginBottom: spacing.md,
     paddingHorizontal: spacing.base,
     height: 50,
     borderWidth: 1,
-    gap: 12,
+    gap: spacing.md,
   },
   searchInput: {
     flex: 1,
@@ -799,7 +800,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   modalList: {
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingBottom: 40,
   },
   bankItem: {
@@ -807,12 +808,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 16,
+    gap: spacing.base,
   },
   bankLogoBg: {
     width: 46,
     height: 46,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -832,7 +833,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing['2xl'],
   },
   modalEmptyText: {
     fontFamily: typography.fontFamily.regular,
