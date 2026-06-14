@@ -27,7 +27,6 @@ import {
   TransactionSkeleton,
   TabHeader,
   ReadingNotebookMascot,
-  LeafCluster,
   CornerPlant,
 } from '@/components/ui';
 
@@ -580,7 +579,7 @@ export default function TransactionsScreen() {
                     </View>
                   </View>
                   <View style={styles.leafClusterContainer}>
-                    <LeafCluster />
+                    <CornerPlant width={96} height={72} />
                   </View>
                 </View>
                 <View style={styles.cornerPlantDecoration} pointerEvents="none">
