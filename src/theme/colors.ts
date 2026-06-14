@@ -47,6 +47,15 @@ export const colors = {
     textMuted: '#666664',
     textInverse: '#1B1B1B',
 
+    leafStroke: '#9B966A',
+    ground: '#DCCFBB',
+    leafFill: '#D4D0A1',
+    notebookCream: '#F5E9D8',
+    illoOutline: '#9B7B5B',
+    illoFace: '#5B4333',
+    forest: '#3E5A2A',
+    leafLight: '#EEF4E6',
+
     ...palette,
 
     // Tab bar
@@ -81,6 +90,15 @@ export const colors = {
     textSecondary: '#666666',
     textMuted: '#999999',
     textInverse: '#F5F3EE',
+
+    leafStroke: '#9B966A',
+    ground: '#DCCFBB',
+    leafFill: '#D4D0A1',
+    notebookCream: '#F5E9D8',
+    illoOutline: '#9B7B5B',
+    illoFace: '#5B4333',
+    forest: '#3E5A2A',
+    leafLight: '#EEF4E6',
 
     ...palette,
 
