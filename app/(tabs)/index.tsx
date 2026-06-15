@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography, tokens, shadows, spacing, borderRadius, hexToRgba } from '@/theme';
@@ -20,32 +21,22 @@ import { formatCurrency } from '@/utils/currency';
 import { syncSMSFromDevice, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 import { getPendingDetections, updateDetectionStatus, DetectedBank, writeLog } from '@/lib/database';
-import Svg, { Path, Rect, Circle, Line, Ellipse } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import {
-  AccountIcon,
   TabHeader,
   SproutCoinMascot,
   SavingsJarIllustration,
   CardLeafIllustration,
-  AccountCardIllustration,
   NotebookIllustration,
   QuickOverviewLeafIllustration,
-  MascotWaiting,
   InsightMascotIllustration,
   AddFinancialSourceSheet,
+  CurrentAccountsList,
 } from '@/components/ui';
 import { AccountType } from '@/types';
 
-function getAccountTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    bank: 'Savings Account',
-    cash: 'Cash Account',
-    credit_card: 'Credit Card',
-    wallet: 'Digital Wallet',
-  };
-  return map[type] || 'Savings Account';
-}
+
 
 function getTimeOfDayGreeting(): string {
   const hour = new Date().getHours();
@@ -96,11 +87,7 @@ const logger = {
 
 
 
-const ChevronRight = React.memo(() => (
-  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M9 18l6-6-6-6" />
-  </Svg>
-));
+
 
 
 
@@ -110,14 +97,6 @@ const UnusualSpendingIcon = React.memo(() => (
   </Svg>
 ));
 
-const UpcomingBillsIcon = React.memo(() => (
-  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={COLOR_ACCENT_BROWN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Rect x={3} y={4} width={18} height={18} rx={2} ry={2} />
-    <Line x1={16} y1={2} x2={16} y2={6} />
-    <Line x1={8} y1={2} x2={8} y2={6} />
-    <Line x1={3} y1={10} x2={21} y2={10} />
-  </Svg>
-));
 
 const MoneyLeaksIcon = React.memo(() => (
   <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -125,19 +104,7 @@ const MoneyLeaksIcon = React.memo(() => (
   </Svg>
 ));
 
-const CashIcon = React.memo(({ size = 20 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLOR_FOREST_GREEN} strokeWidth={1.8}>
-    <Rect x={2} y={6} width={20} height={12} rx={2} />
-    <Circle cx={12} cy={12} r={3} />
-    <Path d="M6 12h.01M18 12h.01" strokeWidth={2.2} strokeLinecap="round" />
-  </Svg>
-));
 
-const BankIcon = React.memo(({ size = 20 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={1.8}>
-    <Path d="M3 21h18M3 10h18M3 10l9-7 9 7M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
-  </Svg>
-));
 
 const SnapshotArrow = React.memo(() => (
   <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={COLOR_DEEP_BROWN} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -273,6 +240,17 @@ export default function DashboardScreen() {
     return () => clearTimeout(timer);
   }, [initializeSMS]);
 
+  // Synchronize stack selection
+  useEffect(() => {
+    if (accounts.length > 0) {
+      if (!selectedAccountId || !accounts.some((a) => a.id === selectedAccountId)) {
+        setSelectedAccountId(accounts[0].id);
+      }
+    } else {
+      setSelectedAccountId(null);
+    }
+  }, [accounts, selectedAccountId]);
+
   const handleAddAccount = async () => {
     if (!addingBank) return;
     const balance = parseFloat(initialBalance.replace(/,/g, '')) || 0;
@@ -359,26 +337,9 @@ export default function DashboardScreen() {
     setRefreshing(false);
   }, [loadData]);
 
-  // Construct stacked accounts matching user entered data only
-  const displayAccounts = [...accounts];
+  // Stack selection holds active account id for cyclic rotation
 
-  // Dynamic stack logic based on selectedAccountId
-  const currentSelectedId = selectedAccountId || (displayAccounts[0] ? displayAccounts[0].id : null);
-  let orderedAccounts = [...displayAccounts];
-  if (currentSelectedId) {
-    const selectedIdx = orderedAccounts.findIndex((a) => a.id === currentSelectedId);
-    if (selectedIdx > -1) {
-      const selectedAcc = orderedAccounts[selectedIdx];
-      orderedAccounts.splice(selectedIdx, 1);
-      orderedAccounts.unshift(selectedAcc);
-    }
-  }
-
-  const previewAccounts = orderedAccounts.slice(0, 3);
-
-  // Calculate dynamic balances
   const activeBalanceTotal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-  const displayedTotalBalance = displayAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
 
   const totalIncome = monthlyTotals?.totalIncome || 0;
   const totalExpense = monthlyTotals?.totalExpense || 0;
@@ -411,6 +372,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -520,15 +482,6 @@ export default function DashboardScreen() {
             <QuickOverviewLeafIllustration />
           </View>
 
-          {/* Card 2 */}
-          <View style={styles.insightCard}>
-            <View style={[styles.insightIconWrapper, { backgroundColor: 'rgba(183, 136, 78, 0.06)' }]}>
-              <UpcomingBillsIcon />
-            </View>
-            <Text style={styles.insightTitle}>No upcoming bills</Text>
-            <Text style={[styles.insightSubtext, { color: COLOR_ACCENT_BROWN }]}>You're all set</Text>
-            <QuickOverviewLeafIllustration />
-          </View>
 
           {/* Card 3 */}
           <View style={styles.insightCard}>
@@ -555,128 +508,39 @@ export default function DashboardScreen() {
           </Pressable>
         </View>
 
-        {/* Accounts List Card */}
-        <View style={styles.accountsParentCard}>
-          <View style={styles.accountStackContainer}>
-            {previewAccounts.length === 0 ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 }}>
-                <Text style={{ fontFamily: typography.fontFamily.medium, fontSize: 13, color: COLOR_MUTED_TEXT }}>
-                  No accounts connected yet.
-                </Text>
-                <Text style={{ fontFamily: typography.fontFamily.regular, fontSize: 11, color: COLOR_MUTED_TEXT, textAlign: 'center', paddingHorizontal: 20 }}>
-                  Tap "Add Account" below to start tracking your balances.
-                </Text>
-              </View>
-            ) : (
-              <>
-                {previewAccounts[2] && (
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSelectedAccountId(previewAccounts[2].id);
-                    }}
-                    style={[styles.stackCard, styles.backCard]}
-                  >
-                    <View style={styles.peekContent}>
-                      <AccountIcon
-                        bankId={previewAccounts[2].bankId}
-                        accountType={previewAccounts[2].type}
-                        icon={previewAccounts[2].icon}
-                        color={previewAccounts[2].color}
-                        size={14}
-                      />
-                      <Text style={styles.peekTitle} numberOfLines={1}>
-                        {previewAccounts[2].name}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )}
-
-                {previewAccounts[1] && (
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSelectedAccountId(previewAccounts[1].id);
-                    }}
-                    style={[styles.stackCard, styles.middleCard]}
-                  >
-                    <View style={styles.peekContent}>
-                      <AccountIcon
-                        bankId={previewAccounts[1].bankId}
-                        accountType={previewAccounts[1].type}
-                        icon={previewAccounts[1].icon}
-                        color={previewAccounts[1].color}
-                        size={14}
-                      />
-                      <Text style={styles.peekTitle} numberOfLines={1}>
-                        {previewAccounts[1].name}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )}
-
-                {previewAccounts[0] && (
-                  <Pressable
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      router.push('/accounts');
-                    }}
-                    style={({ pressed }) => [
-                      styles.stackCard,
-                      styles.frontCard,
-                      {
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        paddingHorizontal: 16,
-                        transform: [{ scale: pressed ? 0.985 : 1.0 }]
-                      }
-                    ]}
-                  >
-                    <View style={styles.cardLeft}>
-                      <View style={{ marginRight: 6 }}>
-                        <AccountIcon
-                          bankId={previewAccounts[0].bankId}
-                          accountType={previewAccounts[0].type}
-                          icon={previewAccounts[0].icon}
-                          color={previewAccounts[0].color}
-                          size={36}
-                        />
-                      </View>
-                      <Text style={styles.cardAccountName}>{previewAccounts[0].name}</Text>
-                    </View>
-                    <View style={styles.cardRight}>
-                      <View style={styles.balanceColumn}>
-                        <Text style={styles.availableBalanceLabel}>Available Balance</Text>
-                        <Text style={styles.cardBalanceText}>{formatCurrency(previewAccounts[0].balance)}</Text>
-                      </View>
-                      <ChevronRight />
-                    </View>
-                    <CardLeafIllustration />
-                  </Pressable>
-                )}
-              </>
-            )}
-          </View>
-
-          {/* Add Account Card */}
-          <Pressable
-            onPress={() => {
+        <View style={{ marginBottom: 16 }}>
+          <CurrentAccountsList
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccountId={setSelectedAccountId}
+            onPressActive={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setIsAddingCustomAccount(true);
+              router.push('/accounts');
             }}
-            style={({ pressed }) => [
-              styles.addAccountCard,
-              { transform: [{ scale: pressed ? 0.99 : 1 }] }
-            ]}
-          >
-            <View style={styles.addAccountContent}>
-              <Text style={styles.addAccountPlus}>+</Text>
-              <Text style={styles.addAccountLabel}>Add Account</Text>
-            </View>
-            <CardLeafIllustration />
-          </Pressable>
+          />
         </View>
+
+        {/* Add Account Card */}
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setIsAddingCustomAccount(true);
+          }}
+          style={({ pressed }) => [
+            styles.addAccountCard,
+            { 
+              transform: [{ scale: pressed ? 0.99 : 1 }],
+              marginBottom: 24,
+            }
+          ]}
+        >
+          <View style={styles.addAccountContent}>
+            <Text style={styles.addAccountPlus}>+</Text>
+            <Text style={styles.addAccountLabel}>Add Account</Text>
+          </View>
+          <CardLeafIllustration />
+        </Pressable>
+
 
         {/* Today's Snapshot Card */}
         <Text style={styles.sectionHeading}>TODAY'S SNAPSHOT</Text>
@@ -718,6 +582,8 @@ export default function DashboardScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setAddingBank(null)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -884,14 +750,14 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 10,
+    fontSize: 13,
     color: COLOR_MUTED_TEXT,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   heroAmount: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 34,
+    fontSize: 32,
     color: COLOR_DEEP_BROWN,
     marginBottom: 8,
   },
@@ -915,7 +781,7 @@ const styles = StyleSheet.create({
   },
   statusChipText: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 10,
+    fontSize: 13,
     color: COLOR_FOREST_GREEN,
   },
   heroRight: {
@@ -939,14 +805,14 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 9,
+    fontSize: 13,
     color: COLOR_MUTED_TEXT,
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   statValue: {
     fontFamily: typography.fontFamily.monoBold,
-    fontSize: 16,
+    fontSize: 19,
   },
 
   // Pending bank banner
@@ -961,7 +827,7 @@ const styles = StyleSheet.create({
   },
   pendingBankBannerText: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
+    fontSize: 13,
     color: COLOR_ACCENT_BROWN,
     textAlign: 'center',
   },
@@ -969,7 +835,7 @@ const styles = StyleSheet.create({
   // Section Heading
   sectionHeading: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 11,
+    fontSize: 17,
     letterSpacing: 0.5,
     color: COLOR_DEEP_BROWN,
     marginBottom: 10,
@@ -1001,14 +867,14 @@ const styles = StyleSheet.create({
   },
   insightTitle: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 15,
+    lineHeight: 18,
     color: COLOR_DEEP_BROWN,
     marginTop: 2,
   },
   insightSubtext: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: 9,
+    fontSize: 13,
   },
 
   // Accounts Section
@@ -1020,13 +886,13 @@ const styles = StyleSheet.create({
   },
   accountsSectionTitle: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 11,
+    fontSize: 17,
     letterSpacing: 0.5,
     color: COLOR_DEEP_BROWN,
   },
   viewAllText: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
+    fontSize: 15,
     color: COLOR_FOREST_GREEN,
   },
   accountsParentCard: {
@@ -1039,94 +905,7 @@ const styles = StyleSheet.create({
     ...shadows.tactileCard,
     overflow: 'hidden',
   },
-  accountStackContainer: {
-    height: 150,
-    position: 'relative',
-  },
-  stackCard: {
-    borderRadius: borderRadius['2xl'],
-    borderWidth: 1,
-    borderColor: tokens.colors.tactileBorder,
-    overflow: 'hidden',
-  },
-  backCard: {
-    position: 'absolute',
-    top: 0,
-    left: 18,
-    right: 18,
-    height: 42,
-    zIndex: 1,
-    backgroundColor: tokens.colors.tactileCardBack,
-  },
-  middleCard: {
-    position: 'absolute',
-    top: 18,
-    left: 12,
-    right: 12,
-    height: 42,
-    zIndex: 2,
-    backgroundColor: tokens.colors.tactileCardMiddle,
-  },
-  frontCard: {
-    position: 'absolute',
-    top: 42,
-    left: 0,
-    right: 0,
-    minHeight: 92,
-    zIndex: 3,
-    backgroundColor: tokens.colors.surface,
-    ...shadows.tactileFrontCard,
-  },
-  peekContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.base,
-    paddingTop: 3,
-    height: 20, // keeps it thin inside the 18px visible space
-  },
-  peekTitle: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 10,
-    color: COLOR_DEEP_BROWN,
-  },
-  cardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  bankIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardAccountName: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 13,
-    color: COLOR_DEEP_BROWN,
-  },
-  cardRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  balanceColumn: {
-    alignItems: 'flex-end',
-  },
-  availableBalanceLabel: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 9,
-    color: COLOR_MUTED_TEXT,
-    letterSpacing: 0.2,
-    marginBottom: 1,
-  },
-  cardBalanceText: {
-    fontFamily: typography.fontFamily.monoBold,
-    fontSize: 16,
-    color: COLOR_DEEP_BROWN,
-  },
+
   addAccountCard: {
     marginTop: 10,
     height: 52,
@@ -1150,7 +929,7 @@ const styles = StyleSheet.create({
   },
   addAccountLabel: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 12,
+    fontSize: 14,
     color: COLOR_FOREST_GREEN,
     letterSpacing: 0.3,
   },
@@ -1178,14 +957,14 @@ const styles = StyleSheet.create({
   },
   snapshotTextTitle: {
     fontFamily: typography.fontFamily.bold,
-    fontSize: 12,
+    fontSize: 15,
     color: COLOR_DEEP_BROWN,
     marginBottom: 2,
   },
   snapshotTextBody: {
     fontFamily: typography.fontFamily.regular,
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 14,
+    lineHeight: 18,
     color: COLOR_MUTED_TEXT,
   },
   snapshotArrowBtn: {
@@ -1217,13 +996,13 @@ const styles = StyleSheet.create({
   },
   insightBannerText: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     color: COLOR_DEEP_BROWN,
   },
   insightBannerSubtext: {
     fontFamily: typography.fontFamily.regular,
-    fontSize: 11,
+    fontSize: 13,
     color: COLOR_MUTED_TEXT,
     marginTop: 4,
   },
@@ -1250,7 +1029,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(15, 12, 10, 0.75)',
     justifyContent: 'flex-end',
   },
   modalContent: {

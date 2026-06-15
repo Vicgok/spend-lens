@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { Stack, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, Platform, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
+import * as SystemUI from 'expo-system-ui';
 import { enableScreens } from 'react-native-screens';
 import {
   ThemeProvider as NavigationProvider,
@@ -33,22 +34,12 @@ SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { theme, isDark } = useTheme();
-  const segments = useSegments();
-  const [rootBg, setRootBg] = React.useState(theme.onboarding.background);
 
   useEffect(() => {
-    const isOnboarding = segments[0] === 'onboarding';
-    const targetBg = isOnboarding ? theme.onboarding.background : theme.background;
-
-    if (!isOnboarding && rootBg === theme.onboarding.background) {
-      const timer = setTimeout(() => {
-        setRootBg(targetBg);
-      }, 400);
-      return () => clearTimeout(timer);
-    } else {
-      setRootBg(targetBg);
-    }
-  }, [segments, theme, isDark]);
+    SystemUI.setBackgroundColorAsync(theme.background).catch((err) => {
+      console.warn('Failed to set system UI background color:', err);
+    });
+  }, [theme.background]);
 
   useEffect(() => {
     async function configureAndroidNavbar() {
@@ -77,20 +68,32 @@ function RootNavigator() {
 
   return (
     <NavigationProvider value={navTheme}>
-      <View style={{ flex: 1, backgroundColor: rootBg }}>
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
         <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: rootBg },
+            contentStyle: { backgroundColor: theme.background },
             animation: 'ios_from_right',
             gestureEnabled: true,
             fullScreenGestureEnabled: true,
           }}
         >
           <Stack.Screen name="index" />
-          <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              gestureEnabled: false,
+              contentStyle: { backgroundColor: theme.onboarding.background },
+            }}
+          />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              gestureEnabled: false,
+              contentStyle: { backgroundColor: '#F6F3EC' },
+            }}
+          />
           <Stack.Screen
             name="add-transaction"
             options={{
@@ -101,7 +104,12 @@ function RootNavigator() {
             }}
           />
           <Stack.Screen name="categories" />
-          <Stack.Screen name="accounts" />
+          <Stack.Screen
+            name="accounts"
+            options={{
+              contentStyle: { backgroundColor: '#E1D7C2' },
+            }}
+          />
         </Stack>
       </View>
     </NavigationProvider>

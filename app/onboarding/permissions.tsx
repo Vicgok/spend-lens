@@ -6,7 +6,6 @@ import {
   Pressable,
   Platform,
   ActivityIndicator,
-  Alert,
   ScrollView,
   Dimensions,
   Modal,
@@ -14,7 +13,6 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import * as NavigationBar from 'expo-navigation-bar';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Svg, {
   Rect,
@@ -495,6 +493,8 @@ export default function OnboardingPermissions() {
         transparent={true}
         animationType="fade"
         onRequestClose={() => setCustomAlert(null)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
       >
         <View style={styles.alertOverlay}>
           <View style={[styles.alertCard, { backgroundColor: '#FAF9F7', borderColor: hexToRgba(obTheme.primary, 0.15) }]}>
@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
   // ── Custom Alert Styles ──
   alertOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+    backgroundColor: 'rgba(15, 12, 10, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,

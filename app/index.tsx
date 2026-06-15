@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+
 import { Redirect } from 'expo-router';
 import { useOnboardingStore } from '@/stores/settings-store';
 

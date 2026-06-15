@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTheme } from '@/providers/theme-provider';
-import { borderRadius } from '@/theme';
+
 
 export function SkeletonPlaceholder({
   width: w = '100%',

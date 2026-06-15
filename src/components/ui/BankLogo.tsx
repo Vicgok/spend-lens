@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import Svg, { Circle, Rect, Path, G, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import { View, Text, StyleSheet} from 'react-native';
+import Svg, { Circle, Rect, Path } from 'react-native-svg';
 
 interface BankLogoProps {
   bankId: string;
@@ -23,6 +23,22 @@ const BANK_LOGOS: Record<string, any> = {
   federal: require('../../../assets/icons_bank/Federal.svg').default,
 };
 
+export const BANK_BRAND_COLORS = {
+  hdfc: { primary: '#004B8D', accent: '#ED1D24' },
+  sbi: { primary: '#156DD1', accent: '#85B3E7' },
+  icici: { primary: '#810000', accent: '#F34700' },
+  axis: { primary: '#A92A5E', accent: '#B8517B' },
+  kotak: { primary: '#EC1C24', accent: '#073B78' },
+  pnb: { primary: '#9C0C3B', accent: '#F2BA00' },
+  bob: { primary: '#FA5831', accent: '#002C6C' },
+  canara: { primary: '#1BAFF0', accent: '#FDC000' },
+  union: { primary: '#0B438C', accent: '#CA0715' },
+  indusind: { primary: '#6D181C', accent: '#FFD700' },
+  yesbank: { primary: '#005192', accent: '#C4261B' },
+  idfc: { primary: '#9E1B26', accent: '#FFD700' },
+  federal: { primary: '#0066B2', accent: '#FFD700' },
+} as const;
+
 /**
  * Professional letter-mark SVG logos for Indian banks and digital wallets.
  * Each logo uses the bank's brand colors and a distinctive visual treatment.
@@ -38,9 +54,6 @@ export function BankLogo({ bankId, size = 32 }: BankLogoProps) {
       />
     );
   }
-
-  const half = size / 2;
-  const r = half;
 
   switch (bankId) {
     // ─── HDFC Bank ──────────────────────────────────────────
@@ -233,7 +246,7 @@ interface AccountIconProps {
  * Unified account icon component.
  * Shows SVG bank logo for known banks, or a styled lettermark for generic account types.
  */
-export function AccountIcon({ bankId, accountType, icon, color, size = 32 }: AccountIconProps) {
+export function AccountIcon({ bankId, accountType, color, size = 32 }: AccountIconProps) {
   // If we have a known bank ID, render the SVG logo
   if (bankId) {
     const logo = <BankLogo bankId={bankId} size={size} />;

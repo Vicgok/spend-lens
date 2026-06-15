@@ -144,7 +144,7 @@ export function detectWeekendOverspend(transactions: Transaction[]): InsightCard
  */
 export function detectSubscriptionBurden(
   transactions: Transaction[],
-  categories: Category[]
+  _categories: Category[]
 ): InsightCardData[] {
   const expenses = transactions.filter((t) => t.type === 'expense');
   if (expenses.length === 0) return [];
@@ -238,7 +238,7 @@ export function detectMoneyLeaks(transactions: Transaction[]): InsightCardData[]
  */
 export function detectSalaryRisk(
   transactions: Transaction[],
-  currentBalance: number
+  _currentBalance: number
 ): InsightCardData[] {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

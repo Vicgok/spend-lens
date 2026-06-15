@@ -1,18 +1,16 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable, Alert, LayoutAnimation, Modal, RefreshControl, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography } from '@/theme';
+import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
-import { generateAllInsights, InsightCardData } from '@/features/insights-engine/detector';
-import { calculateSalarySurvivalScore, calculatePredictedMonthEndBalance } from '@/features/insights-engine/formulas';
-import { simulateSMSScan } from '@/features/sms-parser/sms-reader';
+import { generateAllInsights } from '@/features/insights-engine/detector';
+import { calculateSalarySurvivalScore } from '@/features/insights-engine/formulas';
 import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
 // Illustrations & Mascots
-import { TabHeader, ReadingNotebookMascot, CornerPlant, LeafCluster } from '@/components/ui';
-import { NotebookMascot } from '@/components/ui/illustrations/ReadingNotebookMascot';
-import ShieldMascotIllustration from '@/components/ui/illustrations/ShieldMascot';
+import { TabHeader, ReadingNotebookMascot, CornerPlant } from '@/components/ui';
 
 const SCAN_STEPS = [
   { message: 'INITIALIZING SMS OBSERVATORY SERVICE...', progress: 0.1 },
@@ -970,7 +968,9 @@ export default function InsightsScreen() {
   const strokeDashoffset = circumference * (1 - survivalScore / 100);
 
   return (
-    <ScrollView
+    <>
+      <StatusBar style="dark" />
+      <ScrollView
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
@@ -986,204 +986,6 @@ export default function InsightsScreen() {
         />
       }
     >
-      {/* FAQ Guide Modal */}
-      <Modal visible={showFAQ} transparent animationType="fade" onRequestClose={() => setShowFAQ(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.faqCard}>
-            <Text style={styles.faqTitle}>How I Analyze Your Money</Text>
-            <Text style={styles.faqSubtitle}>I look at your activity across three timelines to help you make smarter choices next.</Text>
-
-            <View style={styles.faqItem}>
-              <Text style={styles.faqItemHeader}>Daily (Impulse Spends)</Text>
-              <Text style={styles.faqItemBody}>I monitor rapid purchases at the same merchant to flag emotional shopping spikes in the moment.</Text>
-            </View>
-
-            <View style={styles.faqItem}>
-              <Text style={styles.faqItemHeader}>Weekly (Lifestyle Creep)</Text>
-              <Text style={styles.faqItemBody}>I compare weekend spending against weekdays and track transaction times to spotlight habits that sneak into your weekly routine.</Text>
-            </View>
-
-            <View style={styles.faqItem}>
-              <Text style={styles.faqItemHeader}>Monthly (Survival Cushion)</Text>
-              <Text style={styles.faqItemBody}>I calculate category totals and evaluate income vs. expense ratios to measure your cash cushion for the month.</Text>
-            </View>
-
-            <Pressable onPress={() => setShowFAQ(false)} style={styles.faqCloseBtn}>
-              <Text style={styles.faqCloseBtnText}>Got it, thanks!</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Spending Pattern Detail Modal */}
-      <Modal visible={showPatternModal} transparent animationType="fade" onRequestClose={() => setShowPatternModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.faqCard}>
-            <Text style={styles.faqTitle}>Spending Patterns</Text>
-            <Text style={styles.faqSubtitle}>
-              I track spikes and month-over-month changes in your highest spending categories.
-            </Text>
-
-            <View style={{ gap: 12, marginVertical: 8 }}>
-              {spendingPatterns.map((pattern, index) => {
-                const isUp = pattern.direction === 'up';
-                const isDown = pattern.direction === 'down';
-                const cardBg = isUp ? '#FFF0EE' : isDown ? '#EEF4E6' : '#FAF9F7';
-                const borderColor = isUp ? '#EAA196' : isDown ? '#A6C88A' : '#E8DDD0';
-                const textColor = isUp ? '#C84B31' : isDown ? '#3E5A2A' : '#54554B';
-                
-                return (
-                  <View key={pattern.category} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      {renderCategoryIcon(pattern.category)}
-                      <Text style={{ fontSize: 17, fontFamily: typography.fontFamily.bold, color: '#745143' }}>
-                        {index === 0 ? 'Most Active: ' : 'Second Active: '}{pattern.category}
-                      </Text>
-                      <View style={{
-                        backgroundColor: isUp ? '#FCE3E0' : isDown ? '#E1ECC8' : '#EEF4E6',
-                        paddingHorizontal: 8,
-                        paddingVertical: 2,
-                        borderRadius: 99,
-                        marginLeft: 'auto'
-                      }}>
-                        <Text style={{ fontSize: 12, fontFamily: typography.fontFamily.bold, color: textColor }}>
-                          {isUp ? 'Increased' : isDown ? 'Saved Spends' : 'Stable'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={{ fontSize: 15, fontFamily: typography.fontFamily.medium, color: '#54554B', marginTop: 2 }}>
-                      Total spend: <Text style={{ fontFamily: typography.fontFamily.bold, color: '#745143' }}>₹{pattern.amount.toLocaleString('en-IN')}</Text> this month.
-                    </Text>
-
-                    {isDown && pattern.positiveInsight ? (
-                      <View style={{ marginTop: 4, gap: 2 }}>
-                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#3E5A2A' }}>
-                          Positive Insight:
-                        </Text>
-                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18 }}>
-                          {pattern.positiveInsight}
-                        </Text>
-                      </View>
-                    ) : isUp ? (
-                      <View style={{ marginTop: 4, gap: 2 }}>
-                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#C84B31' }}>
-                          Spending Increase:
-                        </Text>
-                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18 }}>
-                          Spent {pattern.percentChange}% more (+₹{Math.abs(pattern.amountChange).toLocaleString('en-IN')}) compared to last month.
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B' }}>
-                        Spending in this category remained stable compared to last month.
-                      </Text>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-
-            <Pressable onPress={() => setShowPatternModal(false)} style={styles.faqCloseBtn}>
-              <Text style={styles.faqCloseBtnText}>Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Money Habits Detail Modal */}
-      <Modal visible={showHabitsModal} transparent animationType="fade" onRequestClose={() => setShowHabitsModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.faqCard}>
-            <Text style={styles.faqTitle}>Money Habits</Text>
-            <Text style={styles.faqSubtitle}>
-              I analyze your spending behaviors and transaction patterns to spotlight your core money habits.
-            </Text>
-
-            <View style={{ gap: 12, marginVertical: 8 }}>
-              {habits.map((habit, index) => {
-                let habitTitle = 'Financial Behavior';
-                let habitDetail = 'I track this baseline trend to watch for unexpected fluctuations in your daily transactional lifestyle.';
-                let isPositive = false;
-                
-                const lowerHabit = habit.toLowerCase();
-                if (lowerHabit.includes('weekend')) {
-                  if (lowerHabit.includes('most spending') || lowerHabit.includes('occurs on weekend')) {
-                    habitTitle = 'Weekend Concentration';
-                    habitDetail = 'I detected a higher concentration of spends on weekends. Try setting a specific weekend allowance to avoid lifestyle creep.';
-                  } else {
-                    habitTitle = 'Balanced Timeline';
-                    habitDetail = 'Your weekday and weekend spends are well-balanced. This consistency helps you stick to your monthly savings goals.';
-                    isPositive = true;
-                  }
-                } else if (lowerHabit.includes('food')) {
-                  habitTitle = 'Dining & Food Ratio';
-                  habitDetail = `Food accounts for a significant portion of your recent outgoings. Meal planning or cooking at home can yield easy savings.`;
-                } else if (lowerHabit.includes('evening')) {
-                  if (lowerHabit.includes('increase during evening')) {
-                    habitTitle = 'Evening Spend Peaks';
-                    habitDetail = 'Your transactions tend to peak in the evening hours. Be mindful of fatigue-induced shopping or late-night impulse orders.';
-                  } else {
-                    habitTitle = 'Even Time-Distribution';
-                    habitDetail = 'Your transactions are evenly distributed. No specific time-of-day concentration detected.';
-                    isPositive = true;
-                  }
-                } else if (lowerHabit.includes('cash') || lowerHabit.includes('atm')) {
-                  habitTitle = 'ATM & Cash Usage';
-                  habitDetail = 'Cash withdrawals are clustered on specific days. Track where physical cash goes, as it often slips by unrecorded.';
-                }
-
-                const cardBg = isPositive ? '#EEF4E6' : '#FAF9F7';
-                const borderColor = isPositive ? '#A6C88A' : '#E8DDD0';
-                const textColor = isPositive ? '#3E5A2A' : '#54554B';
-                
-                return (
-                  <View key={index} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View style={styles.habitIconBox}>
-                        {index === 0 ? (
-                          <CalendarIcon size={12} color="#3E5A2A" />
-                        ) : index === 1 ? (
-                          <PercentIcon size={12} color="#3E5A2A" />
-                        ) : (
-                          <ClockIcon size={12} color="#3E5A2A" />
-                        )}
-                      </View>
-                      <Text style={{ fontSize: 16, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }}>
-                        {habitTitle}
-                      </Text>
-                      <View style={{
-                        backgroundColor: isPositive ? '#E1ECC8' : '#EEF4E6',
-                        paddingHorizontal: 8,
-                        paddingVertical: 2,
-                        borderRadius: 99,
-                        marginLeft: 'auto'
-                      }}>
-                        <Text style={{ fontSize: 11, fontFamily: typography.fontFamily.bold, color: textColor }}>
-                          {isPositive ? 'Healthy habit' : 'Observation'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#54554B', marginTop: 2 }}>
-                      "{habit}"
-                    </Text>
-
-                    <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18, marginTop: 2 }}>
-                      {habitDetail}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            <Pressable onPress={() => setShowHabitsModal(false)} style={styles.faqCloseBtn}>
-              <Text style={styles.faqCloseBtnText}>Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
       {/* Reusable Header */}
       <TabHeader
         variant="tactile"
@@ -1668,7 +1470,214 @@ export default function InsightsScreen() {
         </>
       )}
     </ScrollView>
-  );
+
+    {/* FAQ Guide Modal */}
+    <Modal visible={showFAQ} transparent animationType="fade" onRequestClose={() => setShowFAQ(false)} statusBarTranslucent={true} navigationBarTranslucent={true}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.faqCard, { maxHeight: '85%' }]}>
+          <Text style={styles.faqTitle}>How I Analyze Your Money</Text>
+          <Text style={styles.faqSubtitle}>I look at your activity across three timelines to help you make smarter choices next.</Text>
+
+          <ScrollView style={{ width: '100%', marginVertical: 12 }} showsVerticalScrollIndicator={false}>
+            <View style={{ gap: 16 }}>
+              <View style={styles.faqItem}>
+                <Text style={styles.faqItemHeader}>Daily (Impulse Spends)</Text>
+                <Text style={styles.faqItemBody}>I monitor rapid purchases at the same merchant to flag emotional shopping spikes in the moment.</Text>
+              </View>
+
+              <View style={styles.faqItem}>
+                <Text style={styles.faqItemHeader}>Weekly (Lifestyle Creep)</Text>
+                <Text style={styles.faqItemBody}>I compare weekend spending against weekdays and track transaction times to spotlight habits that sneak into your weekly routine.</Text>
+              </View>
+
+              <View style={styles.faqItem}>
+                <Text style={styles.faqItemHeader}>Monthly (Survival Cushion)</Text>
+                <Text style={styles.faqItemBody}>I calculate category totals and evaluate income vs. expense ratios to measure your cash cushion for the month.</Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          <Pressable onPress={() => setShowFAQ(false)} style={styles.faqCloseBtn}>
+            <Text style={styles.faqCloseBtnText}>Got it, thanks!</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+
+    {/* Spending Pattern Detail Modal */}
+    <Modal visible={showPatternModal} transparent animationType="fade" onRequestClose={() => setShowPatternModal(false)} statusBarTranslucent={true} navigationBarTranslucent={true}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.faqCard, { maxHeight: '85%' }]}>
+          <Text style={styles.faqTitle}>Spending Patterns</Text>
+          <Text style={styles.faqSubtitle}>
+            I track spikes and month-over-month changes in your highest spending categories.
+          </Text>
+
+          <ScrollView style={{ width: '100%', marginVertical: 12 }} showsVerticalScrollIndicator={false}>
+            <View style={{ gap: 12 }}>
+              {spendingPatterns.map((pattern, index) => {
+                const isUp = pattern.direction === 'up';
+                const isDown = pattern.direction === 'down';
+                const cardBg = isUp ? '#FFF0EE' : isDown ? '#EEF4E6' : '#FAF9F7';
+                const borderColor = isUp ? '#EAA196' : isDown ? '#A6C88A' : '#E8DDD0';
+                const textColor = isUp ? '#C84B31' : isDown ? '#3E5A2A' : '#54554B';
+                
+                return (
+                  <View key={pattern.category} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      {renderCategoryIcon(pattern.category)}
+                      <Text style={{ fontSize: 17, fontFamily: typography.fontFamily.bold, color: '#745143' }}>
+                        {index === 0 ? 'Most Active: ' : 'Second Active: '}{pattern.category}
+                      </Text>
+                      <View style={{
+                        backgroundColor: isUp ? '#FCE3E0' : isDown ? '#E1ECC8' : '#EEF4E6',
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
+                        borderRadius: 99,
+                        marginLeft: 'auto'
+                      }}>
+                        <Text style={{ fontSize: 12, fontFamily: typography.fontFamily.bold, color: textColor }}>
+                          {isUp ? 'Increased' : isDown ? 'Saved Spends' : 'Stable'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={{ fontSize: 15, fontFamily: typography.fontFamily.medium, color: '#54554B', marginTop: 2 }}>
+                      Total spend: <Text style={{ fontFamily: typography.fontFamily.bold, color: '#745143' }}>₹{pattern.amount.toLocaleString('en-IN')}</Text> this month.
+                    </Text>
+
+                    {isDown && pattern.positiveInsight ? (
+                      <View style={{ marginTop: 4, gap: 2 }}>
+                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#3E5A2A' }}>
+                          Positive Insight:
+                        </Text>
+                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18 }}>
+                          {pattern.positiveInsight}
+                        </Text>
+                      </View>
+                    ) : isUp ? (
+                      <View style={{ marginTop: 4, gap: 2 }}>
+                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#C84B31' }}>
+                          Spending Increase:
+                        </Text>
+                        <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18 }}>
+                          Spent {pattern.percentChange}% more (+₹{Math.abs(pattern.amountChange).toLocaleString('en-IN')}) compared to last month.
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B' }}>
+                        Spending in this category remained stable compared to last month.
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <Pressable onPress={() => setShowPatternModal(false)} style={styles.faqCloseBtn}>
+            <Text style={styles.faqCloseBtnText}>Close</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+
+    {/* Money Habits Detail Modal */}
+    <Modal visible={showHabitsModal} transparent animationType="fade" onRequestClose={() => setShowHabitsModal(false)} statusBarTranslucent={true} navigationBarTranslucent={true}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.faqCard, { maxHeight: '85%' }]}>
+          <Text style={styles.faqTitle}>Money Habits</Text>
+          <Text style={styles.faqSubtitle}>
+            I analyze your spending behaviors and transaction patterns to spotlight your core money habits.
+          </Text>
+
+          <ScrollView style={{ width: '100%', marginVertical: 12 }} showsVerticalScrollIndicator={false}>
+            <View style={{ gap: 12 }}>
+              {habits.map((habit, index) => {
+                let habitTitle = 'Financial Behavior';
+                let habitDetail = 'I track this baseline trend to watch for unexpected fluctuations in your daily transactional lifestyle.';
+                let isPositive = false;
+                
+                const lowerHabit = habit.toLowerCase();
+                if (lowerHabit.includes('weekend')) {
+                  if (lowerHabit.includes('most spending') || lowerHabit.includes('occurs on weekend')) {
+                    habitTitle = 'Weekend Concentration';
+                    habitDetail = 'I detected a higher concentration of spends on weekends. Try setting a specific weekend allowance to avoid lifestyle creep.';
+                  } else {
+                    habitTitle = 'Balanced Timeline';
+                    habitDetail = 'Your weekday and weekend spends are well-balanced. This consistency helps you stick to your monthly savings goals.';
+                    isPositive = true;
+                  }
+                } else if (lowerHabit.includes('food')) {
+                  habitTitle = 'Dining & Food Ratio';
+                  habitDetail = `Food accounts for a significant portion of your recent outgoings. Meal planning or cooking at home can yield easy savings.`;
+                } else if (lowerHabit.includes('evening')) {
+                  if (lowerHabit.includes('increase during evening')) {
+                    habitTitle = 'Evening Spend Peaks';
+                    habitDetail = 'Your transactions tend to peak in the evening hours. Be mindful of fatigue-induced shopping or late-night impulse orders.';
+                  } else {
+                    habitTitle = 'Even Time-Distribution';
+                    habitDetail = 'Your transactions are evenly distributed. No specific time-of-day concentration detected.';
+                    isPositive = true;
+                  }
+                } else if (lowerHabit.includes('cash') || lowerHabit.includes('atm')) {
+                  habitTitle = 'ATM & Cash Usage';
+                  habitDetail = 'Cash withdrawals are clustered on specific days. Track where physical cash goes, as it often slips by unrecorded.';
+                }
+
+                const cardBg = isPositive ? '#EEF4E6' : '#FAF9F7';
+                const borderColor = isPositive ? '#A6C88A' : '#E8DDD0';
+                const textColor = isPositive ? '#3E5A2A' : '#54554B';
+                
+                return (
+                  <View key={index} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={styles.habitIconBox}>
+                        {index === 0 ? (
+                          <CalendarIcon size={12} color="#3E5A2A" />
+                        ) : index === 1 ? (
+                          <PercentIcon size={12} color="#3E5A2A" />
+                        ) : (
+                          <ClockIcon size={12} color="#3E5A2A" />
+                        )}
+                      </View>
+                      <Text style={{ fontSize: 16, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }}>
+                        {habitTitle}
+                      </Text>
+                      <View style={{
+                        backgroundColor: isPositive ? '#E1ECC8' : '#EEF4E6',
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
+                        borderRadius: 99,
+                        marginLeft: 'auto'
+                      }}>
+                        <Text style={{ fontSize: 11, fontFamily: typography.fontFamily.bold, color: textColor }}>
+                          {isPositive ? 'Healthy habit' : 'Observation'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#54554B', marginTop: 2 }}>
+                      "{habit}"
+                    </Text>
+
+                    <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18, marginTop: 2 }}>
+                      {habitDetail}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <Pressable onPress={() => setShowHabitsModal(false)} style={styles.faqCloseBtn}>
+            <Text style={styles.faqCloseBtnText}>Close</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  </>
+);
 }
 
 // Inline style hack object for typing issues on React Native Svg styles
@@ -1792,7 +1801,7 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(116, 81, 67, 0.4)',
+    backgroundColor: 'rgba(15, 12, 10, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

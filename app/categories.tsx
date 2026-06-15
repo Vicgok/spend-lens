@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeOut, Layout } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { DEFAULT_CATEGORIES } from '@/features/categorizer/categories';
 import { Category, CategoryType } from '@/types';
@@ -483,8 +483,8 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   headerBtn: { paddingHorizontal: 12, paddingVertical: 6 },
-  headerBtnText: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.sm },
-  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md },
+  headerBtnText: { fontFamily: typography.fontFamily.medium, fontSize: 14 },
+  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 17 },
   
   tabContainer: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   tabs: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tabText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.sm },
+  tabText: { fontFamily: typography.fontFamily.semibold, fontSize: 14 },
   
   scrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 60, gap: 12 },
   
@@ -524,8 +524,8 @@ const styles = StyleSheet.create({
   },
   emojiText: { fontSize: 22 },
   cardInfo: { flex: 1 },
-  catName: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.base, marginBottom: 2 },
-  catSub: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.xs },
+  catName: { fontFamily: typography.fontFamily.semibold, fontSize: 15, marginBottom: 2 },
+  catSub: { fontFamily: typography.fontFamily.regular, fontSize: 13 },
   
   customBadge: {
     paddingHorizontal: 8,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 10,
+    fontSize: 13,
     letterSpacing: 0.5,
     marginBottom: 10,
   },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   noKeywords: {
     fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.xs,
+    fontSize: 13,
     lineHeight: 16,
     paddingVertical: 4,
   },
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
   },
-  keywordText: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.xs },
+  keywordText: { fontFamily: typography.fontFamily.medium, fontSize: 13 },
   deleteKwBtn: {
     width: 18,
     height: 18,
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
   addKwInput: {
     flex: 1,
     paddingLeft: 12,
-    fontSize: typography.sizes.sm,
+    fontSize: 14,
     fontFamily: typography.fontFamily.regular,
   },
   addKwBtn: {
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderStyle: 'dashed',
   },
-  deleteCatText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.sm },
+  deleteCatText: { fontFamily: typography.fontFamily.semibold, fontSize: 14 },
   
   // Modal styles
   modalOverlay: {
@@ -647,15 +647,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255,255,255,0.05)',
   },
-  modalTitle: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md },
-  closeText: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.sm },
+  modalTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 17 },
+  closeText: { fontFamily: typography.fontFamily.medium, fontSize: 14 },
   
   modalScroll: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
   modalInputGroup: { borderRadius: borderRadius.lg, borderWidth: 1, padding: 12, marginBottom: 16 },
-  modalInputLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 10, letterSpacing: 0.5, marginBottom: 6 },
-  modalTextInput: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.base, padding: 0 },
+  modalInputLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 13, letterSpacing: 0.5, marginBottom: 6 },
+  modalTextInput: { fontFamily: typography.fontFamily.regular, fontSize: 15, padding: 0 },
   
-  modalSectionTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 10, letterSpacing: 0.5, marginBottom: 8 },
+  modalSectionTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 13, letterSpacing: 0.5, marginBottom: 8 },
   modalTabs: {
     flexDirection: 'row',
     borderRadius: borderRadius.lg,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTab: { flex: 1, paddingVertical: 8, borderRadius: borderRadius.md, justifyContent: 'center', alignItems: 'center' },
-  modalTabText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.xs },
+  modalTabText: { fontFamily: typography.fontFamily.semibold, fontSize: 13 },
   
   emojiGrid: {
     flexDirection: 'row',
@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
   
   submitBtnWrapper: { width: '100%', marginTop: 12 },
   submitBtn: { height: 52, borderRadius: borderRadius.lg, justifyContent: 'center', alignItems: 'center' },
-  submitBtnText: { color: '#FFF', fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.sm },
+  submitBtnText: { color: '#FFF', fontFamily: typography.fontFamily.semibold, fontSize: 15 },
 });
 
 export default CategoriesScreen;

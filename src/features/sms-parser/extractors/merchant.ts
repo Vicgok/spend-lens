@@ -15,7 +15,6 @@ export function extractMerchantInfo(rawMessage: string): ParsedMerchantInfo {
     return { merchant: null, referenceNo: null };
   }
 
-  const rawLower = rawMessage.toLowerCase();
   const rawTokens = rawMessage.split(/\s+/).filter(t => t !== '');
   const rawTokensLower = rawTokens.map(t => t.toLowerCase());
 

@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, spacing, borderRadius } from '@/theme';
+import { typography, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { TransactionType } from '@/types';
 import { DEFAULT_CATEGORIES } from '@/features/categorizer/categories';
@@ -264,8 +264,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 12,
   },
-  cancelBtn: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.base },
-  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md },
+  cancelBtn: { fontFamily: typography.fontFamily.medium, fontSize: 14 },
+  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 17 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, flexGrow: 1 },
 
   // Type
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   typeIcon: { fontSize: 16, fontWeight: '700' },
-  typeLabel: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.sm },
+  typeLabel: { fontFamily: typography.fontFamily.medium, fontSize: 14 },
 
   // Amount
   amountSection: {
@@ -317,19 +317,19 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.xs,
+    fontSize: 13,
     marginBottom: 6,
   },
   textInput: {
     fontFamily: typography.fontFamily.regular,
-    fontSize: typography.sizes.base,
+    fontSize: 15,
     padding: 0,
   },
 
   // Categories
   catSectionTitle: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 17,
     marginBottom: 12,
     marginTop: 8,
   },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   catEmoji: { fontSize: 16 },
   catLabel: {
     fontFamily: typography.fontFamily.medium,
-    fontSize: typography.sizes.sm,
+    fontSize: 14,
     maxWidth: 100,
   },
 
@@ -367,5 +367,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitDisabled: { opacity: 0.5 },
-  submitText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md, color: '#FFFFFF' },
+  submitText: { fontFamily: typography.fontFamily.semibold, fontSize: 15, color: '#FFFFFF' },
 });

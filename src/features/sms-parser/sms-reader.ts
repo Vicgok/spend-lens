@@ -1,14 +1,11 @@
-import { Platform, PermissionsAndroid, NativeModules } from 'react-native';
+import { Platform, PermissionsAndroid} from 'react-native';
 import { parseTransactionSMS, generateSMSHash } from './engine';
 import { useTransactionStore } from '../../stores/transaction-store';
 import { checkSMSHashExists, writeLog, addPendingDetection } from '../../lib/database';
-import { TransactionCreateInput, Account } from '../../types';
+import { Account } from '../../types';
 import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
 import { ParsedTransaction } from './types';
-
-// Detect if we actually have the native module linked (false in Expo Go/iOS/Simulators)
-const hasNativeModule = Platform.OS === 'android' && !!SpendLensSmsModule;
 
 // Helper to get a ISO date string offset by days, optionally forced to weekend
 function getMockDateISO(daysAgo: number, forceWeekend: boolean = false): string {
@@ -386,7 +383,7 @@ export async function simulateSMSScan(): Promise<number> {
  * This function now only sets up a polling-based refresh when the app is foregrounded
  * to pick up any transactions created by the background headless task.
  */
-export function startSMSListener(onNewTransactionAdded: (count: number) => void) {
+export function startSMSListener(_onNewTransactionAdded: (count: number) => void) {
   // No-op: native SmsReceiver in AndroidManifest handles incoming SMS
   // The HeadlessJS task processes them in the background
   return () => {};

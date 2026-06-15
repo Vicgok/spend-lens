@@ -17,7 +17,7 @@ import { useTheme } from '@/providers/theme-provider';
 import { typography, spacing, borderRadius, tokens } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { DEFAULT_CATEGORIES } from '@/features/categorizer/categories';
-import { formatCurrency } from '@/utils/currency';
+
 import { formatDate } from '@/utils/date';
 import * as Haptics from 'expo-haptics';
 
@@ -252,32 +252,32 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   headerBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2 },
-  headerBtnText: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.sm },
-  deleteBtnText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.sm },
-  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md },
+  headerBtnText: { fontFamily: typography.fontFamily.medium, fontSize: 14 },
+  deleteBtnText: { fontFamily: typography.fontFamily.semibold, fontSize: 14 },
+  headerTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 17 },
 
   scrollContent: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.base, flexGrow: 1 },
 
   amountContainer: { alignItems: 'center', marginBottom: spacing['2xl'] },
-  amountLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 10, letterSpacing: 1, marginBottom: spacing.xs + 2 },
+  amountLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 13, letterSpacing: 1, marginBottom: spacing.xs + 2 },
   amountInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' },
   currencySymbol: { fontFamily: typography.fontFamily.monoBold, fontSize: 40, marginRight: spacing.xs },
   amountInput: { fontFamily: typography.fontFamily.monoBold, fontSize: 48, padding: 0, minWidth: 150, textAlign: 'center' },
-  dateText: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.xs, marginTop: spacing.sm },
+  dateText: { fontFamily: typography.fontFamily.regular, fontSize: 13, marginTop: spacing.sm },
 
   fields: { gap: spacing.lg },
   inputGroup: { borderRadius: borderRadius.lg, padding: spacing.md, borderWidth: 1 },
-  inputLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 10, letterSpacing: 0.5, marginBottom: spacing.xs },
-  textInput: { fontFamily: typography.fontFamily.regular, fontSize: typography.sizes.base, padding: 0, minHeight: 24, textAlignVertical: 'top' },
+  inputLabel: { fontFamily: typography.fontFamily.semibold, fontSize: 13, letterSpacing: 0.5, marginBottom: spacing.xs },
+  textInput: { fontFamily: typography.fontFamily.regular, fontSize: 15, padding: 0, minHeight: 24, textAlignVertical: 'top' },
 
-  sectionTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 10, letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs + 2 },
+  sectionTitle: { fontFamily: typography.fontFamily.semibold, fontSize: 17, letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs + 2 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   catChip: { flexDirection: 'row', alignItems: 'center', width: '48%', gap: spacing.sm, paddingHorizontal: spacing.base, paddingVertical: spacing.md, borderRadius: borderRadius.md, borderWidth: 1 },
   catEmoji: { fontSize: 20 },
-  catLabel: { fontFamily: typography.fontFamily.medium, fontSize: typography.sizes.sm, flex: 1 },
+  catLabel: { fontFamily: typography.fontFamily.medium, fontSize: 14, flex: 1 },
 
   bottomBar: { width: '100%', paddingTop: spacing.base },
   saveWrapper: { width: '100%' },
   saveBtn: { height: 56, borderRadius: borderRadius.lg, justifyContent: 'center', alignItems: 'center' },
-  saveBtnText: { fontFamily: typography.fontFamily.semibold, fontSize: typography.sizes.md, color: tokens.colors.white },
+  saveBtnText: { fontFamily: typography.fontFamily.semibold, fontSize: 15, color: tokens.colors.white },
 });

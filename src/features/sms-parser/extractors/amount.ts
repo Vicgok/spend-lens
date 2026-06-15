@@ -23,7 +23,6 @@ export function getTransactionAmount(tokens: string[]): number | null {
 
   for (const index of rsIndices) {
     let amountStr = '';
-    let foundIndex = -1;
 
     // Check index + 1
     if (index + 1 < tokens.length) {
@@ -31,7 +30,6 @@ export function getTransactionAmount(tokens: string[]): number | null {
       const parsedVal = parseFloat(val);
       if (!isNaN(parsedVal) && parsedVal > 0) {
         amountStr = val;
-        foundIndex = index + 1;
       }
     }
 
@@ -41,7 +39,6 @@ export function getTransactionAmount(tokens: string[]): number | null {
       const parsedVal = parseFloat(val);
       if (!isNaN(parsedVal) && parsedVal > 0) {
         amountStr = val;
-        foundIndex = index + 2;
       }
     }
 

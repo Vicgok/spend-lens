@@ -1,26 +1,24 @@
 import React, { useEffect, useRef } from 'react';
-import { Tabs, router } from 'expo-router';
 import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useTheme } from '@/providers/theme-provider';
+import { router, usePathname } from 'expo-router';
 import { typography } from '@/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+interface TabBarButtonProps {
+  isFocused: boolean;
+  onPress: () => void;
+  index: number;
+  tabWidth: number;
+}
+
 function TabBarButton({
   isFocused,
   onPress,
-  onLongPress,
   index,
   tabWidth,
-}: {
-  isFocused: boolean;
-  onPress: () => void;
-  onLongPress?: () => void;
-  index: number;
-  tabWidth: number;
-}) {
+}: TabBarButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(isFocused ? 1.0 : 0.6)).current;
 
@@ -67,7 +65,6 @@ function TabBarButton({
   return (
     <Pressable
       onPress={onPress}
-      onLongPress={onLongPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={{ width: tabWidth, height: 70, alignItems: 'center', justifyContent: 'center' }}
@@ -115,100 +112,83 @@ function TabBarButton({
   );
 }
 
-function CustomTabBar({ state, descriptors: _descriptors, navigation }: BottomTabBarProps) {
-  const tabBarWidth = screenWidth - 40; // Floating margin layout
+export function BottomTabBar() {
+  const pathname = usePathname();
+  const tabBarWidth = screenWidth - 40;
   const tabWidth = tabBarWidth / 5;
-  const activeIndex = state.index;
 
-  const translateX = useRef(new Animated.Value(state.index * tabWidth + (tabWidth - 16) / 2)).current;
+  const getActiveIndex = () => {
+    // Exact path segmentation matching
+    if (pathname === '/' || pathname === '/(tabs)' || pathname === '/(tabs)/') return 0;
+    if (pathname.includes('/transactions')) return 1;
+    if (pathname.includes('/insights')) return 2;
+    if (pathname.includes('/settings') || pathname.includes('/accounts')) return 3;
+    if (pathname.includes('/add-transaction')) return 4;
+    return -1;
+  };
+
+  const activeIndex = getActiveIndex();
+  const translateX = useRef(new Animated.Value(activeIndex >= 0 ? activeIndex * tabWidth + (tabWidth - 16) / 2 : 0)).current;
 
   useEffect(() => {
-    const targetX = activeIndex * tabWidth + (tabWidth - 16) / 2;
-    Animated.spring(translateX, {
-      toValue: targetX,
-      friction: 7,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
+    if (activeIndex >= 0) {
+      const targetX = activeIndex * tabWidth + (tabWidth - 16) / 2;
+      Animated.spring(translateX, {
+        toValue: targetX,
+        friction: 7,
+        tension: 40,
+        useNativeDriver: true,
+      }).start();
+    }
   }, [activeIndex, tabWidth]);
+
+  const handleTabPress = (index: number) => {
+    switch (index) {
+      case 0:
+        router.push('/(tabs)');
+        break;
+      case 1:
+        router.push('/(tabs)/transactions');
+        break;
+      case 2:
+        router.push('/(tabs)/insights');
+        break;
+      case 3:
+        router.push('/(tabs)/settings');
+        break;
+      case 4:
+        router.push('/add-transaction');
+        break;
+    }
+  };
 
   return (
     <View style={styles.standardTabBar}>
-      <Animated.View
-        style={[
-          styles.activeUnderline,
-          {
-            backgroundColor: '#3E5A2A',
-            bottom: 6,
-            transform: [{ translateX }],
-          },
-        ]}
-      />
-      {state.routes.map((route, index) => {
-        const isFocused = state.index === index;
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
-          }
-        };
-
-        const onLongPress = () => {
-          navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-          });
-        };
-
+      {activeIndex >= 0 && (
+        <Animated.View
+          style={[
+            styles.activeUnderline,
+            {
+              backgroundColor: '#3E5A2A',
+              bottom: 6,
+              transform: [{ translateX }],
+            },
+          ]}
+        />
+      )}
+      {[0, 1, 2, 3, 4].map((index) => {
+        const isFocused = activeIndex === index;
         return (
           <TabBarButton
-            key={route.key}
+            key={index}
             isFocused={isFocused}
-            onPress={onPress}
-            onLongPress={onLongPress}
+            onPress={() => handleTabPress(index)}
             index={index}
             tabWidth={tabWidth}
           />
         );
       })}
     </View>
-  );
-}
-
-export default function TabLayout() {
-  const { theme } = useTheme();
-  return (
-    <Tabs
-      // @ts-ignore
-      sceneContainerStyle={{ backgroundColor: theme.background }}
-      screenOptions={{
-        headerShown: false,
-      }}
-      tabBar={(props) => <CustomTabBar {...props} />}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="transactions" />
-      <Tabs.Screen name="insights" />
-      <Tabs.Screen name="settings" />
-      <Tabs.Screen
-        name="add-transaction"
-        options={{
-          href: null,
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('/add-transaction');
-          },
-        }}
-      />
-    </Tabs>
   );
 }
 
@@ -226,12 +206,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8EE',
     borderWidth: 1,
     borderColor: '#E6E1D8',
-    // Soft diffused editorial shadow
     shadowColor: '#745143',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 8,
+    zIndex: 100, // Ensure it floats on top
   },
   activeUnderline: {
     width: 16,

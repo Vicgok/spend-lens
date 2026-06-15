@@ -1,4 +1,4 @@
-import { TransactionType } from '../../types';
+
 
 export interface ParsedTransaction {
   account: {

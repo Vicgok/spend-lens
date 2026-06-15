@@ -2,7 +2,7 @@
 export { default as TabHeader } from './TabHeader';
 export { default as AddFinancialSourceSheet } from './AddFinancialSourceSheet';
 export { OnboardingTransition } from './OnboardingTransition';
-export { BankLogo, AccountIcon } from './BankLogo';
+export { BankLogo, AccountIcon, BANK_BRAND_COLORS } from './BankLogo';
 export { TransactionSkeleton, SkeletonPlaceholder } from './Skeleton';
 export * from './OnboardingIcons';
 
@@ -18,3 +18,5 @@ export { default as SavingsJarIllustration } from './illustrations/SavingsJar';
 export { default as SproutCoinMascot } from './illustrations/SproutCoinMascot';
 export { default as CornerPlant } from './illustrations/CornerPlant';
 export { default as LeafCluster } from './illustrations/LeafCluster';
+export { default as CurrentAccountsList } from './CurrentAccountsList';
+export { BottomTabBar } from './BottomTabBar';

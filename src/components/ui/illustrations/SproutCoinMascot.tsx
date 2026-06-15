@@ -4,9 +4,6 @@ import Svg, {
   Circle,
   Ellipse,
   Path,
-  Rect,
-  Defs,
-  ClipPath,
 } from 'react-native-svg';
 import { tokens } from '@/theme';
 

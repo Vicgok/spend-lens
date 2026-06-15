@@ -213,7 +213,6 @@ export default function BalanceSetup() {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pickerType, setPickerType] = useState<'bank' | 'wallet'>('bank');
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const [isExiting, setIsExiting] = useState(false);
@@ -451,8 +450,6 @@ export default function BalanceSetup() {
                     keyboardType="decimal-pad"
                     value={acc.balance}
                     onChangeText={(text) => updateBalance(index, text)}
-                    onFocus={() => setFocusedIndex(index)}
-                    onBlur={() => setFocusedIndex(null)}
                     underlineColorAndroid="transparent"
                   />
                 </View>
@@ -532,6 +529,8 @@ export default function BalanceSetup() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: '#FAF9F7', borderColor: 'rgba(116, 81, 67, 0.15)' }]}>
@@ -749,7 +748,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(15, 12, 10, 0.75)',
     justifyContent: 'flex-end',
   },
   modalContent: {

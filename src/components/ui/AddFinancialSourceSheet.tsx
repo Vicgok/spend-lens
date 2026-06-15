@@ -14,7 +14,7 @@ import {
   PanResponder,
   Dimensions,
 } from 'react-native';
-import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle} from 'react-native-svg';
 
 import { tokens } from '@/theme';
 import type { AccountType } from '@/types';
@@ -239,7 +239,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
     onPanResponderGrant: () => {
       startHeightRef.current = currentHeightRef.current || DEFAULT_HEIGHT;
     },
-    onPanResponderMove: (evt, gestureState) => {
+    onPanResponderMove: (_evt, gestureState) => {
       // Calculate new height based on starting height and vertical delta dy
       const newHeight = startHeightRef.current - gestureState.dy;
       if (newHeight >= SCREEN_HEIGHT * 0.30 && newHeight <= SCREEN_HEIGHT * 0.96) {
@@ -247,7 +247,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
         currentHeightRef.current = newHeight;
       }
     },
-    onPanResponderRelease: (evt, gestureState) => {
+    onPanResponderRelease: (_evt, gestureState) => {
       // If it was a simple tap / touch without actual drag, do nothing (prevents snapping)
       if (Math.abs(gestureState.dy) < 5) {
         return;
@@ -313,9 +313,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
     return available.filter(b => b.name.toLowerCase().includes(q));
   }, [selectedType, existingBankIds, query]);
 
-  const selectedBank = useMemo(() => {
-    return PREDEFINED_BANKS.find(b => b.id === selectedBankId);
-  }, [selectedBankId]);
+
 
   const numericBalance = useMemo(
     () => Number(balance.replace(/,/g, '')) || 0,

@@ -7,14 +7,13 @@ import {
   Pressable,
   TextInput,
   RefreshControl,
-  Dimensions,
   ScrollView,
   Modal,
 } from 'react-native';
 import Svg, { Rect, Circle, Path, Line, Text as SvgText, G } from 'react-native-svg';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/providers/theme-provider';
+import { StatusBar } from 'expo-status-bar';
 import { typography, tokens, shadows, spacing, borderRadius } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { getMonthlyTotals } from '@/lib/database';
@@ -46,8 +45,6 @@ const TABS: { label: string; value: TransactionType }[] = [
   { label: 'Income', value: 'income' },
   { label: 'Savings', value: 'transfer' }, // Map 'transfer' as 'savings'
 ];
-
-const { width } = Dimensions.get('window');
 
 type ChartMode = 'day' | 'week' | 'month' | 'year';
 
@@ -448,6 +445,7 @@ export default function TransactionsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="dark" />
       <TabHeader
         microHeader="FINANCIAL NOTEBOOK"
         title="History"
@@ -697,7 +695,7 @@ export default function TransactionsScreen() {
                     })}
 
                     {/* Transparent Interactive Rect Overlays */}
-                    {timelineData.map((d, idx) => {
+                    {timelineData.map((_, idx) => {
                       const N = timelineData.length;
                       const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
                       return (
@@ -832,6 +830,8 @@ export default function TransactionsScreen() {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setMonthPickerVisible(false)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -880,6 +880,8 @@ export default function TransactionsScreen() {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setCategoryPickerVisible(false)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -963,7 +965,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_PRIMARY_TEXT,
     marginTop: 2,
@@ -985,7 +987,7 @@ const styles = StyleSheet.create({
   },
   monthSelectorText: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 11,
+    fontSize: 13,
     color: COLOR_PRIMARY_TEXT,
   },
 
@@ -1018,7 +1020,7 @@ const styles = StyleSheet.create({
   },
   clearBtnText: {
     color: COLOR_PRIMARY_TEXT,
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: typography.fontFamily.bold,
   },
   filterBtn: {
@@ -1056,7 +1058,7 @@ const styles = StyleSheet.create({
     ...shadows.tactileTabButton,
   },
   tabLabel: {
-    fontSize: 13,
+    fontSize: 14,
   },
 
   // List layout
@@ -1072,7 +1074,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionHeaderText: {
-    fontSize: 10,
+    fontSize: 13,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_SECONDARY_TEXT,
     letterSpacing: 1.5,
@@ -1113,13 +1115,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   txMerchant: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_PRIMARY_TEXT,
     marginBottom: 2,
   },
   txMeta: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: typography.fontFamily.medium,
     color: COLOR_SECONDARY_TEXT,
   },
@@ -1128,12 +1130,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   txTime: {
-    fontSize: 9,
+    fontSize: 13,
     fontFamily: typography.fontFamily.regular,
     color: COLOR_SECONDARY_TEXT,
   },
   txAmount: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: typography.fontFamily.monoBold,
   },
 
@@ -1162,7 +1164,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardTitle: {
-    fontSize: 11,
+    fontSize: 17,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_SECONDARY_TEXT,
     letterSpacing: 1,
@@ -1188,14 +1190,14 @@ const styles = StyleSheet.create({
   },
   snapshotLabel: {
     fontFamily: typography.fontFamily.semibold,
-    fontSize: 9,
+    fontSize: 13,
     color: COLOR_SECONDARY_TEXT,
     letterSpacing: 0.5,
     marginBottom: spacing.xs,
   },
   snapshotValue: {
     fontFamily: typography.fontFamily.monoBold,
-    fontSize: 15,
+    fontSize: 19,
   },
   leafClusterContainer: {
     marginLeft: spacing.sm,
@@ -1229,7 +1231,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   chartModeLabel: {
-    fontSize: 9,
+    fontSize: 13,
     letterSpacing: 0.5,
   },
   chartWrapperContainer: {
@@ -1253,14 +1255,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: typography.fontFamily.bold,
     color: COLOR_PRIMARY_TEXT,
     marginTop: spacing.base,
     marginBottom: spacing.xs,
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: typography.fontFamily.regular,
     color: COLOR_SECONDARY_TEXT,
     textAlign: 'center',
@@ -1269,7 +1271,7 @@ const styles = StyleSheet.create({
   // Modals layout
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(116, 81, 67, 0.4)',
+    backgroundColor: 'rgba(15, 12, 10, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  _ScrollView,
   Pressable,
   Alert,
   Clipboard,
@@ -13,7 +13,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
-import { typography, borderRadius } from '@/theme';
+import { typography} from '@/theme';
 import { getLogs, clearLogs, LogEntry } from '@/lib/database';
 import Svg, { Path } from 'react-native-svg';
 
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: 2,
   },
-  title: { fontSize: 24, letterSpacing: -0.5 },
+  title: { fontSize: 26, letterSpacing: -0.5 },
 
   actionBar: {
     flexDirection: 'row',
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionBtnText: {
-    fontSize: 13,
+    fontSize: 14,
   },
 
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -267,20 +267,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   logEvent: {
-    fontSize: 11,
+    fontSize: 13,
     letterSpacing: 0.5,
   },
   logTime: {
-    fontSize: 11,
+    fontSize: 13,
   },
   logMsg: {
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 18,
   },
   logDetails: {
     marginTop: 6,
     padding: 6,
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: typography.fontFamily.mono,
     borderRadius: 4,
     overflow: 'hidden',

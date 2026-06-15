@@ -27,10 +27,7 @@ export const OnboardingTransition = React.memo(({
     outputRange: [SCREEN_WIDTH, 0, -SCREEN_WIDTH],
   })).current;
 
-  const opacity = useRef(animValue.interpolate({
-    inputRange: [0, 1, 2],
-    outputRange: [0, 1, 0],
-  })).current;
+
 
   const onExitCompleteRef = useRef(onExitComplete);
 
