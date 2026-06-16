@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,34 +8,31 @@ import {
   ScrollView,
   Modal,
   FlatList,
-  Alert,
   Dimensions,
-  InteractionManager,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getAccountDetailRoute, ROUTES } from '@/navigation/routes';
 import { typography, spacing } from '@/theme';
-import { useTransactionStore } from '@/stores/transaction-store';
-import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
-import { Account } from '@/types';
-import * as Haptics from 'expo-haptics';
+import {
+  ACCOUNTS_SCREEN_COLORS,
+  ACCOUNTS_SCREEN_COPY,
+  CURRENCY_SYMBOL,
+} from '@/lib/constants';
+import { useManageAccounts } from '@/hooks/use-manage-accounts';
 import { StatusBar } from 'expo-status-bar';
-import { BankLogo, ReadingNotebookMascot, LeafCluster, CurrentAccountsList, TabHeader } from '@/components/ui';
+import {
+  BankLogo,
+  ReadingNotebookMascot,
+  LeafCluster,
+  CurrentAccountsList,
+  TabHeader,
+} from '@/components/ui';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 const { height } = Dimensions.get('window');
-
-const SETTINGS_COLORS = {
-  background: '#E1D7C2',
-  surface: '#FFF8EE',
-  primary: '#745143',
-  secondary: '#54554B',
-  green: '#3E5A2A',
-  lightGreen: '#EEF4E6',
-  border: '#E8DDD0',
-};
 
 const ChevronRightIcon = React.memo(({ color }: { color: string }) => (
   <Svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -111,175 +108,45 @@ const SingleLeaf = React.memo(({ width = 16, height = 16, strokeColor, fillBg }:
 
 export default function ManageAccountsScreen() {
   const insets = useSafeAreaInsets();
+  const {
+    accounts,
+    balanceInput,
+    balanceModalVisible,
+    filteredBanks,
+    genericType,
+    handleAddGeneric,
+    handleDeleteAccount,
+    handleOpenBankPicker,
+    handleSaveAccount,
+    handleSelectBank,
+    isSubmitting,
+    modalVisible,
+    pickerType,
+    searchQuery,
+    selectedAccountId,
+    selectedBank,
+    setBalanceInput,
+    setBalanceModalVisible,
+    setModalVisible,
+    setSearchQuery,
+    setSelectedAccountId,
+    showDeferredContent,
+    showDeferredModals,
+  } = useManageAccounts();
 
-  const { accounts, loadAccounts, createAccount, deleteAccount } = useTransactionStore();
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [pickerType, setPickerType] = useState<'bank' | 'wallet'>('bank');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Selected account in the visual stack
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-
-  // Balance input modal state
-  const [balanceModalVisible, setBalanceModalVisible] = useState(false);
-  const [selectedBank, setSelectedBank] = useState<PredefinedBank | null>(null);
-  const [genericType, setGenericType] = useState<'cash' | 'credit_card' | null>(null);
-  const [balanceInput, setBalanceInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeferredContent, setShowDeferredContent] = useState(false);
-  const [showDeferredModals, setShowDeferredModals] = useState(false);
-
-  useEffect(() => {
-    loadAccounts();
-  }, [loadAccounts]);
-
-  useEffect(() => {
-    const contentHandle = InteractionManager.runAfterInteractions(() => {
-      setShowDeferredContent(true);
-    });
-    const modalHandle = InteractionManager.runAfterInteractions(() => {
-      setShowDeferredModals(true);
-    });
-
-    return () => {
-      contentHandle.cancel();
-      modalHandle.cancel();
-    };
-  }, []);
-
-  // Synchronize stack selection
-  useEffect(() => {
-    if (accounts.length > 0) {
-      if (!selectedAccountId || !accounts.some((a) => a.id === selectedAccountId)) {
-        setSelectedAccountId(accounts[0].id);
-      }
-    } else {
-      setSelectedAccountId(null);
-    }
-  }, [accounts, selectedAccountId]);
-
-  const handleOpenBankPicker = (type: 'bank' | 'wallet') => {
-    setPickerType(type);
-    setSearchQuery('');
-    setModalVisible(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
-  const handleSelectBank = (bank: PredefinedBank) => {
-    setSelectedBank(bank);
-    setGenericType(null);
-    setBalanceInput('');
-    setModalVisible(false);
-    setBalanceModalVisible(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
-  const handleAddGeneric = (type: 'cash' | 'credit_card') => {
-    // Check if generic type already exists
-    if (accounts.some((a) => a.type === type && !a.bankId)) {
-      Alert.alert('Duplicate Account', `You have already added a ${type === 'cash' ? 'Cash' : 'Credit Card'} account.`);
+  const handleBackPress = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
       return;
     }
-    setGenericType(type);
-    setSelectedBank(null);
-    setBalanceInput('');
-    setBalanceModalVisible(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
 
-  const handleSaveAccount = async () => {
-    const balance = parseFloat(balanceInput) || 0;
-    setIsSubmitting(true);
+    router.replace(ROUTES.tabsSettings);
+  }, []);
 
-    try {
-      let createdAcc: Account | undefined;
-      if (selectedBank) {
-        createdAcc = await createAccount({
-          name: selectedBank.name,
-          type: selectedBank.type === 'wallet' ? 'wallet' : 'bank',
-          balance,
-          currency: 'INR',
-          icon: selectedBank.icon,
-          color: selectedBank.color,
-          bankId: selectedBank.id,
-        });
-      } else if (genericType) {
-        createdAcc = await createAccount({
-          name: genericType === 'cash' ? 'Cash' : 'Credit Card',
-          type: genericType,
-          balance,
-          currency: 'INR',
-          icon: genericType === 'cash' ? '💵' : '💳',
-        });
-      }
+  const handlePressActive = useCallback((account: { id: string }) => {
+    router.push(getAccountDetailRoute(account.id));
+  }, []);
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setBalanceModalVisible(false);
-      setSelectedBank(null);
-      setGenericType(null);
-
-      // Auto-focus the new account immediately
-      if (createdAcc?.id) {
-        setSelectedAccountId(createdAcc.id);
-      }
-
-      await loadAccounts();
-    } catch (e) {
-      console.error(e);
-      Alert.alert('Error', 'Failed to create account.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteAccount = (acc: Account) => {
-    Alert.alert(
-      'Delete Account',
-      `Are you sure you want to delete "${acc.name}"? This will delete all transactions associated with this account. This cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Update selected index before deletion if it is currently selected
-              if (selectedAccountId === acc.id) {
-                const remaining = accounts.filter((a) => a.id !== acc.id);
-                setSelectedAccountId(remaining[0]?.id || null);
-              }
-              await deleteAccount(acc.id);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-              await loadAccounts();
-            } catch (e) {
-              console.error(e);
-              Alert.alert('Error', 'Failed to delete account.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const filteredBanks = PREDEFINED_BANKS.filter(
-    (bank) =>
-      bank.type === pickerType &&
-      !accounts.some((acc) => acc.bankId === bank.id) &&
-      bank.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Cyclic stack rotation sorting logic
-  const activeSelectedId = selectedAccountId || (accounts[0] ? accounts[0].id : null);
-  let orderedAccounts = [...accounts];
-  if (activeSelectedId) {
-    const selectedIdx = orderedAccounts.findIndex((a) => a.id === activeSelectedId);
-    if (selectedIdx > -1) {
-      const before = orderedAccounts.slice(0, selectedIdx);
-      const after = orderedAccounts.slice(selectedIdx);
-      orderedAccounts = [...after, ...before];
-    }
-  }
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top + 12 }]}
@@ -287,28 +154,17 @@ export default function ManageAccountsScreen() {
     >
       <StatusBar style="dark" />
       <View style={styles.headerTop}>
-        <Pressable
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-              return;
-            }
-
-            router.replace('/(tabs)/settings' as any);
-          }}
-          style={styles.backButton}
-        >
-          <BackArrowIcon color={SETTINGS_COLORS.green} />
+        <Pressable onPress={handleBackPress} style={styles.backButton}>
+          <BackArrowIcon color={ACCOUNTS_SCREEN_COLORS.green} />
           <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Block */}
         <TabHeader
-          microHeader="USER CONTROL PANEL"
-          title="Manage Accounts"
+          microHeader={ACCOUNTS_SCREEN_COPY.userControlPanel}
+          title={ACCOUNTS_SCREEN_COPY.manageAccounts}
           variant="tactile"
-          subtitle="Add and manage your accounts to track your net worth better."
+          subtitle={ACCOUNTS_SCREEN_COPY.manageAccountsSubtitle}
           renderRight={() => (
             <View style={styles.headerRight}>
               <View style={styles.mascotLeafDecor}>
@@ -319,118 +175,99 @@ export default function ManageAccountsScreen() {
           )}
         />
 
-        {/* Current Accounts */}
-        <Text style={styles.sectionTitle}>CURRENT ACCOUNTS</Text>
-        <View style={{ marginBottom: 28 }}>
+        <Text style={styles.sectionTitle}>{ACCOUNTS_SCREEN_COPY.currentAccounts}</Text>
+        <View style={styles.currentAccountsSection}>
           {showDeferredContent ? (
             <CurrentAccountsList
               accounts={accounts}
               selectedAccountId={selectedAccountId}
               onSelectAccountId={setSelectedAccountId}
               onDeleteAccount={handleDeleteAccount}
-              onPressActive={(account) => {
-                router.push(`/accounts/${account.id}` as any);
-              }}
+              onPressActive={handlePressActive}
             />
           ) : (
             <View style={styles.deferredAccountsPlaceholder} />
           )}
         </View>
 
-        {/* Add Account Presets */}
-        <Text style={styles.sectionTitle}>ADD NEW ACCOUNT</Text>
+        <Text style={styles.sectionTitle}>{ACCOUNTS_SCREEN_COPY.addNewAccount}</Text>
         <View style={styles.presetsGrid}>
-          {/* Row 1: 2-column grid */}
           <View style={styles.presetsRow}>
-            {/* Bank Account Preset Card */}
             <Pressable
               onPress={() => handleOpenBankPicker('bank')}
-              style={({ pressed }) => [styles.presetCard, pressed && { opacity: 0.95 }]}
+              style={({ pressed }) => [styles.presetCard, pressed && styles.pressedCard]}
             >
               <View style={styles.presetTop}>
                 <View style={styles.presetIconOuter}>
-                  <BankPresetIcon color={SETTINGS_COLORS.primary} />
+                  <BankPresetIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
                 </View>
                 <View style={styles.chevronCircle}>
-                  <ChevronRightIcon color={SETTINGS_COLORS.primary} />
+                  <ChevronRightIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
                 </View>
               </View>
               <View style={styles.presetTextContainer}>
-                <Text style={styles.presetTitle}>Bank Account</Text>
-                <Text style={styles.presetDesc}>Add savings or current accounts.</Text>
+                <Text style={styles.presetTitle}>{ACCOUNTS_SCREEN_COPY.bankAccount}</Text>
+                <Text style={styles.presetDesc}>{ACCOUNTS_SCREEN_COPY.bankAccountDescription}</Text>
               </View>
             </Pressable>
 
-            {/* Credit Card Preset Card */}
             <Pressable
               onPress={() => handleAddGeneric('credit_card')}
-              disabled={accounts.some((a) => a.type === 'credit_card' && !a.bankId)}
+              disabled={accounts.some((account) => account.type === 'credit_card' && !account.bankId)}
               style={({ pressed }) => [
                 styles.presetCard,
-                accounts.some((a) => a.type === 'credit_card' && !a.bankId) && { opacity: 0.5 },
-                pressed && { opacity: 0.95 }
+                accounts.some((account) => account.type === 'credit_card' && !account.bankId) && styles.disabledCard,
+                pressed && styles.pressedCard,
               ]}
             >
               <View style={styles.presetTop}>
                 <View style={styles.presetIconOuter}>
-                  <CreditCardPresetIcon color={SETTINGS_COLORS.primary} />
+                  <CreditCardPresetIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
                 </View>
                 <View style={styles.chevronCircle}>
-                  <ChevronRightIcon color={SETTINGS_COLORS.primary} />
+                  <ChevronRightIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
                 </View>
               </View>
               <View style={styles.presetTextContainer}>
-                <Text style={styles.presetTitle}>Credit Card</Text>
-                <Text style={styles.presetDesc}>Track card spending and repayments.</Text>
+                <Text style={styles.presetTitle}>{ACCOUNTS_SCREEN_COPY.creditCard}</Text>
+                <Text style={styles.presetDesc}>{ACCOUNTS_SCREEN_COPY.creditCardDescription}</Text>
               </View>
             </Pressable>
           </View>
 
-          {/* Row 2: Full-width Digital Wallet Card */}
           <Pressable
             onPress={() => handleOpenBankPicker('wallet')}
-            style={({ pressed }) => [styles.presetCardFull, pressed && { opacity: 0.95 }]}
+            style={({ pressed }) => [styles.presetCardFull, pressed && styles.pressedCard]}
           >
             <View style={styles.presetFullLeft}>
               <View style={styles.presetIconOuter}>
-                <WalletPresetIcon color={SETTINGS_COLORS.primary} />
+                <WalletPresetIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
               </View>
               <View style={styles.presetFullText}>
-                <Text style={styles.presetTitle}>Digital Wallet</Text>
-                <Text style={styles.presetDesc}>Track UPI and wallet balances.</Text>
+                <Text style={styles.presetTitle}>{ACCOUNTS_SCREEN_COPY.digitalWallet}</Text>
+                <Text style={styles.presetDesc}>{ACCOUNTS_SCREEN_COPY.digitalWalletDescription}</Text>
               </View>
             </View>
             <View style={styles.chevronCircle}>
-              <ChevronRightIcon color={SETTINGS_COLORS.primary} />
+              <ChevronRightIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
             </View>
           </Pressable>
         </View>
 
-        {/* Privacy Card */}
         {showDeferredContent ? (
           <View style={styles.privacyCard}>
             <View style={styles.privacyIconOuter}>
-              <ShieldIcon color={SETTINGS_COLORS.green} />
+              <ShieldIcon color={ACCOUNTS_SCREEN_COLORS.green} />
             </View>
-            <View style={{ flex: 1, zIndex: 1 }}>
-              <Text style={styles.privacyTitle}>Your Data Stays With You</Text>
+            <View style={styles.privacyContent}>
+              <Text style={styles.privacyTitle}>{ACCOUNTS_SCREEN_COPY.privacyTitle}</Text>
               <View style={styles.privacyList}>
-                <View style={styles.privacyItem}>
-                  <Text style={styles.privacyCheck}>✓</Text>
-                  <Text style={styles.privacyText}>Data stored locally</Text>
-                </View>
-                <View style={styles.privacyItem}>
-                  <Text style={styles.privacyCheck}>✓</Text>
-                  <Text style={styles.privacyText}>No cloud sync</Text>
-                </View>
-                <View style={styles.privacyItem}>
-                  <Text style={styles.privacyCheck}>✓</Text>
-                  <Text style={styles.privacyText}>No bank login required</Text>
-                </View>
-                <View style={styles.privacyItem}>
-                  <Text style={styles.privacyCheck}>✓</Text>
-                  <Text style={styles.privacyText}>Full user control</Text>
-                </View>
+                {ACCOUNTS_SCREEN_COPY.privacyPoints.map((point) => (
+                  <View key={point} style={styles.privacyItem}>
+                    <Text style={styles.privacyCheck}>✓</Text>
+                    <Text style={styles.privacyText}>{point}</Text>
+                  </View>
+                ))}
               </View>
             </View>
             <View style={styles.leafDecor}>
@@ -441,36 +278,29 @@ export default function ManageAccountsScreen() {
           <View style={styles.deferredCardPlaceholder} />
         )}
 
-        {/* Bottom Note Card */}
         {showDeferredContent ? (
           <View style={styles.noteCard}>
             <View style={styles.noteIconOuter}>
-              <InfoIcon color={SETTINGS_COLORS.primary} />
+              <InfoIcon color={ACCOUNTS_SCREEN_COLORS.primary} />
             </View>
             <View style={styles.noteContent}>
-              <Text style={styles.noteTitle}>Account Updates</Text>
-              <Text style={styles.noteText}>
-                Balances and transactions update automatically through SMS parsing.
-              </Text>
+              <Text style={styles.noteTitle}>{ACCOUNTS_SCREEN_COPY.noteTitle}</Text>
+              <Text style={styles.noteText}>{ACCOUNTS_SCREEN_COPY.noteText}</Text>
             </View>
           </View>
         ) : (
           <View style={styles.deferredCardPlaceholder} />
         )}
 
-        {/* Scattered background leaf illustrations */}
         <View style={styles.bgLeaf1} pointerEvents="none">
-          <SingleLeaf strokeColor={SETTINGS_COLORS.green} fillBg={SETTINGS_COLORS.lightGreen} />
+          <SingleLeaf strokeColor={ACCOUNTS_SCREEN_COLORS.green} fillBg={ACCOUNTS_SCREEN_COLORS.lightGreen} />
         </View>
         <View style={styles.bgLeaf2} pointerEvents="none">
-          <SingleLeaf strokeColor={SETTINGS_COLORS.green} fillBg={SETTINGS_COLORS.lightGreen} />
+          <SingleLeaf strokeColor={ACCOUNTS_SCREEN_COLORS.green} fillBg={ACCOUNTS_SCREEN_COLORS.lightGreen} />
         </View>
-
-        {/* Decorative padding to clear bottom corner leaves */}
-        <View style={{ height: 60 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Bottom leaf cluster background decor */}
       <View style={styles.bottomDecorLeft} pointerEvents="none">
         <LeafCluster />
       </View>
@@ -478,41 +308,38 @@ export default function ManageAccountsScreen() {
         <LeafCluster />
       </View>
 
-      {/* Searchable Bank Picker Modal */}
       {showDeferredModals ? (
         <Modal
           visible={modalVisible}
           animationType="slide"
-          transparent={true}
+          transparent
           onRequestClose={() => setModalVisible(false)}
-          statusBarTranslucent={true}
-          navigationBarTranslucent={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  Select {pickerType === 'bank' ? 'Bank Account' : 'Digital Wallet'}
+                  Select {pickerType === 'bank' ? ACCOUNTS_SCREEN_COPY.bankAccount : ACCOUNTS_SCREEN_COPY.digitalWallet}
                 </Text>
                 <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
-                  <CloseIcon color={SETTINGS_COLORS.secondary} />
+                  <CloseIcon color={ACCOUNTS_SCREEN_COLORS.secondary} />
                 </Pressable>
               </View>
 
-              {/* Search Input */}
               <View style={styles.searchContainer}>
-                <SearchIcon color={SETTINGS_COLORS.secondary} />
+                <SearchIcon color={ACCOUNTS_SCREEN_COLORS.secondary} />
                 <TextInput
                   style={styles.searchInput}
                   placeholder={`Search ${pickerType === 'bank' ? 'banks' : 'wallets'}...`}
                   placeholderTextColor="rgba(116, 81, 67, 0.4)"
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  autoFocus={true}
+                  autoFocus
                 />
               </View>
 
-              {/* Bank List */}
               {filteredBanks.length === 0 ? (
                 <View style={styles.modalEmptyState}>
                   <Text style={styles.modalEmptyText}>
@@ -526,10 +353,7 @@ export default function ManageAccountsScreen() {
                   contentContainerStyle={styles.modalList}
                   keyboardShouldPersistTaps="handled"
                   renderItem={({ item }) => (
-                    <Pressable
-                      style={styles.bankItem}
-                      onPress={() => handleSelectBank(item)}
-                    >
+                    <Pressable style={styles.bankItem} onPress={() => handleSelectBank(item)}>
                       <View style={[styles.bankLogoBg, { backgroundColor: item.color + '15' }]}>
                         <BankLogo bankId={item.id} size={30} />
                       </View>
@@ -548,27 +372,24 @@ export default function ManageAccountsScreen() {
         </Modal>
       ) : null}
 
-      {/* Balance Input Dialog Modal */}
       {showDeferredModals ? (
         <Modal
           visible={balanceModalVisible}
           animationType="fade"
-          transparent={true}
+          transparent
           onRequestClose={() => setBalanceModalVisible(false)}
-          statusBarTranslucent={true}
-          navigationBarTranslucent={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           <View style={styles.dialogOverlay}>
             <View style={styles.dialogCard}>
-              <Text style={styles.dialogTitle}>
-                Enter Starting Balance
-              </Text>
+              <Text style={styles.dialogTitle}>{ACCOUNTS_SCREEN_COPY.startingBalance}</Text>
               <Text style={styles.dialogSub}>
                 {selectedBank ? `for ${selectedBank.name}` : `for ${genericType === 'cash' ? 'Cash' : 'Credit Card'}`}
               </Text>
 
               <View style={styles.dialogInputContainer}>
-                <Text style={styles.dialogCurrencySymbol}>₹</Text>
+                <Text style={styles.dialogCurrencySymbol}>{CURRENCY_SYMBOL.INR}</Text>
                 <TextInput
                   style={styles.dialogInput}
                   placeholder="0"
@@ -576,24 +397,17 @@ export default function ManageAccountsScreen() {
                   keyboardType="decimal-pad"
                   value={balanceInput}
                   onChangeText={(text) => setBalanceInput(text.replace(/[^0-9.]/g, ''))}
-                  autoFocus={true}
+                  autoFocus
                 />
               </View>
 
               <View style={styles.dialogActions}>
-                <Pressable
-                  onPress={() => setBalanceModalVisible(false)}
-                  style={styles.dialogBtnCancel}
-                >
-                  <Text style={styles.dialogBtnCancelText}>Cancel</Text>
+                <Pressable onPress={() => setBalanceModalVisible(false)} style={styles.dialogBtnCancel}>
+                  <Text style={styles.dialogBtnCancelText}>{ACCOUNTS_SCREEN_COPY.cancel}</Text>
                 </Pressable>
-                <Pressable
-                  onPress={handleSaveAccount}
-                  disabled={isSubmitting}
-                  style={styles.dialogBtnSave}
-                >
+                <Pressable onPress={handleSaveAccount} disabled={isSubmitting} style={styles.dialogBtnSave}>
                   <Text style={styles.dialogBtnSaveText}>
-                    {isSubmitting ? 'Saving...' : 'Save'}
+                    {isSubmitting ? ACCOUNTS_SCREEN_COPY.saving : ACCOUNTS_SCREEN_COPY.save}
                   </Text>
                 </Pressable>
               </View>
@@ -608,7 +422,7 @@ export default function ManageAccountsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: SETTINGS_COLORS.background,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.background,
   },
   headerTop: {
     paddingHorizontal: 20,
@@ -626,21 +440,11 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 14,
     fontFamily: typography.fontFamily.bold,
-    color: SETTINGS_COLORS.green,
+    color: ACCOUNTS_SCREEN_COLORS.green,
   },
   scrollContent: {
     paddingHorizontal: spacing.base,
     paddingBottom: 60,
-  },
-  headerBlock: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  headerLeft: {
-    flex: 1,
-    paddingRight: 8,
   },
   headerRight: {
     position: 'relative',
@@ -654,34 +458,17 @@ const styles = StyleSheet.create({
     opacity: 0.35,
     transform: [{ rotate: '-12deg' }],
   },
-  microHeader: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 10,
-    letterSpacing: 1.5,
-    color: SETTINGS_COLORS.secondary,
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontFamily: typography.fontFamily.bold,
-    fontSize: 26,
-    color: SETTINGS_COLORS.primary,
-  },
-  headerSubtitle: {
-    fontFamily: typography.fontFamily.medium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: SETTINGS_COLORS.secondary,
-    marginTop: 6,
-  },
   sectionTitle: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 13,
     letterSpacing: 1,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     textTransform: 'uppercase',
     marginBottom: 12,
     marginLeft: 4,
+  },
+  currentAccountsSection: {
+    marginBottom: 28,
   },
   deferredAccountsPlaceholder: {
     height: 212,
@@ -690,7 +477,6 @@ const styles = StyleSheet.create({
     height: 140,
     marginBottom: 20,
   },
-
   presetsGrid: {
     gap: 12,
     marginBottom: 20,
@@ -701,18 +487,24 @@ const styles = StyleSheet.create({
   },
   presetCard: {
     flex: 1,
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     padding: 16,
     minHeight: 140,
     justifyContent: 'space-between',
-    shadowColor: SETTINGS_COLORS.primary,
+    shadowColor: ACCOUNTS_SCREEN_COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+  },
+  pressedCard: {
+    opacity: 0.95,
+  },
+  disabledCard: {
+    opacity: 0.5,
   },
   presetTop: {
     flexDirection: 'row',
@@ -723,21 +515,21 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: SETTINGS_COLORS.lightGreen,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.lightGreen,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
   },
   chevronCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
   },
   presetTextContainer: {
     gap: 2,
@@ -745,24 +537,24 @@ const styles = StyleSheet.create({
   presetTitle: {
     fontSize: 15,
     fontFamily: typography.fontFamily.bold,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   presetDesc: {
     fontSize: 12,
     fontFamily: typography.fontFamily.medium,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     lineHeight: 16,
   },
   presetCardFull: {
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: SETTINGS_COLORS.primary,
+    shadowColor: ACCOUNTS_SCREEN_COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -780,17 +572,17 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   privacyCard: {
-    backgroundColor: SETTINGS_COLORS.lightGreen,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.lightGreen,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     padding: 20,
     marginBottom: 20,
     flexDirection: 'row',
     gap: 16,
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: SETTINGS_COLORS.primary,
+    shadowColor: ACCOUNTS_SCREEN_COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -800,16 +592,20 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
+  },
+  privacyContent: {
+    flex: 1,
+    zIndex: 1,
   },
   privacyTitle: {
     fontSize: 17,
     fontFamily: typography.fontFamily.bold,
-    color: SETTINGS_COLORS.green,
+    color: ACCOUNTS_SCREEN_COLORS.green,
     marginBottom: 12,
   },
   privacyList: {
@@ -823,12 +619,12 @@ const styles = StyleSheet.create({
   privacyCheck: {
     fontSize: 14,
     fontFamily: typography.fontFamily.bold,
-    color: SETTINGS_COLORS.green,
+    color: ACCOUNTS_SCREEN_COLORS.green,
   },
   privacyText: {
     fontSize: 14,
     fontFamily: typography.fontFamily.medium,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
   },
   leafDecor: {
     position: 'absolute',
@@ -836,15 +632,15 @@ const styles = StyleSheet.create({
     bottom: -10,
   },
   noteCard: {
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     padding: 20,
     marginBottom: 20,
     flexDirection: 'row',
     gap: 16,
-    shadowColor: SETTINGS_COLORS.primary,
+    shadowColor: ACCOUNTS_SCREEN_COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -854,11 +650,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: SETTINGS_COLORS.lightGreen,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.lightGreen,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
   },
   noteContent: {
     flex: 1,
@@ -867,12 +663,12 @@ const styles = StyleSheet.create({
   noteTitle: {
     fontSize: 15,
     fontFamily: typography.fontFamily.bold,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   noteText: {
     fontSize: 13,
     fontFamily: typography.fontFamily.medium,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     lineHeight: 18,
   },
   bottomDecorLeft: {
@@ -901,17 +697,20 @@ const styles = StyleSheet.create({
     opacity: 0.08,
     transform: [{ rotate: '45deg' }],
   },
+  bottomSpacer: {
+    height: 60,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 12, 10, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     borderBottomWidth: 0,
     height: height * 0.75,
     paddingTop: 20,
@@ -926,7 +725,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 17,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   modalCloseButton: {
     width: 36,
@@ -934,7 +733,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: SETTINGS_COLORS.lightGreen,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.lightGreen,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -945,16 +744,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 48,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     gap: 8,
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
   },
   searchInput: {
     flex: 1,
     fontFamily: typography.fontFamily.regular,
     fontSize: 15,
     padding: 0,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   modalList: {
     paddingHorizontal: 24,
@@ -965,7 +764,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: SETTINGS_COLORS.border,
+    borderBottomColor: ACCOUNTS_SCREEN_COLORS.border,
     gap: 16,
   },
   bankLogoBg: {
@@ -981,12 +780,12 @@ const styles = StyleSheet.create({
   bankItemName: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 15,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   bankItemType: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 13,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     marginTop: 2,
   },
   modalEmptyState: {
@@ -998,7 +797,7 @@ const styles = StyleSheet.create({
   modalEmptyText: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 14,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     textAlign: 'center',
   },
   dialogOverlay: {
@@ -1010,13 +809,13 @@ const styles = StyleSheet.create({
   },
   dialogCard: {
     width: '100%',
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     padding: 24,
     alignItems: 'center',
-    shadowColor: SETTINGS_COLORS.primary,
+    shadowColor: ACCOUNTS_SCREEN_COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -1025,14 +824,14 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 17,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
     textAlign: 'center',
     marginBottom: 4,
   },
   dialogSub: {
     fontFamily: typography.fontFamily.medium,
     fontSize: 13,
-    color: SETTINGS_COLORS.secondary,
+    color: ACCOUNTS_SCREEN_COLORS.secondary,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -1043,23 +842,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 54,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     marginBottom: 24,
     width: '100%',
-    backgroundColor: SETTINGS_COLORS.surface,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.surface,
   },
   dialogCurrencySymbol: {
     fontFamily: typography.fontFamily.monoBold,
     fontSize: 22,
     marginRight: 8,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   dialogInput: {
     flex: 1,
     fontFamily: typography.fontFamily.monoBold,
     fontSize: 22,
     padding: 0,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   dialogActions: {
     flexDirection: 'row',
@@ -1071,25 +870,25 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: SETTINGS_COLORS.border,
+    borderColor: ACCOUNTS_SCREEN_COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dialogBtnCancelText: {
     fontFamily: typography.fontFamily.bold,
     fontSize: 14,
-    color: SETTINGS_COLORS.primary,
+    color: ACCOUNTS_SCREEN_COLORS.primary,
   },
   dialogBtnSave: {
     flex: 1,
     height: 50,
     borderRadius: 16,
-    backgroundColor: SETTINGS_COLORS.green,
+    backgroundColor: ACCOUNTS_SCREEN_COLORS.green,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dialogBtnSaveText: {
-    color: SETTINGS_COLORS.surface,
+    color: ACCOUNTS_SCREEN_COLORS.surface,
     fontFamily: typography.fontFamily.bold,
     fontSize: 14,
   },

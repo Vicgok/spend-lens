@@ -10,7 +10,13 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  createOnboardingSnapshot,
+  logOnboardingNavigation,
+  logOnboardingRoute,
+} from '@/navigation/onboarding-logging';
 import { useTheme } from '@/providers/theme-provider';
+import { getNextOnboardingRoute } from '@/navigation/onboarding-navigation';
 import { typography, spacing, borderRadius, tokens, hexToRgba } from '@/theme';
 import { useOnboardingStore } from '@/stores/settings-store';
 import Svg, {
@@ -411,39 +417,27 @@ export default function OnboardingWelcome() {
   const currentStep = useOnboardingStore((s) => s.currentStep);
   const isComplete = useOnboardingStore((s) => s.isComplete);
   const isHydrated = useOnboardingStore((s) => s.isHydrated);
+  const snapshot = createOnboardingSnapshot({ currentStep, isComplete, isHydrated });
 
   useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] mount screen=onboarding/index route=/onboarding state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
+    logOnboardingRoute('screen=onboarding/index', 'mount', snapshot, {
+      route: 'onboarding',
+    });
     return () => {
-      console.log('[ROUTE_TRACE] unmount screen=onboarding/index route=/onboarding');
+      logOnboardingRoute('screen=onboarding/index', 'unmount', snapshot, {
+        route: 'onboarding',
+      });
     };
   }, []);
 
   useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] screen=onboarding/index state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-  }, [currentStep, isComplete, isHydrated]);
+    logOnboardingRoute('screen=onboarding/index', 'state', snapshot);
+  }, [snapshot]);
 
   const handleNext = () => {
-    console.log(
-      `[NAV_TRACE] screen=onboarding/index action=push target=/onboarding/permissions state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-    router.push('/onboarding/permissions');
+    const nextRoute = getNextOnboardingRoute('index');
+    logOnboardingNavigation('screen=onboarding/index', 'push', snapshot, nextRoute);
+    router.push(nextRoute);
   };
 
   return (

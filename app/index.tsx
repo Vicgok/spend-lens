@@ -1,36 +1,24 @@
 import { Redirect } from 'expo-router';
-import { useEffect } from 'react';
+import { useMemo } from 'react';
+import { createOnboardingSnapshot, logOnboardingNavigation } from '@/navigation/onboarding-logging';
+import { ROUTES } from '@/navigation/routes';
 import { useOnboardingStore } from '@/stores/settings-store';
 
 export default function Index() {
   const currentStep = useOnboardingStore((s) => s.currentStep);
   const isComplete = useOnboardingStore((s) => s.isComplete);
   const isHydrated = useOnboardingStore((s) => s.isHydrated);
-
-  useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] mount screen=index route=/ state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-    return () => {
-      console.log('[ROUTE_TRACE] unmount screen=index route=/');
-    };
-  }, []);
-
-  console.log(
-    `[NAV_TRACE] screen=index action=redirect target=${isComplete ? '/(tabs)' : '/onboarding'} state=${JSON.stringify({
-      currentStep,
-      isComplete,
-      isHydrated,
-    })}`
+  const snapshot = useMemo(
+    () => createOnboardingSnapshot({ currentStep, isComplete, isHydrated }),
+    [currentStep, isComplete, isHydrated]
   );
+  const targetRoute = isComplete ? ROUTES.tabs : ROUTES.onboarding.index;
+
+  logOnboardingNavigation('screen=index', 'redirect', snapshot, targetRoute);
 
   if (!isComplete) {
-    return <Redirect href="/onboarding" />;
+    return <Redirect href={ROUTES.onboarding.index} />;
   }
 
-  return <Redirect href="/(tabs)" />;
+  return <Redirect href={ROUTES.tabs} />;
 }

@@ -3,6 +3,7 @@ import { Tabs, router, usePathname } from 'expo-router';
 import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { ROUTES } from '@/navigation/routes';
 import { useTheme } from '@/providers/theme-provider';
 import { typography, tokens } from '@/theme';
 
@@ -211,7 +212,7 @@ export default function TabLayout() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            router.push('/add-transaction');
+            router.push(ROUTES.addTransaction);
           },
         }}
       />

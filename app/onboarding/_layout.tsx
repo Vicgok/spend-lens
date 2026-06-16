@@ -15,6 +15,13 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import {
+  createOnboardingSnapshot,
+  logOnboardingNavigation,
+  logOnboardingRoute,
+} from '@/navigation/onboarding-logging';
+import { getOnboardingStepIndex } from '@/navigation/onboarding-navigation';
+import { ROUTES } from '@/navigation/routes';
 import { useOnboardingStore } from '@/stores/settings-store';
 
 export default function OnboardingLayout() {
@@ -25,15 +32,10 @@ export default function OnboardingLayout() {
   const currentStep = useOnboardingStore((s) => s.currentStep);
   const isComplete = useOnboardingStore((s) => s.isComplete);
   const isHydrated = useOnboardingStore((s) => s.isHydrated);
+  const snapshot = createOnboardingSnapshot({ currentStep, isComplete, isHydrated });
 
-  // Active step detection based on the current segment
   const activeSegment = segments[segments.length - 1];
-  let stepIndex = 0;
-  if (activeSegment === 'permissions') {
-    stepIndex = 1;
-  } else if (activeSegment === 'balance') {
-    stepIndex = 2;
-  }
+  const stepIndex = getOnboardingStepIndex(activeSegment);
 
   const obTheme = theme.onboarding;
 
@@ -77,27 +79,20 @@ export default function OnboardingLayout() {
   const showBackButton = stepIndex > 0;
 
   useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] mount screen=onboarding-layout segments=${JSON.stringify(segments)} state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
+    logOnboardingRoute('screen=onboarding-layout', 'mount', snapshot, {
+      segments,
+    });
     return () => {
-      console.log('[ROUTE_TRACE] unmount screen=onboarding-layout');
+      logOnboardingRoute('screen=onboarding-layout', 'unmount', snapshot);
     };
   }, []);
 
   useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] screen=onboarding-layout activeSegment=${String(activeSegment)} stepIndex=${stepIndex} state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-  }, [activeSegment, stepIndex, currentStep, isComplete, isHydrated]);
+    logOnboardingRoute('screen=onboarding-layout', 'active', snapshot, {
+      activeSegment: String(activeSegment),
+      stepIndex,
+    });
+  }, [activeSegment, stepIndex, snapshot]);
 
   const onboardingStackOptions: TransitionOptions = {
     headerShown: false,
@@ -107,14 +102,8 @@ export default function OnboardingLayout() {
   };
 
   if (isHydrated && isComplete) {
-    console.log(
-      `[NAV_TRACE] screen=onboarding-layout action=redirect target=/(tabs) state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-    return <Redirect href="/(tabs)" />;
+    logOnboardingNavigation('screen=onboarding-layout', 'redirect', snapshot, ROUTES.tabs);
+    return <Redirect href={ROUTES.tabs} />;
   }
 
   return (
@@ -127,13 +116,7 @@ export default function OnboardingLayout() {
           {showBackButton && (
             <Pressable
               onPress={() => {
-                console.log(
-                  `[NAV_TRACE] screen=onboarding-layout action=back state=${JSON.stringify({
-                    currentStep,
-                    isComplete,
-                    isHydrated,
-                  })}`
-                );
+                logOnboardingNavigation('screen=onboarding-layout', 'back', snapshot);
                 router.back();
               }}
               style={({ pressed }) => [
