@@ -10,6 +10,7 @@ import {
   FlatList,
   Alert,
   Dimensions,
+  InteractionManager,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -21,7 +22,7 @@ import { PREDEFINED_BANKS, PredefinedBank } from '@/lib/banks';
 import { Account } from '@/types';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
-import { BankLogo, ReadingNotebookMascot, LeafCluster, CurrentAccountsList, BottomTabBar, TabHeader } from '@/components/ui';
+import { BankLogo, ReadingNotebookMascot, LeafCluster, CurrentAccountsList, TabHeader } from '@/components/ui';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
 const { height } = Dimensions.get('window');
@@ -93,6 +94,13 @@ const CloseIcon = React.memo(({ color }: { color: string }) => (
   </Svg>
 ));
 
+const BackArrowIcon = React.memo(({ color }: { color: string }) => (
+  <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M19 12H5" />
+    <Path d="M12 19l-7-7 7-7" />
+  </Svg>
+));
+
 const SingleLeaf = React.memo(({ width = 16, height = 16, strokeColor, fillBg }: { width?: number; height?: number; strokeColor: string; fillBg: string }) => (
   <Svg width={width} height={height} viewBox="0 0 20 20" fill="none">
     <Path d="M10 18c-3 0-5-2-5-5 3 0 5 2 5 5z" fill={fillBg} stroke={strokeColor} strokeWidth={1} strokeLinejoin="round" />
@@ -119,10 +127,26 @@ export default function ManageAccountsScreen() {
   const [genericType, setGenericType] = useState<'cash' | 'credit_card' | null>(null);
   const [balanceInput, setBalanceInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeferredContent, setShowDeferredContent] = useState(false);
+  const [showDeferredModals, setShowDeferredModals] = useState(false);
 
   useEffect(() => {
     loadAccounts();
   }, [loadAccounts]);
+
+  useEffect(() => {
+    const contentHandle = InteractionManager.runAfterInteractions(() => {
+      setShowDeferredContent(true);
+    });
+    const modalHandle = InteractionManager.runAfterInteractions(() => {
+      setShowDeferredModals(true);
+    });
+
+    return () => {
+      contentHandle.cancel();
+      modalHandle.cancel();
+    };
+  }, []);
 
   // Synchronize stack selection
   useEffect(() => {
@@ -262,6 +286,15 @@ export default function ManageAccountsScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar style="dark" />
+      <View style={styles.headerTop}>
+        <Pressable
+          onPress={() => router.replace('/(tabs)/settings' as any)}
+          style={styles.backButton}
+        >
+          <BackArrowIcon color={SETTINGS_COLORS.green} />
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header Block */}
         <TabHeader
@@ -282,15 +315,19 @@ export default function ManageAccountsScreen() {
         {/* Current Accounts */}
         <Text style={styles.sectionTitle}>CURRENT ACCOUNTS</Text>
         <View style={{ marginBottom: 28 }}>
-          <CurrentAccountsList
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccountId={setSelectedAccountId}
-            onDeleteAccount={handleDeleteAccount}
-            onPressActive={(account) => {
-              router.push(`/accounts/${account.id}` as any);
-            }}
-          />
+          {showDeferredContent ? (
+            <CurrentAccountsList
+              accounts={accounts}
+              selectedAccountId={selectedAccountId}
+              onSelectAccountId={setSelectedAccountId}
+              onDeleteAccount={handleDeleteAccount}
+              onPressActive={(account) => {
+                router.push(`/accounts/${account.id}` as any);
+              }}
+            />
+          ) : (
+            <View style={styles.deferredAccountsPlaceholder} />
+          )}
         </View>
 
         {/* Add Account Presets */}
@@ -363,48 +400,56 @@ export default function ManageAccountsScreen() {
         </View>
 
         {/* Privacy Card */}
-        <View style={styles.privacyCard}>
-          <View style={styles.privacyIconOuter}>
-            <ShieldIcon color={SETTINGS_COLORS.green} />
-          </View>
-          <View style={{ flex: 1, zIndex: 1 }}>
-            <Text style={styles.privacyTitle}>Your Data Stays With You</Text>
-            <View style={styles.privacyList}>
-              <View style={styles.privacyItem}>
-                <Text style={styles.privacyCheck}>✓</Text>
-                <Text style={styles.privacyText}>Data stored locally</Text>
-              </View>
-              <View style={styles.privacyItem}>
-                <Text style={styles.privacyCheck}>✓</Text>
-                <Text style={styles.privacyText}>No cloud sync</Text>
-              </View>
-              <View style={styles.privacyItem}>
-                <Text style={styles.privacyCheck}>✓</Text>
-                <Text style={styles.privacyText}>No bank login required</Text>
-              </View>
-              <View style={styles.privacyItem}>
-                <Text style={styles.privacyCheck}>✓</Text>
-                <Text style={styles.privacyText}>Full user control</Text>
+        {showDeferredContent ? (
+          <View style={styles.privacyCard}>
+            <View style={styles.privacyIconOuter}>
+              <ShieldIcon color={SETTINGS_COLORS.green} />
+            </View>
+            <View style={{ flex: 1, zIndex: 1 }}>
+              <Text style={styles.privacyTitle}>Your Data Stays With You</Text>
+              <View style={styles.privacyList}>
+                <View style={styles.privacyItem}>
+                  <Text style={styles.privacyCheck}>✓</Text>
+                  <Text style={styles.privacyText}>Data stored locally</Text>
+                </View>
+                <View style={styles.privacyItem}>
+                  <Text style={styles.privacyCheck}>✓</Text>
+                  <Text style={styles.privacyText}>No cloud sync</Text>
+                </View>
+                <View style={styles.privacyItem}>
+                  <Text style={styles.privacyCheck}>✓</Text>
+                  <Text style={styles.privacyText}>No bank login required</Text>
+                </View>
+                <View style={styles.privacyItem}>
+                  <Text style={styles.privacyCheck}>✓</Text>
+                  <Text style={styles.privacyText}>Full user control</Text>
+                </View>
               </View>
             </View>
+            <View style={styles.leafDecor}>
+              <LeafCluster />
+            </View>
           </View>
-          <View style={styles.leafDecor}>
-            <LeafCluster />
-          </View>
-        </View>
+        ) : (
+          <View style={styles.deferredCardPlaceholder} />
+        )}
 
         {/* Bottom Note Card */}
-        <View style={styles.noteCard}>
-          <View style={styles.noteIconOuter}>
-            <InfoIcon color={SETTINGS_COLORS.primary} />
+        {showDeferredContent ? (
+          <View style={styles.noteCard}>
+            <View style={styles.noteIconOuter}>
+              <InfoIcon color={SETTINGS_COLORS.primary} />
+            </View>
+            <View style={styles.noteContent}>
+              <Text style={styles.noteTitle}>Account Updates</Text>
+              <Text style={styles.noteText}>
+                Balances and transactions update automatically through SMS parsing.
+              </Text>
+            </View>
           </View>
-          <View style={styles.noteContent}>
-            <Text style={styles.noteTitle}>Account Updates</Text>
-            <Text style={styles.noteText}>
-              Balances and transactions update automatically through SMS parsing.
-            </Text>
-          </View>
-        </View>
+        ) : (
+          <View style={styles.deferredCardPlaceholder} />
+        )}
 
         {/* Scattered background leaf illustrations */}
         <View style={styles.bgLeaf1} pointerEvents="none">
@@ -427,126 +472,128 @@ export default function ManageAccountsScreen() {
       </View>
 
       {/* Searchable Bank Picker Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-        statusBarTranslucent={true}
-        navigationBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Select {pickerType === 'bank' ? 'Bank Account' : 'Digital Wallet'}
-              </Text>
-              <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
-                <CloseIcon color={SETTINGS_COLORS.secondary} />
-              </Pressable>
-            </View>
-
-            {/* Search Input */}
-            <View style={styles.searchContainer}>
-              <SearchIcon color={SETTINGS_COLORS.secondary} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={`Search ${pickerType === 'bank' ? 'banks' : 'wallets'}...`}
-                placeholderTextColor="rgba(116, 81, 67, 0.4)"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoFocus={true}
-              />
-            </View>
-
-            {/* Bank List */}
-            {filteredBanks.length === 0 ? (
-              <View style={styles.modalEmptyState}>
-                <Text style={styles.modalEmptyText}>
-                  No {pickerType === 'bank' ? 'banks' : 'wallets'} found or all already added.
+      {showDeferredModals ? (
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  Select {pickerType === 'bank' ? 'Bank Account' : 'Digital Wallet'}
                 </Text>
+                <Pressable onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
+                  <CloseIcon color={SETTINGS_COLORS.secondary} />
+                </Pressable>
               </View>
-            ) : (
-              <FlatList
-                data={filteredBanks}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.modalList}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.bankItem}
-                    onPress={() => handleSelectBank(item)}
-                  >
-                    <View style={[styles.bankLogoBg, { backgroundColor: item.color + '15' }]}>
-                      <BankLogo bankId={item.id} size={30} />
-                    </View>
-                    <View style={styles.bankItemInfo}>
-                      <Text style={styles.bankItemName}>{item.name}</Text>
-                      <Text style={styles.bankItemType}>
-                        {item.type === 'bank' ? 'Indian Bank' : 'Digital Wallet'}
-                      </Text>
-                    </View>
-                  </Pressable>
-                )}
-              />
-            )}
+
+              {/* Search Input */}
+              <View style={styles.searchContainer}>
+                <SearchIcon color={SETTINGS_COLORS.secondary} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={`Search ${pickerType === 'bank' ? 'banks' : 'wallets'}...`}
+                  placeholderTextColor="rgba(116, 81, 67, 0.4)"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoFocus={true}
+                />
+              </View>
+
+              {/* Bank List */}
+              {filteredBanks.length === 0 ? (
+                <View style={styles.modalEmptyState}>
+                  <Text style={styles.modalEmptyText}>
+                    No {pickerType === 'bank' ? 'banks' : 'wallets'} found or all already added.
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredBanks}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.modalList}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => (
+                    <Pressable
+                      style={styles.bankItem}
+                      onPress={() => handleSelectBank(item)}
+                    >
+                      <View style={[styles.bankLogoBg, { backgroundColor: item.color + '15' }]}>
+                        <BankLogo bankId={item.id} size={30} />
+                      </View>
+                      <View style={styles.bankItemInfo}>
+                        <Text style={styles.bankItemName}>{item.name}</Text>
+                        <Text style={styles.bankItemType}>
+                          {item.type === 'bank' ? 'Indian Bank' : 'Digital Wallet'}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )}
+                />
+              )}
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      ) : null}
 
       {/* Balance Input Dialog Modal */}
-      <Modal
-        visible={balanceModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setBalanceModalVisible(false)}
-        statusBarTranslucent={true}
-        navigationBarTranslucent={true}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialogCard}>
-            <Text style={styles.dialogTitle}>
-              Enter Starting Balance
-            </Text>
-            <Text style={styles.dialogSub}>
-              {selectedBank ? `for ${selectedBank.name}` : `for ${genericType === 'cash' ? 'Cash' : 'Credit Card'}`}
-            </Text>
+      {showDeferredModals ? (
+        <Modal
+          visible={balanceModalVisible}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setBalanceModalVisible(false)}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
+        >
+          <View style={styles.dialogOverlay}>
+            <View style={styles.dialogCard}>
+              <Text style={styles.dialogTitle}>
+                Enter Starting Balance
+              </Text>
+              <Text style={styles.dialogSub}>
+                {selectedBank ? `for ${selectedBank.name}` : `for ${genericType === 'cash' ? 'Cash' : 'Credit Card'}`}
+              </Text>
 
-            <View style={styles.dialogInputContainer}>
-              <Text style={styles.dialogCurrencySymbol}>₹</Text>
-              <TextInput
-                style={styles.dialogInput}
-                placeholder="0"
-                placeholderTextColor="rgba(116, 81, 67, 0.4)"
-                keyboardType="decimal-pad"
-                value={balanceInput}
-                onChangeText={(text) => setBalanceInput(text.replace(/[^0-9.]/g, ''))}
-                autoFocus={true}
-              />
-            </View>
+              <View style={styles.dialogInputContainer}>
+                <Text style={styles.dialogCurrencySymbol}>₹</Text>
+                <TextInput
+                  style={styles.dialogInput}
+                  placeholder="0"
+                  placeholderTextColor="rgba(116, 81, 67, 0.4)"
+                  keyboardType="decimal-pad"
+                  value={balanceInput}
+                  onChangeText={(text) => setBalanceInput(text.replace(/[^0-9.]/g, ''))}
+                  autoFocus={true}
+                />
+              </View>
 
-            <View style={styles.dialogActions}>
-              <Pressable
-                onPress={() => setBalanceModalVisible(false)}
-                style={styles.dialogBtnCancel}
-              >
-                <Text style={styles.dialogBtnCancelText}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleSaveAccount}
-                disabled={isSubmitting}
-                style={styles.dialogBtnSave}
-              >
-                <Text style={styles.dialogBtnSaveText}>
-                  {isSubmitting ? 'Saving...' : 'Save'}
-                </Text>
-              </Pressable>
+              <View style={styles.dialogActions}>
+                <Pressable
+                  onPress={() => setBalanceModalVisible(false)}
+                  style={styles.dialogBtnCancel}
+                >
+                  <Text style={styles.dialogBtnCancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleSaveAccount}
+                  disabled={isSubmitting}
+                  style={styles.dialogBtnSave}
+                >
+                  <Text style={styles.dialogBtnSaveText}>
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-
-      <BottomTabBar />
+        </Modal>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -576,7 +623,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.base,
-    paddingBottom: 130,
+    paddingBottom: 60,
   },
   headerBlock: {
     flexDirection: 'row',
@@ -628,6 +675,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 12,
     marginLeft: 4,
+  },
+  deferredAccountsPlaceholder: {
+    height: 212,
+  },
+  deferredCardPlaceholder: {
+    height: 140,
+    marginBottom: 20,
   },
 
   presetsGrid: {

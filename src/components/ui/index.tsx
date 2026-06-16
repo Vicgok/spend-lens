@@ -1,7 +1,6 @@
 // Core UI Components
 export { default as TabHeader } from './TabHeader';
 export { default as AddFinancialSourceSheet } from './AddFinancialSourceSheet';
-export { OnboardingTransition } from './OnboardingTransition';
 export { BankLogo, AccountIcon, BANK_BRAND_COLORS } from './BankLogo';
 export { TransactionSkeleton, SkeletonPlaceholder } from './Skeleton';
 export * from './OnboardingIcons';

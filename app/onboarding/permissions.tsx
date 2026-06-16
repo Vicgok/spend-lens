@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Svg, {
   Rect,
   Circle,
@@ -31,7 +30,7 @@ import {
   simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
-import { LockIcon, ShieldIcon, CheckCircleIcon, OnboardingTransition } from '@/components/ui';
+import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui';
 
 // ── SMS Hero Illustration (Staticized) ──────────────────────────────────────
 const SmsHeroIllustration = React.memo(() => {
@@ -253,10 +252,6 @@ export default function OnboardingPermissions() {
   const [isChecking, setIsChecking] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
 
-  const isFocused = useIsFocused();
-  const [isExiting, setIsExiting] = useState(false);
-  const [nextPath, setNextPath] = useState<any>(null);
-
   const [customAlert, setCustomAlert] = useState<CustomAlertConfig | null>(null);
 
   const showCustomAlert = (
@@ -268,34 +263,6 @@ export default function OnboardingPermissions() {
     setCustomAlert({ title, message, buttons, iconType });
   };
 
-  const navigation = useNavigation();
-  const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
-  const shouldPreventRemoveRef = useRef(true);
-  const pendingActionRef = useRef<any>(null);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!shouldPreventRemoveRef.current) {
-        return;
-      }
-      e.preventDefault();
-      pendingActionRef.current = e.data.action;
-      setExitDirection('right');
-      setIsExiting(true);
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    if (isFocused) {
-      setIsExiting(false);
-      setExitDirection('left');
-      shouldPreventRemoveRef.current = true;
-    } else {
-      shouldPreventRemoveRef.current = false;
-    }
-  }, [isFocused]);
-
   useEffect(() => {
     async function verifyPermission() {
       if (Platform.OS === 'android') {
@@ -306,22 +273,6 @@ export default function OnboardingPermissions() {
     }
     verifyPermission();
   }, []);
-
-  const navigateToNext = (path: any) => {
-    setNextPath(path);
-    setIsExiting(true);
-  };
-
-  const handleExitComplete = () => {
-    if (pendingActionRef.current) {
-      shouldPreventRemoveRef.current = false;
-      const action = pendingActionRef.current;
-      pendingActionRef.current = null;
-      navigation.dispatch(action);
-    } else if (nextPath) {
-      router.push(nextPath);
-    }
-  };
 
   const handleRequestPermission = async () => {
     if (Platform.OS !== 'android') {
@@ -340,7 +291,7 @@ export default function OnboardingPermissions() {
         'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',
         [
           { text: 'Try Demo Scan', onPress: () => handleSimulateScan() },
-          { text: 'Continue Manually', onPress: () => navigateToNext('/onboarding/balance') },
+          { text: 'Continue Manually', onPress: () => router.push('/onboarding/balance') },
           { text: 'Cancel', style: 'cancel' }
         ],
         'shield'
@@ -358,7 +309,7 @@ export default function OnboardingPermissions() {
           [
             {
               text: 'Continue',
-              onPress: () => navigateToNext('/onboarding/balance'),
+              onPress: () => router.push('/onboarding/balance'),
             }
           ],
           'success'
@@ -388,7 +339,7 @@ export default function OnboardingPermissions() {
           [
             {
               text: 'Awesome',
-              onPress: () => navigateToNext('/onboarding/balance'),
+              onPress: () => router.push('/onboarding/balance'),
             },
           ],
           'success'
@@ -408,7 +359,7 @@ export default function OnboardingPermissions() {
     <View style={[styles.container, { backgroundColor: obTheme.background }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
 
-      <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
+      
         {/* ── Responsive Centered Scroll Container ────────────── */}
         <ScrollView
           contentContainerStyle={[
@@ -485,7 +436,7 @@ export default function OnboardingPermissions() {
             )}
           </View>
         </ScrollView>
-      </OnboardingTransition>
+      
 
       {/* Custom Alert Modal */}
       <Modal

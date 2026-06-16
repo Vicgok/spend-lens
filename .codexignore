@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+.git/
+android/
+ios/
+dist/
+coverage/
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg

@@ -165,6 +165,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const transactions = useTransactionStore((s) => s.transactions);
   const getTotalBalance = useTransactionStore((s) => s.getTotalBalance);
+  const loadAccounts = useTransactionStore((s) => s.loadAccounts);
 
   const totalBalance = getTotalBalance();
   const transactionCount = transactions.length;
@@ -272,6 +273,11 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleManageAccountsPress = async () => {
+    await loadAccounts();
+    router.push('/accounts' as any);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
@@ -328,7 +334,7 @@ export default function SettingsScreen() {
             icon="accounts"
             title="Manage Accounts"
             subtitle="View and manage your linked accounts"
-            onPress={() => router.push('/accounts' as any)}
+            onPress={handleManageAccountsPress}
           />
           <SettingsRow
             icon="categories"

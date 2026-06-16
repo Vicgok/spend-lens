@@ -28,7 +28,7 @@ interface TransactionState {
   currentFilter: TransactionFilter;
 
   // Actions
-  loadAccounts: () => Promise<void>;
+  loadAccounts: (forceRefresh?: boolean) => Promise<void>;
   createAccount: (input: AccountCreateInput) => Promise<Account>;
   createAccountsBatch: (inputs: AccountCreateInput[]) => Promise<Account[]>;
   deleteAccount: (id: string) => Promise<void>;
@@ -67,7 +67,11 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   isLoading: false,
   currentFilter: {},
 
-  loadAccounts: async () => {
+  loadAccounts: async (forceRefresh = false) => {
+    if (!forceRefresh && get().accounts.length > 0) {
+      return;
+    }
+
     const accounts = await db.getAccounts();
     set({ accounts });
   },

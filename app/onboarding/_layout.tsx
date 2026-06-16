@@ -1,10 +1,15 @@
 import React, { useEffect } from 'react';
-import { Stack, useSegments, useRouter } from 'expo-router';
+import { useSegments, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/theme-provider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { BackArrowIcon } from '@/components/ui';
+import {
+  onboardingTransition,
+  TransitionStack,
+  type TransitionOptions,
+} from '@/navigation/transitions';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -67,6 +72,13 @@ export default function OnboardingLayout() {
 
   const showBackButton = stepIndex > 0;
 
+  const onboardingStackOptions: TransitionOptions = {
+    headerShown: false,
+    animation: 'none',
+    contentStyle: { backgroundColor: 'transparent' },
+    ...onboardingTransition,
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
@@ -103,17 +115,13 @@ export default function OnboardingLayout() {
         </View>
       </View>
 
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: obTheme.background },
-          animation: 'none',
-        }}
+      <TransitionStack
+        screenOptions={onboardingStackOptions as any}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="permissions" />
-        <Stack.Screen name="balance" />
-      </Stack>
+        <TransitionStack.Screen name="index" />
+        <TransitionStack.Screen name="permissions" />
+        <TransitionStack.Screen name="balance" />
+      </TransitionStack>
     </View>
   );
 }

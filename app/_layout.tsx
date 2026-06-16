@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, Platform, View } from 'react-native';
@@ -23,6 +23,14 @@ import {
   JetBrainsMono_400Regular,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
+import { tokens } from '@/theme';
+import {
+  TransitionStack,
+  detailTransition,
+  modalTransition,
+  onboardingTransition,
+  type TransitionOptions,
+} from '@/navigation/transitions';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { useOnboardingStore, useSettingsStore } from '@/stores/settings-store';
 export { ErrorBoundary } from './error';
@@ -32,14 +40,52 @@ enableScreens(true);
 
 SplashScreen.preventAutoHideAsync();
 
+function getRouteBackground(pathname: string, fallbackBackground: string, onboardingBackground: string) {
+  if (pathname.startsWith('/onboarding')) {
+    return onboardingBackground;
+  }
+
+  if (
+    pathname.startsWith('/accounts') ||
+    pathname.startsWith('/categories') ||
+    pathname.includes('/settings')
+  ) {
+    return '#E1D7C2';
+  }
+
+  if (
+    pathname.includes('/insights')
+  ) {
+    return tokens.colors.background;
+  }
+
+  if (
+    pathname === '/' ||
+    pathname === '/(tabs)' ||
+    pathname.startsWith('/transactions') ||
+    pathname.startsWith('/add-transaction') ||
+    pathname.startsWith('/transaction/')
+  ) {
+    return tokens.colors.tactileBackground;
+  }
+
+  return fallbackBackground;
+}
+
 function RootNavigator() {
   const { theme, isDark } = useTheme();
+  const pathname = usePathname();
+  const routeBackground = getRouteBackground(
+    pathname,
+    theme.background,
+    theme.onboarding.background
+  );
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(theme.background).catch((err) => {
+    SystemUI.setBackgroundColorAsync(routeBackground).catch((err) => {
       console.warn('Failed to set system UI background color:', err);
     });
-  }, [theme.background]);
+  }, [routeBackground]);
 
   useEffect(() => {
     async function configureAndroidNavbar() {
@@ -59,58 +105,75 @@ function RootNavigator() {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
-      background: theme.background,
-      card: theme.card,
+      background: routeBackground,
+      card: routeBackground,
       text: theme.text,
       border: theme.border,
     },
   };
 
+  const onboardingScreenOptions: TransitionOptions = {
+    ...onboardingTransition,
+    contentStyle: { backgroundColor: theme.onboarding.background },
+  };
+
+  const tabScreenOptions: TransitionOptions = {
+    ...detailTransition,
+    contentStyle: { backgroundColor: 'transparent' },
+  };
+
+  const categoriesScreenOptions: TransitionOptions = {
+    ...detailTransition,
+    contentStyle: { backgroundColor: '#E1D7C2' },
+  };
+
+  const accountsScreenOptions: TransitionOptions = {
+    ...detailTransition,
+    contentStyle: { backgroundColor: '#E1D7C2' },
+  };
+
+  const transactionDetailScreenOptions: TransitionOptions = {
+    ...detailTransition,
+    contentStyle: { backgroundColor: '#F6F3EC' },
+  };
+
   return (
     <NavigationProvider value={navTheme}>
-      <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <View style={{ flex: 1, backgroundColor: routeBackground }}>
         <StatusBar style={isDark ? 'light' : 'dark'} translucent backgroundColor="transparent" />
-        <Stack
+        <TransitionStack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: theme.background },
-            animation: 'ios_from_right',
-            gestureEnabled: true,
-            fullScreenGestureEnabled: true,
+            contentStyle: { backgroundColor: routeBackground },
+            animation: 'none',
           }}
         >
-          <Stack.Screen name="index" />
-          <Stack.Screen
+          <TransitionStack.Screen name="index" />
+          <TransitionStack.Screen
             name="onboarding"
-            options={{
-              gestureEnabled: false,
-              contentStyle: { backgroundColor: theme.onboarding.background },
-            }}
+            options={onboardingScreenOptions as any}
           />
-          <Stack.Screen
+          <TransitionStack.Screen
             name="(tabs)"
-            options={{
-              gestureEnabled: false,
-              contentStyle: { backgroundColor: '#F6F3EC' },
-            }}
+            options={tabScreenOptions as any}
           />
-          <Stack.Screen
+          <TransitionStack.Screen
             name="add-transaction"
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-              gestureEnabled: true,
-              gestureDirection: 'vertical',
-            }}
+            options={modalTransition as any}
           />
-          <Stack.Screen name="categories" />
-          <Stack.Screen
+          <TransitionStack.Screen
+            name="categories"
+            options={categoriesScreenOptions as any}
+          />
+          <TransitionStack.Screen
             name="accounts"
-            options={{
-              contentStyle: { backgroundColor: '#E1D7C2' },
-            }}
+            options={accountsScreenOptions as any}
           />
-        </Stack>
+          <TransitionStack.Screen
+            name="transaction/[id]"
+            options={transactionDetailScreenOptions as any}
+          />
+        </TransitionStack>
       </View>
     </NavigationProvider>
   );

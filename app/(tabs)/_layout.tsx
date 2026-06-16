@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Tabs, router } from 'expo-router';
+import { Tabs, router, usePathname } from 'expo-router';
 import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/theme-provider';
-import { typography } from '@/theme';
+import { typography, tokens } from '@/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -183,10 +183,17 @@ function CustomTabBar({ state, descriptors: _descriptors, navigation }: BottomTa
 
 export default function TabLayout() {
   const { theme } = useTheme();
+  const pathname = usePathname();
+  const sceneBackground = pathname.includes('/settings')
+    ? '#E1D7C2'
+    : pathname.includes('/insights')
+    ? tokens.colors.background
+    : tokens.colors.tactileBackground;
+
   return (
     <Tabs
       // @ts-ignore
-      sceneContainerStyle={{ backgroundColor: theme.background }}
+      sceneContainerStyle={{ backgroundColor: sceneBackground }}
       screenOptions={{
         headerShown: false,
       }}

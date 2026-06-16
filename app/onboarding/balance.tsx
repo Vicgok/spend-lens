@@ -14,7 +14,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/providers/theme-provider';
@@ -33,7 +32,6 @@ import {
   CashIcon,
   CreditCardIcon,
   WalletIcon,
-  OnboardingTransition,
 } from '@/components/ui';
 
 const { height } = Dimensions.get('window');
@@ -215,26 +213,6 @@ export default function BalanceSetup() {
   const [pickerType, setPickerType] = useState<'bank' | 'wallet'>('bank');
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const [isExiting, setIsExiting] = useState(false);
-
-  const navigation = useNavigation();
-  const [exitDirection, setExitDirection] = useState<'left' | 'right'>('left');
-  const shouldPreventRemoveRef = useRef(true);
-  const pendingActionRef = useRef<any>(null);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!shouldPreventRemoveRef.current) {
-        return;
-      }
-      e.preventDefault();
-      pendingActionRef.current = e.data.action;
-      setExitDirection('right');
-      setIsExiting(true);
-    });
-    return unsubscribe;
-  }, [navigation]);
-
   const addGenericAccount = (type: 'cash' | 'credit_card') => {
     const name = type === 'cash' ? 'Cash' : 'Credit Card';
     const icon = type === 'cash' ? '💵' : '💳';
@@ -328,27 +306,14 @@ export default function BalanceSetup() {
       await useTransactionStore.getState().loadAccounts();
       await useTransactionStore.getState().loadTransactions();
 
-      logger.info('[ONBOARDING] exit transition start');
-      setIsExiting(true);
+      logger.info('[ONBOARDING] routing to tabs');
+      router.replace('/(tabs)');
     } catch (error: any) {
       console.error('[Onboarding Account Creation]', error);
       const errorMessage = error.message || 'Failed to save accounts. Please try again.';
       await writeLog('ONBOARDING_FAILED', `Onboarding account creation failed: ${errorMessage}`, { error: error.message });
       Alert.alert('Error', errorMessage);
       setIsSubmitting(false);
-    }
-  };
-
-  const handleExitComplete = () => {
-    if (pendingActionRef.current) {
-      shouldPreventRemoveRef.current = false;
-      const action = pendingActionRef.current;
-      pendingActionRef.current = null;
-      navigation.dispatch(action);
-    } else {
-      logger.info('[ONBOARDING] exit transition complete, routing to tabs');
-      shouldPreventRemoveRef.current = false;
-      router.replace('/(tabs)');
     }
   };
 
@@ -366,7 +331,7 @@ export default function BalanceSetup() {
     >
       <StatusBar style="dark" translucent backgroundColor="transparent" />
       
-      <OnboardingTransition exit={isExiting} exitDirection={exitDirection} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
+      
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -521,7 +486,7 @@ export default function BalanceSetup() {
             </Text>
           </Pressable>
         </View>
-      </OnboardingTransition>
+      
 
       {/* Searchable Bank / Wallet Picker Modal */}
       <Modal

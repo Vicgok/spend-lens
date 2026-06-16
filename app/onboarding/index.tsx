@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/providers/theme-provider';
 import { typography, spacing, borderRadius, tokens, hexToRgba } from '@/theme';
-import { useIsFocused } from '@react-navigation/native';
 import Svg, {
   Circle,
   Ellipse,
@@ -26,7 +25,6 @@ import {
   ArrowUpIcon,
   CheckCircleIcon,
   GraphUpIcon,
-  OnboardingTransition,
 } from '@/components/ui';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -410,20 +408,7 @@ export default function OnboardingWelcome() {
   const obTheme = theme.onboarding;
   const insets = useSafeAreaInsets();
 
-  const isFocused = useIsFocused();
-  const [isExiting, setIsExiting] = useState(false);
-
-  useEffect(() => {
-    if (isFocused) {
-      setIsExiting(false);
-    }
-  }, [isFocused]);
-
   const handleNext = () => {
-    setIsExiting(true);
-  };
-
-  const handleExitComplete = () => {
     router.push('/onboarding/permissions');
   };
 
@@ -432,7 +417,7 @@ export default function OnboardingWelcome() {
       <StatusBar style="dark" translucent backgroundColor="transparent" />
 
       {/* Content wrapper with unified Transition animation */}
-      <OnboardingTransition exit={isExiting} onExitComplete={handleExitComplete} style={{ flex: 1 }}>
+      
         {/* ── Middle Centered Section ────────────────────────── */}
         <View style={styles.middleContainer}>
           {/* ── Hero ────────────────────────────────────────────── */}
@@ -481,7 +466,7 @@ export default function OnboardingWelcome() {
           </Pressable>
           <Text style={[styles.ctaNote, { color: obTheme.mutedText }]}>No bank login required</Text>
         </View>
-      </OnboardingTransition>
+      
     </View>
   );
 }

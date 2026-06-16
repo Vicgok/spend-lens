@@ -58,9 +58,8 @@ fix/
 .rules/
 
 # AI
-.continue/
-.claude/
 .antigravity/
+.codex/
 
 # creds
 credentials.json
