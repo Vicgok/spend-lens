@@ -27,10 +27,10 @@ import { typography, spacing, borderRadius, tokens, hexToRgba } from '@/theme';
 import {
   checkSMSPermission,
   requestSMSPermission,
-  simulateSMSScan,
 } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
 import { LockIcon, ShieldIcon, CheckCircleIcon } from '@/components/ui';
+import { useOnboardingStore } from '@/stores/settings-store';
 
 // ── SMS Hero Illustration (Staticized) ──────────────────────────────────────
 const SmsHeroIllustration = React.memo(() => {
@@ -63,10 +63,7 @@ const SmsHeroIllustration = React.memo(() => {
         {/* Dot texture grid */}
         {Array.from({ length: 5 }).map((_, row) =>
           Array.from({ length: 12 }).map((_, col) => {
-            // Remove middle dots that interfere with the flow illustration
-            if (row === 2 && col >= 3 && col <= 5) {
-              return null;
-            }
+            if (row === 2 && col >= 3 && col <= 5) return null;
             return (
               <Circle
                 key={`dot-${row}-${col}`}
@@ -84,7 +81,7 @@ const SmsHeroIllustration = React.memo(() => {
         <Rect x="38" y="42" width="76" height="116" rx="14" stroke={obTheme.primary} strokeWidth={1.4} fill="rgba(255,255,255,0.92)" />
         <Rect x="63" y="51" width="28" height="5" rx="2.5" stroke={obTheme.primary} strokeWidth={1.1} fill="none" opacity={0.5} />
         <Rect x="47" y="64" width="58" height="76" rx="7" stroke={obTheme.primary} strokeWidth={1.1} fill="rgba(255,255,255,0.8)" opacity={0.8} />
-        
+
         {/* SMS message lines */}
         <Rect x="53" y="74" width="38" height="14" rx="5" fill={hexToRgba(obTheme.primary, 0.12)} stroke={hexToRgba(obTheme.primary, 0.3)} strokeWidth={1} />
         <Path d="M 57 81 h 18" stroke={obTheme.primary} strokeWidth={1.2} strokeLinecap="round" />
@@ -98,14 +95,7 @@ const SmsHeroIllustration = React.memo(() => {
         {Array.from({ length: 5 }).map((_, i) => {
           const cx = 114 + (i + 1) * 14;
           return (
-            <Circle
-              key={i}
-              cx={cx}
-              cy={105}
-              r={2.8}
-              fill={obTheme.primary}
-              opacity={0.35}
-            />
+            <Circle key={i} cx={cx} cy={105} r={2.8} fill={obTheme.primary} opacity={0.35} />
           );
         })}
 
@@ -130,21 +120,21 @@ const SmsHeroIllustration = React.memo(() => {
         <Circle cx="291" cy="70" r="5" fill={hexToRgba(obTheme.primary, 0.12)} />
         <Path d="M 289 70 a 4 4 0 0 1 4-4" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" />
         <Path d="M 299 64 h 8" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" opacity={0.7} />
-        <Path d="M 299 70 h 14" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity="0.35" />
+        <Path d="M 299 70 h 14" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity={0.35} />
 
         {/* Tag 2: Income */}
         <Rect x="278" y="91" width="80" height="28" rx="8" fill="rgba(255,255,255,0.92)" stroke={hexToRgba(obTheme.primary, 0.2)} strokeWidth={1} />
         <Circle cx="291" cy="105" r="5" fill={hexToRgba(obTheme.primary, 0.12)} />
         <Path d="M 291 108 L 291 102 M 291 102 L 289 104 M 291 102 L 293 104" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round" />
         <Path d="M 299 102 h 10" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" opacity={0.7} />
-        <Path d="M 299 108 h 7" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity="0.35" />
+        <Path d="M 299 108 h 7" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity={0.35} />
 
         {/* Tag 3: Pattern */}
         <Rect x="278" y="126" width="88" height="28" rx="8" fill="rgba(255,255,255,0.92)" stroke={hexToRgba(obTheme.primary, 0.2)} strokeWidth={1} />
         <Circle cx="291" cy="140" r="5" fill={hexToRgba(obTheme.primary, 0.12)} />
         <Path d="M 287 142 L 289 139 L 291 141 L 294 136 L 296 138" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round" />
         <Path d="M 299 137 h 8" stroke={obTheme.primary} strokeWidth={1.1} strokeLinecap="round" opacity={0.7} />
-        <Path d="M 299 143 h 12" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity="0.35" />
+        <Path d="M 299 143 h 12" stroke={obTheme.primary} strokeWidth={1} strokeLinecap="round" opacity={0.35} />
 
         {/* Ambient dots */}
         <Circle cx="36" cy="38" r="2.5" fill={obTheme.primary} opacity={0.3} />
@@ -229,8 +219,6 @@ const PrivacyManifestCard = React.memo(() => {
   );
 });
 
-
-
 type CustomAlertButton = {
   text: string;
   onPress?: () => void;
@@ -250,9 +238,20 @@ export default function OnboardingPermissions() {
   const insets = useSafeAreaInsets();
   const [hasPermission, setHasPermission] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [isScanning, setIsScanning] = useState(false);
-
   const [customAlert, setCustomAlert] = useState<CustomAlertConfig | null>(null);
+  const currentStep = useOnboardingStore((s) => s.currentStep);
+  const isComplete = useOnboardingStore((s) => s.isComplete);
+  const isHydrated = useOnboardingStore((s) => s.isHydrated);
+
+  const logNavigation = (action: 'push' | 'replace' | 'back', target?: string) => {
+    console.log(
+      `[NAV_TRACE] screen=onboarding/permissions action=${action}${target ? ` target=${target}` : ''} state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+  };
 
   const showCustomAlert = (
     title: string,
@@ -262,6 +261,32 @@ export default function OnboardingPermissions() {
   ) => {
     setCustomAlert({ title, message, buttons, iconType });
   };
+
+  useEffect(() => {
+    console.log(
+      `[ROUTE_TRACE] mount screen=onboarding/permissions route=/onboarding/permissions state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+    return () => {
+      console.log('[ROUTE_TRACE] unmount screen=onboarding/permissions route=/onboarding/permissions');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(
+      `[ROUTE_TRACE] screen=onboarding/permissions state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+        hasPermission,
+        isChecking,
+        hasCustomAlert: Boolean(customAlert),
+      })}`
+    );
+  }, [currentStep, isComplete, isHydrated, hasPermission, isChecking, customAlert]);
 
   useEffect(() => {
     async function verifyPermission() {
@@ -278,7 +303,7 @@ export default function OnboardingPermissions() {
     if (Platform.OS !== 'android') {
       showCustomAlert(
         'SMS Reader',
-        'Automatic SMS reading is only available on Android due to iOS platform restrictions. On iOS, you can track expenses manually or simulate tracking via Demo Scan.',
+        'Automatic SMS reading is only available on Android due to iOS platform restrictions. You can track expenses manually using the Add Transaction screen.',
         undefined,
         'info'
       );
@@ -286,12 +311,18 @@ export default function OnboardingPermissions() {
     }
 
     if (!SpendLensSmsModule) {
+      // Expo Go limitation: native SMS module not available
       showCustomAlert(
         'Expo Go Limitation',
-        'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. To test the SMS parsing, please tap "Try Demo Scan" or build a standalone APK.',
+        'SMS tracking requires custom native permissions which are not available in the generic Expo Go app. Build a standalone APK to enable real SMS tracking.',
         [
-          { text: 'Try Demo Scan', onPress: () => handleSimulateScan() },
-          { text: 'Continue Manually', onPress: () => router.push('/onboarding/balance') },
+          {
+            text: 'Continue',
+            onPress: () => {
+              logNavigation('push', '/onboarding/balance');
+              router.push('/onboarding/balance');
+            }
+          },
           { text: 'Cancel', style: 'cancel' }
         ],
         'shield'
@@ -309,7 +340,10 @@ export default function OnboardingPermissions() {
           [
             {
               text: 'Continue',
-              onPress: () => router.push('/onboarding/balance'),
+              onPress: () => {
+                logNavigation('push', '/onboarding/balance');
+                router.push('/onboarding/balance');
+              },
             }
           ],
           'success'
@@ -317,7 +351,7 @@ export default function OnboardingPermissions() {
       } else {
         showCustomAlert(
           'Permission Denied',
-          'You can still add transactions manually. You can enable SMS tracking anytime in settings.',
+          'You can still add transactions manually. You can enable SMS tracking anytime in Settings.',
           undefined,
           'warning'
         );
@@ -327,116 +361,86 @@ export default function OnboardingPermissions() {
     }
   };
 
-  const handleSimulateScan = async () => {
-    setIsScanning(true);
-    setTimeout(async () => {
-      try {
-        const addedCount = await simulateSMSScan();
-        setIsScanning(false);
-        showCustomAlert(
-          'Scan Complete!',
-          `Successfully simulated scanning SMS and created ${addedCount} transactions with smart auto-categorization.`,
-          [
-            {
-              text: 'Awesome',
-              onPress: () => router.push('/onboarding/balance'),
-            },
-          ],
-          'success'
-        );
-      } catch (error) {
-        console.error('Failed to simulate scan:', error);
-        setIsScanning(false);
-      }
-    }, 1500);
-  };
-
-
-
   const obTheme = theme.onboarding;
 
   return (
     <View style={[styles.container, { backgroundColor: obTheme.background }]}>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
 
-      
-        {/* ── Responsive Centered Scroll Container ────────────── */}
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContainer,
-            { paddingBottom: Math.max(insets.bottom, 20) + 24 }
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Illustration */}
-          <SmsHeroIllustration />
+      {/* ── Responsive Centered Scroll Container ────────────── */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContainer,
+          { paddingBottom: Math.max(insets.bottom, 20) + 24 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Illustration */}
+        <SmsHeroIllustration />
 
-          {/* Editorial Header */}
-          <View style={styles.header}>
-            <Text style={[styles.microHeader, { color: obTheme.brandGreen }]}>DATA PERMISSIONS</Text>
-            <Text style={[styles.title, { color: obTheme.primary, fontFamily: typography.fontFamily.bold }]}>
-              Smart <Text style={{ color: obTheme.brandGreen }}>Auto</Text>-Tracking
-            </Text>
-            <Text style={[styles.subtitle, { color: obTheme.primary, opacity: 0.8 }]}>
-              SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.
-            </Text>
-          </View>
+        {/* Editorial Header */}
+        <View style={styles.header}>
+          <Text style={[styles.microHeader, { color: obTheme.brandGreen }]}>DATA PERMISSIONS</Text>
+          <Text style={[styles.title, { color: obTheme.primary, fontFamily: typography.fontFamily.bold }]}>
+            Smart <Text style={{ color: obTheme.brandGreen }}>Auto</Text>-Tracking
+          </Text>
+          <Text style={[styles.subtitle, { color: obTheme.primary, opacity: 0.8 }]}>
+            SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.
+          </Text>
+        </View>
 
-          {/* Automation Flow */}
-          <AutomationFlowCard />
+        {/* Automation Flow */}
+        <AutomationFlowCard />
 
-          {/* Privacy Manifest */}
-          <PrivacyManifestCard />
+        {/* Privacy Manifest */}
+        <PrivacyManifestCard />
 
-          {/* Action Buttons Section */}
-          <View style={styles.bottomSection}>
-            {isChecking ? (
-              <ActivityIndicator size="large" color={obTheme.primary} style={{ marginVertical: 12 }} />
-            ) : (
-              <>
-                {Platform.OS === 'android' && !hasPermission && (
-                  <Pressable
-                    onPress={handleRequestPermission}
-                    style={({ pressed }) => [
-                      styles.secondaryButton,
-                      {
-                        borderColor: obTheme.primary,
-                        transform: [{ scale: pressed ? 0.98 : 1 }],
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.secondaryBtnText, { color: obTheme.primary }]}>
-                      Enable SMS Tracking
-                    </Text>
-                  </Pressable>
-                )}
-
+        {/* Action Buttons Section */}
+        <View style={styles.bottomSection}>
+          {isChecking ? (
+            <ActivityIndicator size="large" color={obTheme.primary} style={{ marginVertical: 12 }} />
+          ) : (
+            <>
+              {Platform.OS === 'android' && !hasPermission && (
                 <Pressable
-                  onPress={handleSimulateScan}
-                  disabled={isScanning}
+                  onPress={handleRequestPermission}
                   style={({ pressed }) => [
-                    styles.primaryButton,
+                    styles.secondaryButton,
                     {
-                      backgroundColor: obTheme.primary,
-                      shadowColor: obTheme.primary,
+                      borderColor: obTheme.primary,
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
                     },
-                    isScanning && styles.ctaDisabled,
-                    { transform: [{ scale: pressed ? 0.975 : 1 }] }
                   ]}
                 >
-                  {isScanning ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text style={[styles.primaryBtnText, { color: obTheme.accentCardTitle }]}>
-                      Try Demo Scan
-                    </Text>
-                  )}
+                  <Text style={[styles.secondaryBtnText, { color: obTheme.primary }]}>
+                    Enable SMS Tracking
+                  </Text>
                 </Pressable>
-              </>
-            )}
-          </View>
-        </ScrollView>
-      
+              )}
+
+              {/* Primary CTA: always navigate to balance setup */}
+              <Pressable
+                onPress={() => {
+                  logNavigation('push', '/onboarding/balance');
+                  router.push('/onboarding/balance');
+                }}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  {
+                    backgroundColor: obTheme.primary,
+                    shadowColor: obTheme.primary,
+                  },
+                  { transform: [{ scale: pressed ? 0.975 : 1 }] }
+                ]}
+              >
+                <Text style={[styles.primaryBtnText, { color: obTheme.accentCardTitle }]}>
+                  Continue
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </ScrollView>
 
       {/* Custom Alert Modal */}
       <Modal
@@ -523,8 +527,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
-
 
   // ── Scroll container ──
   scrollContainer: {
@@ -706,9 +708,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.1,
     fontFamily: typography.fontFamily.bold,
-  },
-  ctaDisabled: {
-    opacity: 0.6,
   },
 
   // ── Custom Alert Styles ──

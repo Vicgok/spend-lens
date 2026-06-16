@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useSegments, useRouter } from 'expo-router';
+import { Redirect, useSegments, useRouter } from 'expo-router';
 import { useTheme } from '@/providers/theme-provider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, StyleSheet, Pressable, Image } from 'react-native';
@@ -15,12 +15,16 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { useOnboardingStore } from '@/stores/settings-store';
 
 export default function OnboardingLayout() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const segments = useSegments();
   const router = useRouter();
+  const currentStep = useOnboardingStore((s) => s.currentStep);
+  const isComplete = useOnboardingStore((s) => s.isComplete);
+  const isHydrated = useOnboardingStore((s) => s.isHydrated);
 
   // Active step detection based on the current segment
   const activeSegment = segments[segments.length - 1];
@@ -72,12 +76,46 @@ export default function OnboardingLayout() {
 
   const showBackButton = stepIndex > 0;
 
+  useEffect(() => {
+    console.log(
+      `[ROUTE_TRACE] mount screen=onboarding-layout segments=${JSON.stringify(segments)} state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+    return () => {
+      console.log('[ROUTE_TRACE] unmount screen=onboarding-layout');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(
+      `[ROUTE_TRACE] screen=onboarding-layout activeSegment=${String(activeSegment)} stepIndex=${stepIndex} state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+  }, [activeSegment, stepIndex, currentStep, isComplete, isHydrated]);
+
   const onboardingStackOptions: TransitionOptions = {
     headerShown: false,
     animation: 'none',
     contentStyle: { backgroundColor: 'transparent' },
     ...onboardingTransition,
   };
+
+  if (isHydrated && isComplete) {
+    console.log(
+      `[NAV_TRACE] screen=onboarding-layout action=redirect target=/(tabs) state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: obTheme.background, paddingTop: insets.top + 8 }]}>
@@ -88,7 +126,16 @@ export default function OnboardingLayout() {
         <View style={[styles.topBarSide, { alignItems: 'flex-start' }]}>
           {showBackButton && (
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => {
+                console.log(
+                  `[NAV_TRACE] screen=onboarding-layout action=back state=${JSON.stringify({
+                    currentStep,
+                    isComplete,
+                    isHydrated,
+                  })}`
+                );
+                router.back();
+              }}
               style={({ pressed }) => [
                 styles.backButton,
                 { transform: [{ scale: pressed ? 0.95 : 1 }] }
