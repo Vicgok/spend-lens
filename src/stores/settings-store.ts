@@ -1,12 +1,8 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '@/lib/logger';
 import { STORAGE_KEYS } from '../lib/constants';
 import { ThemeMode } from '../theme';
-
-function logOnboardingStore(event: string, payload?: Record<string, unknown>) {
-  const suffix = payload ? ` ${JSON.stringify(payload)}` : '';
-  console.log(`[ONBOARDING_STORE] ${event}${suffix}`);
-}
 
 interface OnboardingState {
   isComplete: boolean;
@@ -23,44 +19,23 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   currentStep: 0,
 
   setStep: (step) =>
-    set((state) => {
-      logOnboardingStore('setStep', {
-        from: state.currentStep,
-        to: step,
-        isComplete: state.isComplete,
-        isHydrated: state.isHydrated,
-      });
-      return { currentStep: step };
-    }),
+    set(() => ({ currentStep: step })),
 
   completeOnboarding: async () => {
-    const before = useOnboardingStore.getState();
-    logOnboardingStore('completeOnboarding:start', {
-      currentStep: before.currentStep,
-      isComplete: before.isComplete,
-      isHydrated: before.isHydrated,
-    });
     await AsyncStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, 'true');
     set({ isComplete: true, currentStep: 0, isHydrated: true });
-    const after = useOnboardingStore.getState();
-    logOnboardingStore('completeOnboarding:done', {
-      currentStep: after.currentStep,
-      isComplete: after.isComplete,
-      isHydrated: after.isHydrated,
-    });
   },
 
   checkOnboardingStatus: async () => {
-    logOnboardingStore('checkOnboardingStatus:start');
-    const value = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETE);
-    set({ isComplete: value === 'true', isHydrated: true });
-    const after = useOnboardingStore.getState();
-    logOnboardingStore('checkOnboardingStatus:done', {
-      storageValue: value,
-      currentStep: after.currentStep,
-      isComplete: after.isComplete,
-      isHydrated: after.isHydrated,
-    });
+    try {
+      const value = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETE);
+      set({ isComplete: value === 'true', isHydrated: true });
+    } catch (error) {
+      logger.warn('Failed to check onboarding status', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      set({ isHydrated: true });
+    }
   },
 }));
 

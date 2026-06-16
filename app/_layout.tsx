@@ -23,6 +23,7 @@ import {
   JetBrainsMono_400Regular,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
+import { logger } from '@/lib/logger';
 import { tokens } from '@/theme';
 import {
   TransitionStack,
@@ -75,9 +76,6 @@ function getRouteBackground(pathname: string, fallbackBackground: string, onboar
 function RootNavigator() {
   const { theme, isDark } = useTheme();
   const pathname = usePathname();
-  const currentStep = useOnboardingStore((s) => s.currentStep);
-  const isComplete = useOnboardingStore((s) => s.isComplete);
-  const isHydrated = useOnboardingStore((s) => s.isHydrated);
   const routeBackground = getRouteBackground(
     pathname,
     theme.background,
@@ -86,19 +84,11 @@ function RootNavigator() {
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(routeBackground).catch((err) => {
-      console.warn('Failed to set system UI background color:', err);
+      logger.warn('Failed to set system UI background color', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     });
   }, [routeBackground]);
-
-  useEffect(() => {
-    console.log(
-      `[ROUTE_TRACE] screen=root-navigator pathname=${pathname} state=${JSON.stringify({
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-  }, [pathname, currentStep, isComplete, isHydrated]);
 
   useEffect(() => {
     async function configureAndroidNavbar() {
@@ -107,7 +97,9 @@ function RootNavigator() {
           await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
           await NavigationBar.setVisibilityAsync('visible');
         } catch (error) {
-          console.warn('Failed to configure navigation bar:', error);
+          logger.warn('Failed to configure navigation bar', {
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
     }
@@ -206,41 +198,24 @@ export default function RootLayout() {
 
   const checkOnboarding = useOnboardingStore((s) => s.checkOnboardingStatus);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
-  const currentStep = useOnboardingStore((s) => s.currentStep);
-  const isComplete = useOnboardingStore((s) => s.isComplete);
-  const isHydrated = useOnboardingStore((s) => s.isHydrated);
 
   useEffect(() => {
     async function prepare() {
       try {
-        console.log('[ROOT_TRACE] prepare:start');
         await Promise.all([
           checkOnboarding(),
           loadSettings(),
         ]);
-        console.log('[ROOT_TRACE] prepare:stores-loaded');
       } catch (e) {
-        console.warn('Failed to load stores:', e);
+        logger.warn('Failed to load stores', {
+          error: e instanceof Error ? e.message : String(e),
+        });
       } finally {
         setIsStoreLoaded(true);
-        console.log('[ROOT_TRACE] prepare:done');
       }
     }
     prepare();
   }, []);
-
-  useEffect(() => {
-    console.log(
-      `[ROOT_TRACE] render-state ${JSON.stringify({
-        fontsLoaded,
-        hasFontError: Boolean(fontError),
-        isStoreLoaded,
-        currentStep,
-        isComplete,
-        isHydrated,
-      })}`
-    );
-  }, [fontsLoaded, fontError, isStoreLoaded, currentStep, isComplete, isHydrated]);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && isStoreLoaded) {
