@@ -1,10 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { router, usePathname } from 'expo-router';
+import { ROUTES } from '@/navigation/routes';
 import { typography } from '@/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
+const TAB_LABELS = ['Home', 'History', 'Insights', 'Settings', 'Add'] as const;
+const TAB_ROUTES = [
+  ROUTES.tabs,
+  '/(tabs)/transactions',
+  '/(tabs)/insights',
+  '/(tabs)/settings',
+  ROUTES.addTransaction,
+] as const;
+const TAB_BAR_COLORS = {
+  active: '#3E5A2A',
+  inactive: '#8E8A82',
+  surface: '#FFF8EE',
+  border: '#E6E1D8',
+  shadow: '#745143',
+} as const;
 
 interface TabBarButtonProps {
   isFocused: boolean;
@@ -47,20 +63,7 @@ function TabBarButton({
     }).start();
   };
 
-  const activeColor = '#3E5A2A'; // Forest green
-  const inactiveColor = '#8E8A82'; // Muted text
-  const iconColor = isFocused ? activeColor : inactiveColor;
-
-  const getLabelText = () => {
-    switch (index) {
-      case 0: return 'Home';
-      case 1: return 'History';
-      case 2: return 'Insights';
-      case 3: return 'Settings';
-      case 4: return 'Add';
-      default: return '';
-    }
-  };
+  const iconColor = isFocused ? TAB_BAR_COLORS.active : TAB_BAR_COLORS.inactive;
 
   return (
     <Pressable
@@ -105,7 +108,7 @@ function TabBarButton({
           </Svg>
         )}
         <Text style={[styles.tabLabel, { color: iconColor }]}>
-          {getLabelText()}
+          {TAB_LABELS[index] ?? ''}
         </Text>
       </Animated.View>
     </Pressable>
@@ -117,7 +120,7 @@ export function BottomTabBar() {
   const tabBarWidth = screenWidth - 40;
   const tabWidth = tabBarWidth / 5;
 
-  const getActiveIndex = () => {
+  const activeIndex = useMemo(() => {
     // Exact path segmentation matching
     if (pathname === '/' || pathname === '/(tabs)' || pathname === '/(tabs)/') return 0;
     if (pathname.includes('/transactions')) return 1;
@@ -125,9 +128,7 @@ export function BottomTabBar() {
     if (pathname.includes('/settings') || pathname.includes('/accounts')) return 3;
     if (pathname.includes('/add-transaction')) return 4;
     return -1;
-  };
-
-  const activeIndex = getActiveIndex();
+  }, [pathname]);
   const translateX = useRef(new Animated.Value(activeIndex >= 0 ? activeIndex * tabWidth + (tabWidth - 16) / 2 : 0)).current;
 
   useEffect(() => {
@@ -142,25 +143,12 @@ export function BottomTabBar() {
     }
   }, [activeIndex, tabWidth]);
 
-  const handleTabPress = (index: number) => {
-    switch (index) {
-      case 0:
-        router.push('/(tabs)');
-        break;
-      case 1:
-        router.push('/(tabs)/transactions');
-        break;
-      case 2:
-        router.push('/(tabs)/insights');
-        break;
-      case 3:
-        router.push('/(tabs)/settings');
-        break;
-      case 4:
-        router.push('/add-transaction');
-        break;
+  const handleTabPress = useCallback((index: number) => {
+    const route = TAB_ROUTES[index];
+    if (route) {
+      router.push(route);
     }
-  };
+  }, []);
 
   return (
     <View style={styles.standardTabBar}>
@@ -169,7 +157,7 @@ export function BottomTabBar() {
           style={[
             styles.activeUnderline,
             {
-              backgroundColor: '#3E5A2A',
+              backgroundColor: TAB_BAR_COLORS.active,
               bottom: 6,
               transform: [{ translateX }],
             },
@@ -203,10 +191,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#FFF8EE',
+    backgroundColor: TAB_BAR_COLORS.surface,
     borderWidth: 1,
-    borderColor: '#E6E1D8',
-    shadowColor: '#745143',
+    borderColor: TAB_BAR_COLORS.border,
+    shadowColor: TAB_BAR_COLORS.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -423,49 +423,52 @@ export const CurrentAccountsList = memo(({
     );
   }
 
-  // Cyclic stack rotation sorting logic
   const activeSelectedId = selectedAccountId || accounts[0]?.id || null;
-  let orderedAccounts = [...accounts];
-  if (activeSelectedId) {
-    const selectedIdx = orderedAccounts.findIndex((a) => a.id === activeSelectedId);
-    if (selectedIdx > -1) {
-      const before = orderedAccounts.slice(0, selectedIdx);
-      const after = orderedAccounts.slice(selectedIdx);
-      orderedAccounts = [...after, ...before];
-    }
-  }
-
-  const visibleAccounts = orderedAccounts.slice(0, 3);
-  const behindCount = Math.max(0, visibleAccounts.length - 1);
   const STACK_OFFSET = 36;
-  const deckHeight = 140 + behindCount * STACK_OFFSET;
+  const orderedAccounts = useMemo(() => {
+    const nextAccounts = [...accounts];
+    if (!activeSelectedId) {
+      return nextAccounts;
+    }
 
-  // Render stable list ordered by original IDs to prevent swap mounting
-  const stableAccounts = [...visibleAccounts].sort((a, b) => a.id.localeCompare(b.id));
+    const selectedIdx = nextAccounts.findIndex((account) => account.id === activeSelectedId);
+    if (selectedIdx === -1) {
+      return nextAccounts;
+    }
 
-  return (
-    <View style={[styles.cardDeck, { height: deckHeight }]}>
-      {stableAccounts.map((account) => {
-        // Find current position in visual stack
-        const visualIdx = orderedAccounts.findIndex((a) => a.id === account.id);
-        if (visualIdx === -1) return null;
-
-        return (
-          <AccountCard
-            key={account.id}
-            account={account}
-            visualIdx={visualIdx}
-            visibleAccountsLength={visibleAccounts.length}
-            STACK_OFFSET={STACK_OFFSET}
-            onSelectAccountId={onSelectAccountId}
-            onDeleteAccount={onDeleteAccount}
-            onPressActive={onPressActive}
-            userName={userName}
-          />
-        );
-      })}
-    </View>
+    return [...nextAccounts.slice(selectedIdx), ...nextAccounts.slice(0, selectedIdx)];
+  }, [accounts, activeSelectedId]);
+  const visibleAccounts = useMemo(() => orderedAccounts.slice(0, 3), [orderedAccounts]);
+  const deckHeight = useMemo(
+    () => 140 + Math.max(0, visibleAccounts.length - 1) * STACK_OFFSET,
+    [visibleAccounts.length]
   );
+  const stableAccounts = useMemo(
+    () => [...visibleAccounts].sort((a, b) => a.id.localeCompare(b.id)),
+    [visibleAccounts]
+  );
+  const renderAccountCard = useCallback((account: Account) => {
+    const visualIdx = orderedAccounts.findIndex((candidate) => candidate.id === account.id);
+    if (visualIdx === -1) {
+      return null;
+    }
+
+    return (
+      <AccountCard
+        key={account.id}
+        account={account}
+        visualIdx={visualIdx}
+        visibleAccountsLength={visibleAccounts.length}
+        STACK_OFFSET={STACK_OFFSET}
+        onSelectAccountId={onSelectAccountId}
+        onDeleteAccount={onDeleteAccount}
+        onPressActive={onPressActive}
+        userName={userName}
+      />
+    );
+  }, [STACK_OFFSET, onDeleteAccount, onPressActive, onSelectAccountId, orderedAccounts, userName, visibleAccounts.length]);
+
+  return <View style={[styles.cardDeck, { height: deckHeight }]}>{stableAccounts.map(renderAccountCard)}</View>;
 });
 
 CurrentAccountsList.displayName = 'CurrentAccountsList';
