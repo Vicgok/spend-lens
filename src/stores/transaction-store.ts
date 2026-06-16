@@ -88,9 +88,11 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     return newAccounts;
   },
 
+  // P0-1 FIX: forceRefresh=true bypasses the cache guard so the deleted
+  // account is immediately removed from store state and UI.
   deleteAccount: async (id) => {
     await db.deleteAccount(id);
-    await get().loadAccounts();
+    await get().loadAccounts(true); // forceRefresh=true: deleted account must be evicted
     await get().loadTransactions();
     await get().loadMonthlyStats();
   },

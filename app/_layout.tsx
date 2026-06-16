@@ -75,6 +75,9 @@ function getRouteBackground(pathname: string, fallbackBackground: string, onboar
 function RootNavigator() {
   const { theme, isDark } = useTheme();
   const pathname = usePathname();
+  const currentStep = useOnboardingStore((s) => s.currentStep);
+  const isComplete = useOnboardingStore((s) => s.isComplete);
+  const isHydrated = useOnboardingStore((s) => s.isHydrated);
   const routeBackground = getRouteBackground(
     pathname,
     theme.background,
@@ -86,6 +89,16 @@ function RootNavigator() {
       console.warn('Failed to set system UI background color:', err);
     });
   }, [routeBackground]);
+
+  useEffect(() => {
+    console.log(
+      `[ROUTE_TRACE] screen=root-navigator pathname=${pathname} state=${JSON.stringify({
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+  }, [pathname, currentStep, isComplete, isHydrated]);
 
   useEffect(() => {
     async function configureAndroidNavbar() {
@@ -193,22 +206,41 @@ export default function RootLayout() {
 
   const checkOnboarding = useOnboardingStore((s) => s.checkOnboardingStatus);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
+  const currentStep = useOnboardingStore((s) => s.currentStep);
+  const isComplete = useOnboardingStore((s) => s.isComplete);
+  const isHydrated = useOnboardingStore((s) => s.isHydrated);
 
   useEffect(() => {
     async function prepare() {
       try {
+        console.log('[ROOT_TRACE] prepare:start');
         await Promise.all([
           checkOnboarding(),
           loadSettings(),
         ]);
+        console.log('[ROOT_TRACE] prepare:stores-loaded');
       } catch (e) {
         console.warn('Failed to load stores:', e);
       } finally {
         setIsStoreLoaded(true);
+        console.log('[ROOT_TRACE] prepare:done');
       }
     }
     prepare();
   }, []);
+
+  useEffect(() => {
+    console.log(
+      `[ROOT_TRACE] render-state ${JSON.stringify({
+        fontsLoaded,
+        hasFontError: Boolean(fontError),
+        isStoreLoaded,
+        currentStep,
+        isComplete,
+        isHydrated,
+      })}`
+    );
+  }, [fontsLoaded, fontError, isStoreLoaded, currentStep, isComplete, isHydrated]);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && isStoreLoaded) {

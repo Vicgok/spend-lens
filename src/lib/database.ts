@@ -312,7 +312,7 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
     syncedAt: null,
   };
 
-  await database.runAsync(
+  const result = await database.runAsync(
     `INSERT OR IGNORE INTO transactions (id, account_id, type, amount, category_id, merchant, description, date, source, sms_hash, is_recurring, tags, created_at, synced_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     transaction.id, transaction.accountId, transaction.type, transaction.amount,
@@ -321,6 +321,12 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
     transaction.isRecurring ? 1 : 0, JSON.stringify(transaction.tags),
     transaction.createdAt, transaction.syncedAt
   );
+
+  // P0-2 FIX: If the row was not inserted (duplicate hash collision), skip the
+  // balance update to prevent a permanent desync between balance and transactions.
+  if (result.changes === 0) {
+    return transaction;
+  }
 
   // Update account balance
   if (transaction.type === 'expense') {
@@ -340,7 +346,7 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
 
 export async function getTransactions(
   filter?: TransactionFilter,
-  limit: number = 50,
+  limit: number = 500, // P1-5 FIX: was 50 — users with >50 SMS transactions saw incomplete history silently
   offset: number = 0
 ): Promise<Transaction[]> {
   const database = await getDatabase();
@@ -448,60 +454,66 @@ export async function updateTransaction(
   }
 ): Promise<void> {
   const database = await getDatabase();
-  const setClauses: string[] = [];
-  const params: any[] = [];
 
-  if (updates.categoryId !== undefined) {
-    setClauses.push('category_id = ?');
-    params.push(updates.categoryId);
-  }
-  if (updates.merchant !== undefined) {
-    setClauses.push('merchant = ?');
-    params.push(updates.merchant);
-  }
-  if (updates.description !== undefined) {
-    setClauses.push('description = ?');
-    params.push(updates.description);
-  }
-  if (updates.amount !== undefined) {
-    const oldTx = await database.getFirstAsync<{ amount: number; type: string; account_id: string }>(
-      'SELECT amount, type, account_id FROM transactions WHERE id = ?',
-      id
-    );
-    if (oldTx) {
-      const diff = updates.amount - oldTx.amount;
-      if (diff !== 0) {
-        setClauses.push('amount = ?');
-        params.push(updates.amount);
-        
-        let balanceAdjustment = 0;
-        if (oldTx.type === 'expense') {
-          balanceAdjustment = -diff;
-        } else if (oldTx.type === 'income') {
-          balanceAdjustment = diff;
-        }
-        
-        if (balanceAdjustment !== 0) {
-          await database.runAsync(
-            'UPDATE accounts SET balance = balance + ?, updated_at = ? WHERE id = ?',
-            balanceAdjustment, new Date().toISOString(), oldTx.account_id
-          );
+  // P1-9 FIX: Wrap everything in a single DB transaction so the balance
+  // adjustment and the transaction row update are atomic. A crash between
+  // the two statements previously left balance and transaction permanently desynced.
+  await database.withTransactionAsync(async () => {
+    const setClauses: string[] = [];
+    const params: any[] = [];
+
+    if (updates.categoryId !== undefined) {
+      setClauses.push('category_id = ?');
+      params.push(updates.categoryId);
+    }
+    if (updates.merchant !== undefined) {
+      setClauses.push('merchant = ?');
+      params.push(updates.merchant);
+    }
+    if (updates.description !== undefined) {
+      setClauses.push('description = ?');
+      params.push(updates.description);
+    }
+    if (updates.amount !== undefined) {
+      const oldTx = await database.getFirstAsync<{ amount: number; type: string; account_id: string }>(
+        'SELECT amount, type, account_id FROM transactions WHERE id = ?',
+        id
+      );
+      if (oldTx) {
+        const diff = updates.amount - oldTx.amount;
+        if (diff !== 0) {
+          setClauses.push('amount = ?');
+          params.push(updates.amount);
+
+          let balanceAdjustment = 0;
+          if (oldTx.type === 'expense') {
+            balanceAdjustment = -diff;
+          } else if (oldTx.type === 'income') {
+            balanceAdjustment = diff;
+          }
+
+          if (balanceAdjustment !== 0) {
+            await database.runAsync(
+              'UPDATE accounts SET balance = balance + ?, updated_at = ? WHERE id = ?',
+              balanceAdjustment, new Date().toISOString(), oldTx.account_id
+            );
+          }
         }
       }
     }
-  }
-  if (updates.date !== undefined) {
-    setClauses.push('date = ?');
-    params.push(updates.date);
-  }
+    if (updates.date !== undefined) {
+      setClauses.push('date = ?');
+      params.push(updates.date);
+    }
 
-  if (setClauses.length === 0) return;
+    if (setClauses.length === 0) return;
 
-  params.push(id);
-  await database.runAsync(
-    `UPDATE transactions SET ${setClauses.join(', ')} WHERE id = ?`,
-    ...params
-  );
+    params.push(id);
+    await database.runAsync(
+      `UPDATE transactions SET ${setClauses.join(', ')} WHERE id = ?`,
+      ...params
+    );
+  });
 }
 
 export async function checkSMSHashExists(hash: string): Promise<boolean> {
@@ -719,6 +731,9 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM bank_detections;
     DELETE FROM logs;
   `);
+  // P0-4 FIX: Remove user-created custom categories. System categories will be
+  // re-seeded on next DB open via initializeDatabase, preserving defaults.
+  await database.runAsync(`DELETE FROM categories WHERE is_custom = 1`);
 }
 
 // ========== LOGS ==========

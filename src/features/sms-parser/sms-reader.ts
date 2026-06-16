@@ -7,101 +7,6 @@ import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
 import { ParsedTransaction } from './types';
 
-// Helper to get a ISO date string offset by days, optionally forced to weekend
-function getMockDateISO(daysAgo: number, forceWeekend: boolean = false): string {
-  const d = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-  if (forceWeekend) {
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) {
-      // Shift to Saturday
-      d.setDate(d.getDate() - (day + 1));
-    }
-  }
-  return d.toISOString();
-}
-
-// Sample bank SMS messages for mock simulation
-const MOCK_SMS_MESSAGES = [
-  {
-    sender: 'SBIINB',
-    body: 'Your A/c XX1122 is credited with Rs. 75,000.00 on 01-May-26 by Salary. Avl Bal Rs. 1,20,000.00.',
-    date: getMockDateISO(15),
-  },
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 1,200.00 debited from A/c XX4321 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 45,670.00.',
-    date: getMockDateISO(0),
-  },
-  {
-    sender: 'AXISBK',
-    body: 'Dear Customer, transaction of Rs 450.00 debited on card ending 9876 at UBER INDIA. AVL BAL Rs 12,450.00.',
-    date: getMockDateISO(3),
-  },
-  {
-    sender: 'KOTAKB',
-    body: 'Rs. 2,500.00 paid to ZOMATO from A/c XX5566. Avl Bal: Rs 8,900.00.',
-    date: getMockDateISO(4),
-  },
-  {
-    sender: 'CHASE',
-    body: 'Transaction alert: Rs. 699.00 charged on Card ending 5543 at NETFLIX. Bal: Rs. 23,254.10.',
-    date: getMockDateISO(5),
-  },
-  {
-    sender: 'BOFA',
-    body: 'Deposit of Rs. 5,000.00 received in Account ending 9988 from Refund. Balance Rs. 28,450.00.',
-    date: getMockDateISO(6),
-  },
-  // Micro-spending leak: Starbucks 3 times
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 180.00 debited from A/c XX4321 on purchase at STARBUCKS. Avl Bal Rs. 43,290.00.',
-    date: getMockDateISO(1),
-  },
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 220.00 debited from A/c XX4321 on purchase at STARBUCKS. Avl Bal Rs. 43,070.00.',
-    date: getMockDateISO(2),
-  },
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 190.00 debited from A/c XX4321 on purchase at STARBUCKS. Avl Bal Rs. 42,880.00.',
-    date: getMockDateISO(3),
-  },
-  // Impulse Spending: Amazon twice within 30 mins
-  {
-    sender: 'AXISBK',
-    body: 'Dear Customer, transaction of Rs 4,500.00 debited on card ending 9876 at AMAZON INDIA. AVL BAL Rs 8,200.00.',
-    date: getMockDateISO(2),
-  },
-  {
-    sender: 'AXISBK',
-    body: 'Dear Customer, transaction of Rs 3,200.00 debited on card ending 9876 at AMAZON INDIA. AVL BAL Rs 5,000.00.',
-    date: new Date(new Date(getMockDateISO(2)).getTime() + 30 * 60 * 1000).toISOString(),
-  },
-  // Subscriptions
-  {
-    sender: 'KOTAKB',
-    body: 'Rs. 129.00 paid to SPOTIFY from A/c XX5566. Avl Bal: Rs 8,771.00.',
-    date: getMockDateISO(10),
-  },
-  {
-    sender: 'KOTAKB',
-    body: 'Rs. 189.00 paid to YOUTUBE PREMIUM from A/c XX5566. Avl Bal: Rs 8,582.00.',
-    date: getMockDateISO(9),
-  },
-  // Weekend spend creep: High spends on Saturday and Sunday
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 6,800.00 debited from A/c XX4321 for purchase at OVERLAND GEAR. Avl Bal Rs. 35,000.00.',
-    date: getMockDateISO(2, true),
-  },
-  {
-    sender: 'HDFCBK',
-    body: 'Alert: Rs. 5,200.00 debited from A/c XX4321 for purchase at FINE DINING. Avl Bal Rs. 29,800.00.',
-    date: getMockDateISO(3, true),
-  },
-];
 
 /**
  * Check if the app has SMS reading permission.
@@ -352,24 +257,6 @@ export async function syncSMSFromDevice(): Promise<number> {
   return newCount;
 }
 
-/**
- * Simulate scanning SMS messages (for testing/simulators/iOS).
- * Adds simulated transactions to the store.
- * Returns the number of newly added transactions.
- */
-export async function simulateSMSScan(): Promise<number> {
-  let newTransactionsCount = 0;
-
-  for (const sms of MOCK_SMS_MESSAGES) {
-    // Note: We don't enforce the 10-day limit on mocks to ensure demo/testing functions correctly with mock data.
-    const wasAdded = await processIncomingSMS(sms.body, sms.date, sms.sender, false);
-    if (wasAdded) {
-      newTransactionsCount++;
-    }
-  }
-
-  return newTransactionsCount;
-}
 
 /**
  * Start listening for incoming SMS messages (Android only).

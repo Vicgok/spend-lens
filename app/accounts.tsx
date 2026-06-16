@@ -288,7 +288,14 @@ export default function ManageAccountsScreen() {
       <StatusBar style="dark" />
       <View style={styles.headerTop}>
         <Pressable
-          onPress={() => router.replace('/(tabs)/settings' as any)}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+              return;
+            }
+
+            router.replace('/(tabs)/settings' as any);
+          }}
           style={styles.backButton}
         >
           <BackArrowIcon color={SETTINGS_COLORS.green} />

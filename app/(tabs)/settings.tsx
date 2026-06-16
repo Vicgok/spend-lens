@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { simulateSMSScan } from '@/features/sms-parser/sms-reader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabHeader, ReadingNotebookMascot, LeafCluster, CornerPlant } from '@/components/ui';
 import { typography, spacing } from '@/theme';
@@ -170,27 +169,11 @@ export default function SettingsScreen() {
   const totalBalance = getTotalBalance();
   const transactionCount = transactions.length;
 
-  const handleSMSParsingPress = () => {
+  const handleSMSStatusPress = () => {
     Alert.alert(
-      'SMS Parsing',
-      `SpendLens reads financial notifications to automatically track expenses.\n\nPlatform: ${Platform.OS.toUpperCase()}\n\nWould you like to run a demo scan of mock bank SMS messages?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Run Demo Scan',
-          onPress: async () => {
-            try {
-              const added = await simulateSMSScan();
-              // Reload transactions & stats
-              await useTransactionStore.getState().loadTransactions();
-              await useTransactionStore.getState().loadMonthlyStats();
-              Alert.alert('Scan Complete', `Simulated scan found and added ${added} new transactions.`);
-            } catch (e) {
-               console.error(e);
-            }
-          },
-        },
-      ]
+      'SMS Tracking',
+      `SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.\n\nPlatform: ${Platform.OS.toUpperCase()}`,
+      [{ text: 'OK' }]
     );
   };
 
@@ -273,8 +256,10 @@ export default function SettingsScreen() {
     );
   };
 
+  // P1-6 FIX: was fire-and-forget with no forceRefresh — accounts screen got stale data.
+  // Now awaits a forced SQLite read before navigating.
   const handleManageAccountsPress = async () => {
-    await loadAccounts();
+    await loadAccounts(true);
     router.push('/accounts' as any);
   };
 
@@ -356,12 +341,13 @@ export default function SettingsScreen() {
         <View style={styles.sectionCard}>
           <SettingsRow
             icon="sms"
-            title="SMS Parsing"
-            onPress={handleSMSParsingPress}
+            title="SMS Tracking"
+            subtitle="Financial SMS processed locally on-device"
+            onPress={handleSMSStatusPress}
             statusBadge={
               <View style={styles.statusBadge}>
                 <Text style={styles.statusBadgeText}>
-                  {Platform.OS === 'android' ? 'Enabled' : 'Simulated'}
+                  {Platform.OS === 'android' ? 'Enabled' : 'Android only'}
                 </Text>
               </View>
             }
