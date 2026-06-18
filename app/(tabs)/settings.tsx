@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TabHeader, ReadingNotebookMascot, LeafCluster, CornerPlant } from '@/components/ui';
-import { typography, spacing } from '@/theme';
+import { TabHeader, ReadingNotebookMascot, LeafCluster, CornerPlant, BaseModal } from '@/components/ui';
+import { ROUTES } from '@/navigation/routes';
+import { typography, spacing, tokens } from '@/theme';
 import { APP_VERSION } from '@/lib/constants';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { formatCurrency } from '@/utils/currency';
@@ -169,98 +170,151 @@ export default function SettingsScreen() {
   const totalBalance = getTotalBalance();
   const transactionCount = transactions.length;
 
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    primaryAction?: { label: string; onPress: () => void };
+    secondaryAction?: { label: string; onPress: () => void };
+  }>({ visible: false, title: '', message: '' });
+
   const handleSMSStatusPress = () => {
-    Alert.alert(
-      'SMS Tracking',
-      `SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.\n\nPlatform: ${Platform.OS.toUpperCase()}`,
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'SMS Tracking',
+      message: `SpendLens reads incoming bank SMS messages to automate expense tracking — all processed locally on your device.\n\nPlatform: ${Platform.OS.toUpperCase()}`,
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleEditProfilePress = () => {
-    Alert.alert(
-      'Edit Profile',
-      'This feature will allow updating your local dashboard name, avatar, and default settings in a future update.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Edit Profile',
+      message: 'This feature will allow updating your local dashboard name, avatar, and default settings in a future update.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleNotificationsPress = () => {
-    Alert.alert(
-      'Configure Alerts',
-      'This feature will allow customizing SMS transaction alerts and weekly summary notifications in a future update.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Configure Alerts',
+      message: 'This feature will allow customizing SMS transaction alerts and weekly summary notifications in a future update.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleExportDataPress = () => {
-    Alert.alert(
-      'Export Data',
-      'This feature will allow exporting your transaction history as JSON or CSV in a future update.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Export Data',
+      message: 'This feature will allow exporting your transaction history as JSON or CSV in a future update.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleClearAllDataPress = () => {
-    Alert.alert('Clear Data', 'This will delete all your transactions and accounts. This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Clear',
-        style: 'destructive',
+    setModalConfig({
+      visible: true,
+      title: 'Clear Data',
+      message: 'This will delete all your transactions and accounts. This cannot be undone.',
+      secondaryAction: {
+        label: 'Cancel',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      },
+      primaryAction: {
+        label: 'Clear',
         onPress: async () => {
-          // Clean DB
+          setModalConfig(prev => ({ ...prev, visible: false }));
           const dbModule = require('@/lib/database');
           try {
             await dbModule.clearAllData();
             await useTransactionStore.getState().loadAccounts();
             await useTransactionStore.getState().loadTransactions();
             await useTransactionStore.getState().loadMonthlyStats();
-            Alert.alert('Data Cleared', 'All app data has been reset successfully.');
+            setModalConfig({
+              visible: true,
+              title: 'Data Cleared',
+              message: 'All app data has been reset successfully.',
+              primaryAction: {
+                label: 'OK',
+                onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+              }
+            });
           } catch (e) {
             console.error(e);
           }
         }
-      },
-    ]);
+      }
+    });
   };
 
   const handleTermsPress = () => {
-    Alert.alert(
-      'Terms of Service',
-      'SpendLens is a local-first application. All data is stored locally on your device. By using this app, you agree that your financial data is your responsibility.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Terms of Service',
+      message: 'SpendLens is a local-first application. All data is stored locally on your device. By using this app, you agree that your financial data is your responsibility.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handlePrivacyPress = () => {
-    Alert.alert(
-      'Privacy Policy',
-      'Your privacy is our priority. SpendLens does not collect, transmit, or share your financial or personal information. All SMS processing and transaction tracking happen directly on your device.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Privacy Policy',
+      message: 'Your privacy is our priority. SpendLens does not collect, transmit, or share your financial or personal information. All SMS processing and transaction tracking happen directly on your device.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleDataProcessingPress = () => {
-    Alert.alert(
-      'Data Processing',
-      'All SMS text parsing is done using local regex patterns. No data is sent to external servers or third-party APIs.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Data Processing',
+      message: 'All SMS text parsing is done using local regex patterns. No data is sent to external servers or third-party APIs.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   const handleLocalFirstPress = () => {
-    Alert.alert(
-      'Local-First Architecture',
-      'SpendLens uses SQLite database stored on your device. We do not use database cloud sync, meaning your records are entirely yours.',
-      [{ text: 'OK' }]
-    );
+    setModalConfig({
+      visible: true,
+      title: 'Local-First Architecture',
+      message: 'SpendLens uses SQLite database stored on your device. We do not use database cloud sync, meaning your records are entirely yours.',
+      primaryAction: {
+        label: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      }
+    });
   };
 
   // P1-6 FIX: was fire-and-forget with no forceRefresh — accounts screen got stale data.
   // Now awaits a forced SQLite read before navigating.
   const handleManageAccountsPress = async () => {
     await loadAccounts(true);
-    router.push('/accounts' as any);
+    router.navigate(ROUTES.tabsAccounts);
   };
 
   return (
@@ -439,6 +493,26 @@ export default function SettingsScreen() {
       <View style={styles.bottomDecorRight} pointerEvents="none">
         <CornerPlant width={80} height={60} />
       </View>
+
+      <BaseModal
+        visible={modalConfig.visible}
+        onClose={() => setModalConfig(prev => ({ ...prev, visible: false }))}
+        variant="dialog"
+        title={modalConfig.title}
+        primaryAction={modalConfig.primaryAction}
+        secondaryAction={modalConfig.secondaryAction}
+      >
+        <Text style={{
+          fontSize: 14,
+          fontFamily: typography.fontFamily.medium,
+          color: SETTINGS_COLORS.secondary,
+          lineHeight: 20,
+          marginTop: 8,
+          marginBottom: 16
+        }}>
+          {modalConfig.message}
+        </Text>
+      </BaseModal>
     </View>
   );
 }
@@ -446,7 +520,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: SETTINGS_COLORS.background,
+    backgroundColor: tokens.colors.tactileBackground,
   },
   scrollContent: {
     paddingHorizontal: spacing.base,

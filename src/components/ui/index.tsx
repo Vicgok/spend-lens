@@ -5,6 +5,12 @@ export { BankLogo, AccountIcon, BANK_BRAND_COLORS } from './BankLogo';
 export { TransactionSkeleton, SkeletonPlaceholder } from './Skeleton';
 export * from './OnboardingIcons';
 
+// Shared modal primitives
+export { BaseModal } from './BaseModal';
+export type { BaseModalProps, BaseModalAction } from './BaseModal';
+export { BaseBottomSheet, shellStyles } from './BaseBottomSheet';
+export type { BaseBottomSheetProps } from './BaseBottomSheet';
+
 // Illustrations & Mascots
 export { default as AccountCardIllustration } from './illustrations/AccountCard';
 export { default as CardLeafIllustration } from './illustrations/CardLeaf';

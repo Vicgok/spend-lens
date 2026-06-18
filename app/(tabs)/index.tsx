@@ -35,6 +35,7 @@ import {
   CurrentAccountsList,
 } from '@/components/ui';
 import { AccountType } from '@/types';
+import { ROUTES } from '@/navigation/routes';
 
 
 
@@ -500,7 +501,7 @@ export default function DashboardScreen() {
           <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/accounts');
+              router.navigate(ROUTES.tabsAccounts);
             }}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
@@ -515,7 +516,7 @@ export default function DashboardScreen() {
             onSelectAccountId={setSelectedAccountId}
             onPressActive={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/accounts');
+              router.navigate(ROUTES.tabsAccounts);
             }}
           />
         </View>

@@ -10,7 +10,7 @@ import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
 // Illustrations & Mascots
-import { TabHeader, ReadingNotebookMascot, CornerPlant } from '@/components/ui';
+import { TabHeader, ReadingNotebookMascot, CornerPlant, BaseModal } from '@/components/ui';
 
 const SCAN_STEPS = [
   { message: 'INITIALIZING SMS OBSERVATORY SERVICE...', progress: 0.1 },
@@ -158,6 +158,7 @@ export default function InsightsScreen() {
   const [showHabitsModal, setShowHabitsModal] = useState(false);
   const [showHealthTooltip, setShowHealthTooltip] = useState(false);
   const [showRisksTooltip, setShowRisksTooltip] = useState(false);
+  const [showScanCompleteModal, setShowScanCompleteModal] = useState(false);
 
   // Animated values for pressable cards & tooltips
   const patternScale = useRef(new Animated.Value(1)).current;
@@ -488,7 +489,7 @@ export default function InsightsScreen() {
       setIsScanning(false);
       // Dev Tweak: load temporary mock data
       setTempTransactions(generateMockTransactions());
-      Alert.alert('Analysis Complete', 'I populated observations and leak patterns on your board.');
+      setShowScanCompleteModal(true);
     }, 4800);
   };
 
@@ -1526,20 +1527,21 @@ export default function InsightsScreen() {
                   <View key={pattern.category} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       {renderCategoryIcon(pattern.category)}
-                      <Text style={{ fontSize: 17, fontFamily: typography.fontFamily.bold, color: '#745143' }}>
+                      <Text style={{ fontSize: 17, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }}>
                         {index === 0 ? 'Most Active: ' : 'Second Active: '}{pattern.category}
                       </Text>
-                      <View style={{
-                        backgroundColor: isUp ? '#FCE3E0' : isDown ? '#E1ECC8' : '#EEF4E6',
-                        paddingHorizontal: 8,
-                        paddingVertical: 2,
-                        borderRadius: 99,
-                        marginLeft: 'auto'
-                      }}>
-                        <Text style={{ fontSize: 12, fontFamily: typography.fontFamily.bold, color: textColor }}>
-                          {isUp ? 'Increased' : isDown ? 'Saved Spends' : 'Stable'}
-                        </Text>
-                      </View>
+                    </View>
+                    <View style={{
+                      backgroundColor: isUp ? '#FCE3E0' : isDown ? '#E1ECC8' : '#EEF4E6',
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 99,
+                      alignSelf: 'flex-start',
+                      marginLeft: 26,
+                    }}>
+                      <Text style={{ fontSize: 12, fontFamily: typography.fontFamily.bold, color: textColor }}>
+                        {isUp ? 'Increased' : isDown ? 'Saved Spends' : 'Stable'}
+                      </Text>
                     </View>
 
                     <Text style={{ fontSize: 15, fontFamily: typography.fontFamily.medium, color: '#54554B', marginTop: 2 }}>
@@ -1676,6 +1678,28 @@ export default function InsightsScreen() {
         </View>
       </View>
     </Modal>
+
+    <BaseModal
+      visible={showScanCompleteModal}
+      onClose={() => setShowScanCompleteModal(false)}
+      variant="dialog"
+      title="Analysis Complete"
+      primaryAction={{
+        label: 'OK',
+        onPress: () => setShowScanCompleteModal(false)
+      }}
+    >
+      <Text style={{
+        fontSize: 14,
+        fontFamily: typography.fontFamily.medium,
+        color: '#54554B',
+        lineHeight: 20,
+        marginTop: 8,
+        marginBottom: 16
+      }}>
+        I populated observations and leak patterns on your board.
+      </Text>
+    </BaseModal>
   </>
 );
 }

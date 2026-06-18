@@ -1,19 +1,18 @@
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import {
-  Modal,
   View,
   Text,
   Pressable,
   ScrollView,
   TextInput,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   Animated,
   PanResponder,
   Dimensions,
 } from 'react-native';
+import { BaseBottomSheet, shellStyles } from './BaseBottomSheet';
 import Svg, { Path, Rect, Circle} from 'react-native-svg';
 
 import { tokens } from '@/theme';
@@ -21,7 +20,7 @@ import type { AccountType } from '@/types';
 import { PREDEFINED_BANKS } from '@/lib/banks';
 import { NotebookIllustration, CornerPlant, BankLogo } from './index';
 
-const { colors, radii, spacing, type: t, shadow } = tokens;
+const { colors, radii, spacing, type: t } = tokens;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DEFAULT_HEIGHT = SCREEN_HEIGHT * 0.73;
 const EXTENDED_HEIGHT = SCREEN_HEIGHT * 0.94;
@@ -334,24 +333,11 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
   }, [canCreate, numericBalance, onCreate, selectedBankId, selectedType, isProviderType]);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.sheetWrap}
-        >
-          <Animated.View style={[styles.sheet, { height: sheetHeight }]}>
-            {/* Draggable handle bar */}
-            <View {...panResponder.panHandlers} style={styles.handleContainer}>
-              <View style={styles.handle} />
+    <BaseBottomSheet visible={visible} onClose={onClose}>
+          <Animated.View style={[shellStyles.sheet, { height: sheetHeight }]}>
+            {/* Draggable handle bar — panHandlers stay here, visual tokens from shellStyles */}
+            <View {...panResponder.panHandlers} style={shellStyles.handleContainer}>
+              <View style={shellStyles.handle} />
             </View>
 
             <ScrollView
@@ -362,7 +348,7 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
               overScrollMode="never"
             >
               {/* Header */}
-              <View style={styles.header}>
+              <View style={shellStyles.header}>
                 <View style={{ flex: 1, paddingRight: spacing.md }}>
                   <Text style={[t.title, { fontSize: 24, fontWeight: '700', color: colors.textPrimary, lineHeight: 30 }]}>Add Financial Source</Text>
                   <Text style={[t.subtitle, { marginTop: spacing.xs, fontSize: 13, color: colors.textSecondary, lineHeight: 18 }]}>
@@ -372,15 +358,6 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
                 <View style={styles.mascotWrap} pointerEvents="none">
                   <NotebookIllustration />
                 </View>
-                <Pressable
-                  onPress={onClose}
-                  hitSlop={10}
-                  style={styles.closeBtn}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close"
-                >
-                  <CloseIcon size={16} />
-                </Pressable>
               </View>
 
               {/* Account Type */}
@@ -544,62 +521,18 @@ export const AddFinancialSourceSheet: React.FC<AddFinancialSourceSheetProps> = (
               </Pressable>
             </SafeAreaView>
           </Animated.View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+    </BaseBottomSheet>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end', // Flush with bottom
-  },
-  sheetWrap: {
-    width: '100%',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    width: '100%',
-    ...shadow.sheet,
-  },
-  handleContainer: {
-    width: '100%',
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  handle: {
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    position: 'relative',
-  },
+  // overlay, sheetWrap, sheet, handleContainer, handle, header, closeBtn
+  // are now sourced from shellStyles (BaseBottomSheet) for visual consistency.
   mascotWrap: {
-    position: 'absolute',
-    right: 36,
-    top: -12,
-  },
-  closeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.pill,
-    backgroundColor: colors.border,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
+  // closeBtn is now sourced from shellStyles (BaseBottomSheet) for visual consistency.
   heading: {
     fontSize: 18,
     fontWeight: '600',

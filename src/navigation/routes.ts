@@ -4,6 +4,7 @@ export const ROUTES = {
   root: '/' as Href,
   tabs: '/(tabs)' as Href,
   tabsSettings: '/(tabs)/settings' as Href,
+  tabsAccounts: '/(tabs)/accounts' as Href,
   addTransaction: '/add-transaction' as Href,
   categories: '/categories' as Href,
   accounts: '/accounts' as Href,

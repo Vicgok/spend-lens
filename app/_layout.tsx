@@ -47,9 +47,7 @@ function getRouteBackground(pathname: string, fallbackBackground: string, onboar
   }
 
   if (
-    pathname.startsWith('/accounts') ||
-    pathname.startsWith('/categories') ||
-    pathname.includes('/settings')
+    pathname.startsWith('/categories')
   ) {
     return '#E1D7C2';
   }
@@ -132,11 +130,6 @@ function RootNavigator() {
     contentStyle: { backgroundColor: '#E1D7C2' },
   };
 
-  const accountsScreenOptions: TransitionOptions = {
-    ...detailTransition,
-    contentStyle: { backgroundColor: '#E1D7C2' },
-  };
-
   const transactionDetailScreenOptions: TransitionOptions = {
     ...detailTransition,
     contentStyle: { backgroundColor: '#F6F3EC' },
@@ -169,10 +162,6 @@ function RootNavigator() {
           <TransitionStack.Screen
             name="categories"
             options={categoriesScreenOptions as any}
-          />
-          <TransitionStack.Screen
-            name="accounts"
-            options={accountsScreenOptions as any}
           />
           <TransitionStack.Screen
             name="transaction/[id]"

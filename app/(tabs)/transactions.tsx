@@ -27,6 +27,7 @@ import {
   TabHeader,
   ReadingNotebookMascot,
   CornerPlant,
+  BaseModal,
 } from '@/components/ui';
 
 // Theme Constants
@@ -825,54 +826,42 @@ export default function TransactionsScreen() {
       )}
 
       {/* Month Picker Modal */}
-      <Modal
+      <BaseModal
         visible={monthPickerVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setMonthPickerVisible(false)}
-        statusBarTranslucent={true}
-        navigationBarTranslucent={true}
+        onClose={() => setMonthPickerVisible(false)}
+        variant="dialog"
+        title="Select Month"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Month</Text>
-              <Pressable onPress={() => setMonthPickerVisible(false)} style={styles.modalCloseButton}>
-                <Text style={styles.modalCloseText}>✕</Text>
+        <ScrollView style={styles.modalScroll}>
+          {getMonthsList().map((date, idx) => {
+            const isSelected =
+              date.getFullYear() === selectedMonth.getFullYear() &&
+              date.getMonth() === selectedMonth.getMonth();
+            return (
+              <Pressable
+                key={idx}
+                onPress={() => {
+                  setSelectedMonth(date);
+                  setMonthPickerVisible(false);
+                }}
+                style={[
+                  styles.modalItem,
+                  { backgroundColor: isSelected ? COLOR_FOREST_GREEN : 'transparent' }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    { color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT },
+                  ]}
+                >
+                  {date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </Text>
               </Pressable>
-            </View>
-            <ScrollView style={styles.modalScroll}>
-              {getMonthsList().map((date, idx) => {
-                const isSelected =
-                  date.getFullYear() === selectedMonth.getFullYear() &&
-                  date.getMonth() === selectedMonth.getMonth();
-                return (
-                  <Pressable
-                    key={idx}
-                    onPress={() => {
-                      setSelectedMonth(date);
-                      setMonthPickerVisible(false);
-                    }}
-                    style={[
-                      styles.modalItem,
-                      { backgroundColor: isSelected ? COLOR_FOREST_GREEN : 'transparent' }
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.modalItemText,
-                        { color: isSelected ? '#FFF' : COLOR_PRIMARY_TEXT },
-                      ]}
-                    >
-                      {date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+            );
+          })}
+        </ScrollView>
+      </BaseModal>
 
       {/* Category Filter Modal */}
       <Modal
