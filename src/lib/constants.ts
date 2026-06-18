@@ -51,6 +51,50 @@ export const ACCOUNTS_SCREEN_COLORS = {
   border: '#E8DDD0',
 } as const;
 
+export const CATEGORIES_SCREEN_COPY = {
+  microHeader: 'FINANCIAL RULEBOOK',
+  title: 'Categories',
+  subtitle: 'Review how SpendLens classifies merchants and keep your keyword rules clean.',
+  searchPlaceholder: 'Search categories or keywords',
+  expenseTab: 'Expenses',
+  incomeTab: 'Income',
+  addCategory: 'Add Category',
+  keywordRules: 'Keyword Rules',
+  keywordRulesHint: 'Keyword matches help SpendLens auto-categorize future transactions.',
+  noKeywords: 'No keywords yet. Add merchant terms below to improve auto-categorization.',
+  addKeywordPlaceholder: 'Add a keyword like netflix',
+  customCategory: 'Custom',
+  deleteCategory: 'Delete Category',
+  newCategory: 'New Category',
+  categoryName: 'Name',
+  categoryNamePlaceholder: 'e.g. Subscriptions, Gifts',
+  categoryType: 'Type',
+  iconEmoji: 'Icon Emoji',
+  themeColor: 'Theme Color',
+  keywordsOptional: 'Keywords (optional, comma separated)',
+  keywordsPlaceholder: 'e.g. netflix, spotify, youtube',
+  createCategory: 'Create Category',
+  creatingCategory: 'Creating...',
+  back: 'Back',
+  manageHint: 'Tap a category row to manage keyword rules.',
+  noResultsTitle: 'No matching categories',
+  noResultsBody: 'Try a different search or switch between income and expense categories.',
+} as const;
+
+export const CATEGORIES_SCREEN_COLORS = {
+  background: '#E1D7C2',
+  surface: '#FFF8EE',
+  surfaceMuted: '#FAF7F1',
+  primary: '#745143',
+  secondary: '#54554B',
+  green: '#3E5A2A',
+  lightGreen: '#EEF4E6',
+  badgeBg: '#F3ECE2',
+  border: '#E8DDD0',
+  badgeBorder: '#E2D7C7',
+  destructive: '#C84B31',
+} as const;
+
 // How many months of history free users can see
 export const FREE_TIER_HISTORY_MONTHS = 6;
 
