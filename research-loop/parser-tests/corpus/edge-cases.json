@@ -1,0 +1,232 @@
+[
+  {
+    "sender": "JIO",
+    "message": "Your Jio plan has expired. Recharge now to continue calling and data services.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "OTP for transaction of Rs. 5,000.00 on your HDFC Bank Card ending 1234 is 987654. Do not share it with anyone.",
+    "expected": null
+  },
+  {
+    "sender": "INDUS",
+    "message": "Your request for taxi services is confirmed. Total fare Rs. 450.00.",
+    "expected": null
+  },
+  {
+    "sender": "SWIGGY",
+    "message": "Your Swiggy order has been delivered! Hope you enjoy your meal.",
+    "expected": null
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Paid with card ending 9876. OTP is 456211 for Rs 999.00 purchase at UBER.",
+    "expected": null
+  },
+  {
+    "sender": "AIRTEL",
+    "message": "Recharge successful for Rs. 299.00. Enjoy unlimited 5G data benefits.",
+    "expected": null
+  },
+  {
+    "sender": "PAYTMB",
+    "message": "Paid Rs 0.00 from wallet to TEST MERCHANT. Wallet balance Rs 120.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 0,
+      "merchant": "test merchant",
+      "accountCard": ""
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs.1,00,000.00 debited from A/c XX1111 for RTGS transfer to HOUSE RENT OWNER.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 100000,
+      "merchant": "house rent owner",
+      "accountCard": "1111"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Reversal of Rs. 799.00 credited to A/c XX9921 for failed transaction at SWIGGY.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 799,
+      "merchant": "swiggy",
+      "accountCard": "9921"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Dear Customer, your transaction of INR 560 at UNKNOWN MERCHANT on card XX6789 is declined due to insufficient balance.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 560,
+      "merchant": "unknown merchant",
+      "accountCard": "6789"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "A/c XX4321 debited by Rs. 15.00 for SMS charges. Avl Bal Rs. 4,320.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 15,
+      "merchant": "sms charges",
+      "accountCard": "4321"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Alert: Rs. 1.00 debited from A/c XX2222 for verification at GOOGLE. Avl Bal Rs. 10,000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1,
+      "merchant": "google",
+      "accountCard": "2222"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your transaction of Rs. 999.00 at FLIPKART failed. Amount will be reversed if debited.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 999,
+      "merchant": "flipkart",
+      "accountCard": ""
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Reversal: INR 560.00 credited to card ending 6789 for transaction at UNKNOWN MERCHANT.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 560,
+      "merchant": "unknown merchant",
+      "accountCard": "6789"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "A/c XX0987 debited by Rs. 0.50 towards minimum balance service charge.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 0.5,
+      "merchant": "minimum balance service charge",
+      "accountCard": "0987"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Rs. 1,00,000.99 debited from A/c XX1112 through RTGS to PROPERTY ADVANCE.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 100000.99,
+      "merchant": "property advance",
+      "accountCard": "1112"
+    }
+  },
+  {
+    "sender": "PAYTMB",
+    "message": "Wallet debited Rs. 45.00 for payment to CHAI SHOP. Balance Rs. 0.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 45,
+      "merchant": "chai shop",
+      "accountCard": ""
+    }
+  },
+  {
+    "sender": "AMZNPY",
+    "message": "Refund of Rs. 0.00 processed to your Amazon Pay balance for TEST ORDER.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 0,
+      "merchant": "test order",
+      "accountCard": ""
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs. 2,499 debited from A/c XX3344 for NACH-OTT SUBSCRIPTION NETFLIX.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2499,
+      "merchant": "ott subscription netflix",
+      "accountCard": "3344"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "INR 10 debited from A/c XX7781 towards UPI mandate setup for SIP INVESTMENT.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10,
+      "merchant": "sip investment",
+      "accountCard": "7781"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Dear Customer, Rs. 5,000.00 cash withdrawal declined at ATM due to insufficient funds from A/c XX4411.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5000,
+      "merchant": "atm",
+      "accountCard": "4411"
+    }
+  },
+  {
+    "sender": "SBIUPI",
+    "message": "UPI transaction for Rs. 300.00 to SWIGGY is pending from A/c XX5432.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 300,
+      "merchant": "swiggy",
+      "accountCard": "5432"
+    }
+  },
+  {
+    "sender": "BOBIBN",
+    "message": "Your A/c ending 9090 credited by Rs. 250.75 as refund for failed UPI transaction to ZOMATO.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 250.75,
+      "merchant": "zomato",
+      "accountCard": "9090"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "A/c XX7676 debited Rs 35 for debit card annual fee.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 35,
+      "merchant": "debit card annual fee",
+      "accountCard": "7676"
+    }
+  },
+  {
+    "sender": "UNIONB",
+    "message": "Rs. 15,000.00 debited from A/c XX8888 for SI-MUTUAL FUND SIP.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 15000,
+      "merchant": "mutual fund sip",
+      "accountCard": "8888"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit of Rs. 1,999.00 received on card ending 3456 as merchant refund from CROMA.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1999,
+      "merchant": "croma",
+      "accountCard": "3456"
+    }
+  }
+]

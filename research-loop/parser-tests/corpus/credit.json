@@ -1,0 +1,262 @@
+[
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX1122 is credited with Rs. 75,000.00 on 01-May-26 by Salary. Avl Bal Rs. 1,20,000.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 75000,
+      "merchant": null,
+      "accountCard": "1122"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Your account XX7788 is credited with Rs. 12,500.00 via IMPS on 18-Jun-26. Avl Bal Rs. 55,870.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 12500,
+      "merchant": null,
+      "accountCard": "7788"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Rs. 4,250.00 credited to A/c XX4567 on 19-Jun-26 by NEFT. Avl Bal Rs. 14,890.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 4250,
+      "merchant": null,
+      "accountCard": "4567"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "INR 2,000.00 credited to your account XX3210 on 17-Jun-26. Available balance Rs. 20,540.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2000,
+      "merchant": null,
+      "accountCard": "3210"
+    }
+  },
+  {
+    "sender": "PAYTM",
+    "message": "Rs. 500.00 added to your Paytm Wallet. Updated Paytm Balance: Rs. 920.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 500,
+      "merchant": null,
+      "accountCard": "paytm"
+    }
+  },
+  {
+    "sender": "AMAZON",
+    "message": "Amazon Pay balance credited with Rs. 850.00 cashback. New Balance Rs. 1,900.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 850,
+      "merchant": null,
+      "accountCard": "amazon"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "A/c X1234 credited by Rs.85,000 on 01-Jun-26 by SALARY. Avl Bal Rs.1,02,340.11",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 85000,
+      "merchant": "salary",
+      "accountCard": "1234"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Alert: Rs. 1,500.00 credited to A/c XX4321 towards refund from AMAZON. Avl Bal Rs. 45,670.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1500,
+      "merchant": "amazon",
+      "accountCard": "4321"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your A/c XX7788 has been credited with INR 250.00 via UPI from RAHUL SHARMA. UPI Ref 612345678901.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 250,
+      "merchant": "rahul sharma",
+      "accountCard": "7788"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "INR 99.00 cashback credited to your Axis Bank A/c ending 9981 from FLIPKART.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 99,
+      "merchant": "flipkart",
+      "accountCard": "9981"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Rs. 2,000.00 received in your Kotak A/c XX5432 from NEFT-RAJ ENTERPRISES.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2000,
+      "merchant": "raj enterprises",
+      "accountCard": "5432"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs. 25,000.00 credited to A/c XX8743 via NEFT from ABC TECHNOLOGIES. Avl Bal Rs. 58,240.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 25000,
+      "merchant": "abc technologies",
+      "accountCard": "8743"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX2210 credited with Rs. 500.00 by UPI from ANKIT VERMA. Ref No 612345901234.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 500,
+      "merchant": "ankit verma",
+      "accountCard": "2210"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "INR 1,299.00 refund credited to your ICICI Bank A/c XX7632 from MYNTRA.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1299,
+      "merchant": "myntra",
+      "accountCard": "7632"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Salary credit of Rs. 72,500.00 received in your Axis Bank A/c ending 4488.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 72500,
+      "merchant": "salary",
+      "accountCard": "4488"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Your A/c XX9012 credited by Rs. 180.00 as interest credit.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 180,
+      "merchant": "interest",
+      "accountCard": "9012"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "A/c XX1120 credited with Rs. 3,000.00 through IMPS from RAMESH KUMAR.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 3000,
+      "merchant": "ramesh kumar",
+      "accountCard": "1120"
+    }
+  },
+  {
+    "sender": "BOBIBN",
+    "message": "Rs. 2,499.00 credited to your BOB A/c ending 5566 towards refund from AMAZON.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2499,
+      "merchant": "amazon",
+      "accountCard": "5566"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Your Canara Bank A/c XX3409 has been credited with INR 10,000.00 by CASH DEPOSIT.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 10000,
+      "merchant": "cash deposit",
+      "accountCard": "3409"
+    }
+  },
+  {
+    "sender": "UNIONB",
+    "message": "UPI credit of Rs. 850.00 received in A/c XX7865 from PRIYA S.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 850,
+      "merchant": "priya s",
+      "accountCard": "7865"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Your IDFC FIRST Bank A/c ending 2234 credited with Rs. 1,200.00 from PHONEPE UPI.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1200,
+      "merchant": "phonepe upi",
+      "accountCard": "2234"
+    }
+  },
+  {
+    "sender": "INDIAN",
+    "message": "A/c XX6789 credited by Rs. 95,000.00 via RTGS from CLIENT PAYMENT.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 95000,
+      "merchant": "client payment",
+      "accountCard": "6789"
+    }
+  },
+  {
+    "sender": "AUBANK",
+    "message": "Rs. 250.00 cashback credited to AU Bank A/c XX4320 from CRED.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 250,
+      "merchant": "cred",
+      "accountCard": "4320"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "INR 650.00 received in YES Bank A/c XX8899 via UPI from NAVEEN.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 650,
+      "merchant": "naveen",
+      "accountCard": "8899"
+    }
+  },
+  {
+    "sender": "KARBNK",
+    "message": "Your Karnataka Bank A/c ending 9911 is credited by Rs. 4,500.00 NEFT from ROHAN ENTERPRISES.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 4500,
+      "merchant": "rohan enterprises",
+      "accountCard": "9911"
+    }
+  },
+  {
+    "sender": "FEDBNK",
+    "message": "Rs. 1,000.00 credited to Federal Bank A/c XX7654 from GOOGLE PAY UPI.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1000,
+      "merchant": "google pay upi",
+      "accountCard": "7654"
+    }
+  }
+]

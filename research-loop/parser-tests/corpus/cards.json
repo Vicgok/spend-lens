@@ -1,0 +1,262 @@
+[
+  {
+    "sender": "AXISBK",
+    "message": "Dear Customer, transaction of Rs 450.00 debited on card ending 9876 at UBER INDIA. AVL BAL Rs 12,450.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 450,
+      "merchant": "uber india",
+      "accountCard": "9876"
+    }
+  },
+  {
+    "sender": "AMEXIN",
+    "message": "Spent Rs.2,499.00 on American Express Card ending in 1002 at AMAZON INDIA. Outstanding Bal: Rs. 15,200.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2499,
+      "merchant": "amazon india",
+      "accountCard": "1002"
+    }
+  },
+  {
+    "sender": "CITIBK",
+    "message": "Thank you for using Citi Card 8831 for Rs 9,999.00 at Apple Store. Available Limit Rs. 85,000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 9999,
+      "merchant": "apple store",
+      "accountCard": "8831"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Txn of Rs. 1,850.00 on your card ending 4432 at SWIGGY on 18-Jun-26. Avl Limit Rs. 72,000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1850,
+      "merchant": "swiggy",
+      "accountCard": "4432"
+    }
+  },
+  {
+    "sender": "SBICRD",
+    "message": "Rs. 3,200.00 spent on SBI Card ending 7765 at ZOMATO. Available limit Rs. 46,800.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3200,
+      "merchant": "zomato",
+      "accountCard": "7765"
+    }
+  },
+  {
+    "sender": "ICICIC",
+    "message": "Card XX5544 credited with refund of Rs. 799.00 from AMAZON INDIA on 16-Jun-26.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 799,
+      "merchant": "amazon india",
+      "accountCard": "5544"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Dear Customer, transaction of Rs 450.00 debited on card ending 9876 at UBER INDIA. AVL BAL Rs 12,450.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 450,
+      "merchant": "uber india",
+      "accountCard": "9876"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs.299.00 spent on HDFC Bank Credit Card ending 5621 at NETFLIX.COM on 12-Jun-26.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 299,
+      "merchant": "netflix",
+      "accountCard": "5621"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your ICICI Bank Card XX8842 has been used for INR 1,249.00 at AMAZON PAY INDIA.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1249,
+      "merchant": "amazon pay india",
+      "accountCard": "8842"
+    }
+  },
+  {
+    "sender": "SBICRD",
+    "message": "Transaction of Rs. 2,350.50 made on your SBI Credit Card ending 7781 at MYNTRA DESIGNS.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2350.5,
+      "merchant": "myntra designs",
+      "accountCard": "7781"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Spent Rs. 899.00 using Kotak Card XX1209 at ZOMATO LIMITED. Available limit updated.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 899,
+      "merchant": "zomato",
+      "accountCard": "1209"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Alert: Rs. 1,750.00 spent on your HDFC Bank Card ending 2211 at CAFE COFFEE DAY on 18-Jun-26.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1750,
+      "merchant": "cafe coffee day",
+      "accountCard": "2211"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your ICICI Bank Credit Card XX4567 was used for INR 3,299.00 at TATA CLIQ.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3299,
+      "merchant": "tata cliq",
+      "accountCard": "4567"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Transaction of Rs 620.00 done on Axis Bank Card ending 8901 at BLINKIT.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 620,
+      "merchant": "blinkit",
+      "accountCard": "8901"
+    }
+  },
+  {
+    "sender": "SBICRD",
+    "message": "Rs. 4,850.00 spent using your SBI Card ending 3344 at RELIANCE DIGITAL.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 4850,
+      "merchant": "reliance digital",
+      "accountCard": "3344"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Your Kotak Card XX7789 has been charged Rs. 1,099.00 at HOTSTAR.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1099,
+      "merchant": "hotstar",
+      "accountCard": "7789"
+    }
+  },
+  {
+    "sender": "AMEXIN",
+    "message": "INR 2,499.00 spent on your Amex Card ending 1024 at MAKEMYTRIP INDIA.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2499,
+      "merchant": "makemytrip india",
+      "accountCard": "1024"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs. 799.00 spent on HDFC Bank Debit Card ending 4432 at SPOTIFY INDIA.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 799,
+      "merchant": "spotify india",
+      "accountCard": "4432"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your Card XX9812 used for Rs. 2,100.00 at DECATHLON SPORTS INDIA.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2100,
+      "merchant": "decathlon sports india",
+      "accountCard": "9812"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Dear Customer, INR 349.00 debited on card ending 6677 at GOOGLE PLAY.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 349,
+      "merchant": "google play",
+      "accountCard": "6677"
+    }
+  },
+  {
+    "sender": "SBICRD",
+    "message": "Transaction alert: SBI Card XX1200 used for Rs. 6,999.00 at FLIPKART INTERNET.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6999,
+      "merchant": "flipkart internet",
+      "accountCard": "1200"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Your YES Bank Card ending 5544 is debited by Rs. 1,250.00 at PVR CINEMAS.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1250,
+      "merchant": "pvr cinemas",
+      "accountCard": "5544"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "INR 599.00 spent on IDFC FIRST Bank Card XX3412 at NETFLIX.COM.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 599,
+      "merchant": "netflix",
+      "accountCard": "3412"
+    }
+  },
+  {
+    "sender": "HSBCIN",
+    "message": "Your HSBC Credit Card ending 9088 was used for Rs. 8,450.00 at CROMA RETAIL.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 8450,
+      "merchant": "croma retail",
+      "accountCard": "9088"
+    }
+  },
+  {
+    "sender": "RBLBNK",
+    "message": "Rs. 399.00 spent on RBL Bank Card XX7755 at JIO RECHARGE.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 399,
+      "merchant": "jio recharge",
+      "accountCard": "7755"
+    }
+  },
+  {
+    "sender": "INDUSB",
+    "message": "Alert: INR 2,799.00 transaction on IndusInd Card ending 2309 at AJIO.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2799,
+      "merchant": "ajio",
+      "accountCard": "2309"
+    }
+  }
+]

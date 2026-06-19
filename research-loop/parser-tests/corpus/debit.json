@@ -1,0 +1,282 @@
+[
+  {
+    "sender": "HDFCBK",
+    "message": "Alert: Rs. 1,200.00 debited from A/c XX4321 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 45,670.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1200,
+      "merchant": "swiggy",
+      "accountCard": "4321"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Dear Customer, your Acct XX9999 has been debited with INR 5,230.50 on 24-May-26. Avl Bal Rs. 12,450.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5230.5,
+      "merchant": null,
+      "accountCard": "9999"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Rs. 2,500.00 paid to ZOMATO from A/c XX5566. Avl Bal: Rs 8,900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2500,
+      "merchant": "zomato",
+      "accountCard": "5566"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Money Transfer: Rs. 5,000.00 paid from HDFC Bank A/c XX8888 via UPI to vicky@okaxis. UPI Ref: 614050212345.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5000,
+      "merchant": "vicky",
+      "accountCard": "8888"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Dear Customer, A/c XX9999 debited by Rs 250.00 on 20-May-26 at merchant@paytm VPA. UPI Ref No 614012345678.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 250,
+      "merchant": "merchant",
+      "accountCard": "9999"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Sent Rs 1,000.00 to rajesh@ybl. Ref: 614099887766.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1000,
+      "merchant": "rajesh",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "PAYTM",
+    "message": "Rs. 150.00 paid to Chai Point using Paytm Wallet. Updated Paytm Balance: Rs. 420.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 150,
+      "merchant": "chai point",
+      "accountCard": "paytm"
+    }
+  },
+  {
+    "sender": "AMAZON",
+    "message": "Rs. 299.00 debited from Amazon Pay balance for purchase at Kindle. New Balance Rs. 1,050.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 299,
+      "merchant": "kindle",
+      "accountCard": "amazon"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Alert: Rs. 1,200.00 debited from A/c XX4321 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 45,670.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1200,
+      "merchant": "swiggy",
+      "accountCard": "4321"
+    }
+  },
+  {
+    "sender": "SBIUPI",
+    "message": "Your A/c XX9087 debited by Rs.350.00 via UPI to BIGBASKET@ybl. Ref No 612398765432.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 350,
+      "merchant": "bigbasket",
+      "accountCard": "9087"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "INR 2,500.00 debited from your ICICI Bank Account XX1122 through IMPS to VIGNESH K.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2500,
+      "merchant": "vignesh k",
+      "accountCard": "1122"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Rs. 10,000.00 withdrawn from A/c XX7765 at ATM CHENNAI T NAGAR. Available Balance Rs. 25,430.80.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10000,
+      "merchant": "atm chennai t nagar",
+      "accountCard": "7765"
+    }
+  },
+  {
+    "sender": "BOBIBN",
+    "message": "Your A/c ending 4567 is debited for Rs.749.00 towards NACH-INSURANCE PREMIUM.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 749,
+      "merchant": "insurance premium",
+      "accountCard": "4567"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Rs. 320.00 debited from A/c XX9876 via UPI to ZEpto@ybl. Avl Bal Rs. 12,900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 320,
+      "merchant": "zepto",
+      "accountCard": "9876"
+    }
+  },
+  {
+    "sender": "SBIUPI",
+    "message": "A/c XX5467 debited by Rs. 1,800.00 for UPI payment to ELECTRICITY BILL.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1800,
+      "merchant": "electricity bill",
+      "accountCard": "5467"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your ICICI Bank A/c XX3321 debited with INR 750.00 at APOLLO PHARMACY.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 750,
+      "merchant": "apollo pharmacy",
+      "accountCard": "3321"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "INR 2,200.00 debited from Axis Bank A/c ending 7780 through IMPS to RENT OWNER.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2200,
+      "merchant": "rent owner",
+      "accountCard": "7780"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Rs. 499.00 paid from Kotak A/c XX1290 via UPI to SWIGGY@ybl.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 499,
+      "merchant": "swiggy",
+      "accountCard": "1290"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "A/c XX6543 debited by Rs. 5,000.00 for ATM withdrawal at DELHI ATM.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5000,
+      "merchant": "delhi atm",
+      "accountCard": "6543"
+    }
+  },
+  {
+    "sender": "BOBIBN",
+    "message": "Rs. 1,250.00 debited from your A/c ending 9988 for NEFT to SCHOOL FEES.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1250,
+      "merchant": "school fees",
+      "accountCard": "9988"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Your A/c XX1230 has been debited for INR 299.00 towards MOBILE RECHARGE.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 299,
+      "merchant": "mobile recharge",
+      "accountCard": "1230"
+    }
+  },
+  {
+    "sender": "UNIONB",
+    "message": "UPI debit of Rs. 640.00 from A/c XX7821 to ZOMATO@paytm.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 640,
+      "merchant": "zomato",
+      "accountCard": "7821"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Rs. 12,000.00 debited from IDFC FIRST Bank A/c XX4123 towards EMI PAYMENT.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 12000,
+      "merchant": "emi payment",
+      "accountCard": "4123"
+    }
+  },
+  {
+    "sender": "INDIAN",
+    "message": "A/c XX7782 debited by Rs. 2,450.00 for POS purchase at D MART.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2450,
+      "merchant": "d mart",
+      "accountCard": "7782"
+    }
+  },
+  {
+    "sender": "AUBANK",
+    "message": "Rs. 999.00 paid via UPI from AU Bank A/c XX3456 to AMAZONPAY.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 999,
+      "merchant": "amazonpay",
+      "accountCard": "3456"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Your YES Bank A/c XX9900 debited with Rs. 3,600.00 through RTGS to VENDOR PAYMENT.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3600,
+      "merchant": "vendor payment",
+      "accountCard": "9900"
+    }
+  },
+  {
+    "sender": "FEDBNK",
+    "message": "Rs. 199.00 debited from Federal Bank A/c ending 1208 for FASTAG RECHARGE.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 199,
+      "merchant": "fastag recharge",
+      "accountCard": "1208"
+    }
+  },
+  {
+    "sender": "KARBNK",
+    "message": "A/c XX8801 debited by INR 1,100.00 via UPI to BIGBASKET@upi.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1100,
+      "merchant": "bigbasket",
+      "accountCard": "8801"
+    }
+  }
+]

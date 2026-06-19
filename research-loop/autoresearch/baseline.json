@@ -1,0 +1,7 @@
+{
+  "totalSamples": 106,
+  "overallAccuracy": 61.32,
+  "merchantAccuracy": 66,
+  "falsePositiveRate": 16.67,
+  "falseNegativeRate": 13
+}
