@@ -6,7 +6,7 @@ node_modules/
 .vscode/
 
 # local
-scripts/
+/scripts/
 # Expo
 .expo/
 dist/
