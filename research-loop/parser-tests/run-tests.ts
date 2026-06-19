@@ -12,6 +12,7 @@ function main() {
   const summary = evaluateCorpus(records);
 
   console.log(`Total Samples: ${summary.totalSamples}`);
+  console.log(`Expected Exceptions: ${summary.expectedExceptions}`);
   console.log("");
   console.log(`Detection Accuracy: ${formatPercent(summary.detectionAccuracy)}`);
   console.log(`Type Accuracy: ${formatPercent(summary.typeAccuracy)}`);

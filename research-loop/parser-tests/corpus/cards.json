@@ -258,5 +258,505 @@
       "merchant": "ajio",
       "accountCard": "2309"
     }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, transaction of Rs 450.00 debited on card ending 1000 at SWIGGY. AVL BAL Rs 12,450.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 450,
+      "merchant": "swiggy",
+      "accountCard": "1000"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Alert: INR 1,200.00 spent on your Credit Card XX1137 at ZOMATO on 12-Jun-26. Available limit Rs 13,261.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1200,
+      "merchant": "zomato",
+      "accountCard": "1137"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your card ending 1274 has been used for Rs.5,230.50 at UBER INDIA. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5230.5,
+      "merchant": "uber india",
+      "accountCard": "1274"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Txn alert: Rs 999.00 debited from card no. XXXX1411 for purchase at OLA CABS. Avl Bal Rs.14,883.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 999,
+      "merchant": "ola cabs",
+      "accountCard": "1411"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "KOTAKB: Rs.2,499.00 spent using Debit Card ending 1548 at AMAZON PAY on 20-May-26. Avl Bal INR 15,695.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2499,
+      "merchant": "amazon pay",
+      "accountCard": "1548"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, transaction of Rs 75.00 debited on card ending 1685 at FLIPKART. AVL BAL Rs 16,506.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 75,
+      "merchant": "flipkart",
+      "accountCard": "1685"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Alert: INR 10,000.00 spent on your Credit Card XX1822 at BIGBASKET on 12-Jun-26. Available limit Rs 17,317.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10000,
+      "merchant": "bigbasket",
+      "accountCard": "1822"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your card ending 1959 has been used for Rs.1,589.75 at DMART. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1589.75,
+      "merchant": "dmart",
+      "accountCard": "1959"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Txn alert: Rs 349.00 debited from card no. XXXX2096 for purchase at NETFLIX. Avl Bal Rs.18,940.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 349,
+      "merchant": "netflix",
+      "accountCard": "2096"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "CANBNK: Rs.6,700.00 spent using Debit Card ending 2233 at SPOTIFY on 20-May-26. Avl Bal INR 19,751.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6700,
+      "merchant": "spotify",
+      "accountCard": "2233"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, transaction of Rs 250.00 debited on card ending 2370 at BOOKMYSHOW. AVL BAL Rs 20,562.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 250,
+      "merchant": "bookmyshow",
+      "accountCard": "2370"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Alert: INR 18,000.00 spent on your Credit Card XX2507 at MYNTRA on 12-Jun-26. Available limit Rs 21,373.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18000,
+      "merchant": "myntra",
+      "accountCard": "2507"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your card ending 2644 has been used for Rs.2,999.00 at ZEPTONOW. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2999,
+      "merchant": "zeptonow",
+      "accountCard": "2644"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Txn alert: Rs 123.45 debited from card no. XXXX2781 for purchase at BLINKIT. Avl Bal Rs.22,996.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 123.45,
+      "merchant": "blinkit",
+      "accountCard": "2781"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "KOTAKB: Rs.875.00 spent using Debit Card ending 2918 at RAPIDO on 20-May-26. Avl Bal INR 23,807.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 875,
+      "merchant": "rapido",
+      "accountCard": "2918"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, transaction of Rs 487.00 debited on card ending 3055 at IRCTC. AVL BAL Rs 24,618.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 487,
+      "merchant": "irctc",
+      "accountCard": "3055"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Alert: INR 1,237.00 spent on your Credit Card XX3192 at PAYTM on 12-Jun-26. Available limit Rs 25,430.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1237,
+      "merchant": "paytm",
+      "accountCard": "3192"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your card ending 3329 has been used for Rs.5,267.50 at PHONEPE. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5267.5,
+      "merchant": "phonepe",
+      "accountCard": "3329"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Txn alert: Rs 1,036.00 debited from card no. XXXX3466 for purchase at CRED. Avl Bal Rs.27,052.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1036,
+      "merchant": "cred",
+      "accountCard": "3466"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "CANBNK: Rs.2,536.00 spent using Debit Card ending 3603 at NYKAA on 20-May-26. Avl Bal INR 27,863.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2536,
+      "merchant": "nykaa",
+      "accountCard": "3603"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, transaction of Rs 112.00 debited on card ending 3740 at SWIGGY. AVL BAL Rs 28,675.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 112,
+      "merchant": "swiggy",
+      "accountCard": "3740"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Alert: INR 10,037.00 spent on your Credit Card XX3877 at ZOMATO on 12-Jun-26. Available limit Rs 29,486.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10037,
+      "merchant": "zomato",
+      "accountCard": "3877"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your card ending 4014 has been used for Rs.1,626.75 at UBER INDIA. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1626.75,
+      "merchant": "uber india",
+      "accountCard": "4014"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Txn alert: Rs 386.00 debited from card no. XXXX4151 for purchase at OLA CABS. Avl Bal Rs.31,108.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 386,
+      "merchant": "ola cabs",
+      "accountCard": "4151"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "KOTAKB: Rs.6,737.00 spent using Debit Card ending 4288 at AMAZON PAY on 20-May-26. Avl Bal INR 31,920.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6737,
+      "merchant": "amazon pay",
+      "accountCard": "4288"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, transaction of Rs 287.00 debited on card ending 4425 at FLIPKART. AVL BAL Rs 32,731.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 287,
+      "merchant": "flipkart",
+      "accountCard": "4425"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Alert: INR 18,037.00 spent on your Credit Card XX4562 at BIGBASKET on 12-Jun-26. Available limit Rs 33,542.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18037,
+      "merchant": "bigbasket",
+      "accountCard": "4562"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your card ending 4699 has been used for Rs.3,036.00 at DMART. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3036,
+      "merchant": "dmart",
+      "accountCard": "4699"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Txn alert: Rs 160.45 debited from card no. XXXX4836 for purchase at NETFLIX. Avl Bal Rs.35,165.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 160.45,
+      "merchant": "netflix",
+      "accountCard": "4836"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "CANBNK: Rs.912.00 spent using Debit Card ending 4973 at SPOTIFY on 20-May-26. Avl Bal INR 35,976.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 912,
+      "merchant": "spotify",
+      "accountCard": "4973"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, transaction of Rs 524.00 debited on card ending 5110 at BOOKMYSHOW. AVL BAL Rs 36,787.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 524,
+      "merchant": "bookmyshow",
+      "accountCard": "5110"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Alert: INR 1,274.00 spent on your Credit Card XX5247 at MYNTRA on 12-Jun-26. Available limit Rs 37,598.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1274,
+      "merchant": "myntra",
+      "accountCard": "5247"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your card ending 5384 has been used for Rs.5,304.50 at ZEPTONOW. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5304.5,
+      "merchant": "zeptonow",
+      "accountCard": "5384"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Txn alert: Rs 1,073.00 debited from card no. XXXX5521 for purchase at BLINKIT. Avl Bal Rs.39,221.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1073,
+      "merchant": "blinkit",
+      "accountCard": "5521"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "KOTAKB: Rs.2,573.00 spent using Debit Card ending 5658 at RAPIDO on 20-May-26. Avl Bal INR 40,032.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2573,
+      "merchant": "rapido",
+      "accountCard": "5658"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, transaction of Rs 149.00 debited on card ending 5795 at IRCTC. AVL BAL Rs 40,843.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 149,
+      "merchant": "irctc",
+      "accountCard": "5795"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Alert: INR 10,074.00 spent on your Credit Card XX5932 at PAYTM on 12-Jun-26. Available limit Rs 41,655.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10074,
+      "merchant": "paytm",
+      "accountCard": "5932"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your card ending 6069 has been used for Rs.1,663.75 at PHONEPE. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1663.75,
+      "merchant": "phonepe",
+      "accountCard": "6069"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Txn alert: Rs 423.00 debited from card no. XXXX6206 for purchase at CRED. Avl Bal Rs.43,277.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 423,
+      "merchant": "cred",
+      "accountCard": "6206"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "CANBNK: Rs.6,774.00 spent using Debit Card ending 6343 at NYKAA on 20-May-26. Avl Bal INR 44,088.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6774,
+      "merchant": "nykaa",
+      "accountCard": "6343"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, transaction of Rs 324.00 debited on card ending 6480 at SWIGGY. AVL BAL Rs 44,900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 324,
+      "merchant": "swiggy",
+      "accountCard": "6480"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Alert: INR 18,074.00 spent on your Credit Card XX6617 at ZOMATO on 12-Jun-26. Available limit Rs 45,711.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18074,
+      "merchant": "zomato",
+      "accountCard": "6617"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your card ending 6754 has been used for Rs.3,073.00 at UBER INDIA. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3073,
+      "merchant": "uber india",
+      "accountCard": "6754"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Txn alert: Rs 197.45 debited from card no. XXXX6891 for purchase at OLA CABS. Avl Bal Rs.47,333.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 197.45,
+      "merchant": "ola cabs",
+      "accountCard": "6891"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "KOTAKB: Rs.949.00 spent using Debit Card ending 7028 at AMAZON PAY on 20-May-26. Avl Bal INR 48,145.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 949,
+      "merchant": "amazon pay",
+      "accountCard": "7028"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, transaction of Rs 561.00 debited on card ending 7165 at FLIPKART. AVL BAL Rs 48,956.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 561,
+      "merchant": "flipkart",
+      "accountCard": "7165"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Alert: INR 1,311.00 spent on your Credit Card XX7302 at BIGBASKET on 12-Jun-26. Available limit Rs 49,767.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1311,
+      "merchant": "bigbasket",
+      "accountCard": "7302"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your card ending 7439 has been used for Rs.5,341.50 at DMART. If not you, call bank immediately.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5341.5,
+      "merchant": "dmart",
+      "accountCard": "7439"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Txn alert: Rs 1,110.00 debited from card no. XXXX7576 for purchase at NETFLIX. Avl Bal Rs.51,390.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1110,
+      "merchant": "netflix",
+      "accountCard": "7576"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "CANBNK: Rs.2,610.00 spent using Debit Card ending 7713 at SPOTIFY on 20-May-26. Avl Bal INR 52,201.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2610,
+      "merchant": "spotify",
+      "accountCard": "7713"
+    }
   }
 ]

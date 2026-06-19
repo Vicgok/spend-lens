@@ -2,3 +2,8 @@ round	overall	merchant	fpr	fnr	note
 0	37.74	40.00	16.67	13.00	initial baseline
 1	61.32	66.00	16.67	13.00	merchant extraction improvement
 2	92.45	98.00	0.00	1.00	verification run
+3	94.34	98.00	0.00	1.00	wallet account normalization
+4	83.74	83.75	0.00	3.44	false positive suppression
+5	92.12	93.13	0.00	0.31	BNPL merchant priority
+6	94.80	93.40	0.00	0.00	account extraction restriction + zero amount ExpectedException classification
+7	97.28	96.54	0.00	0.00	prevent credit account numbers as merchant

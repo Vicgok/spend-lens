@@ -1,0 +1,152 @@
+[
+  {
+    "sender": "HDFCBK",
+    "message": "OTP for transaction is 445566. Do not share. Ref 7000.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Your statement is ready for download. Ref 7001.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Credit card bill generated. Pay before due date. Ref 7002.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Transaction declined due to insufficient funds. Ref 7003.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "UPI transaction pending confirmation. Ref 7004.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Reward points credited to your account. Ref 7005.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card limit enhanced successfully. Ref 7006.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "KYC update required. Ref 7007.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Login alert detected. Ref 7008.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Failed transaction notification. Ref 7009.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "OTP for transaction is 445566. Do not share. Ref 7010.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your statement is ready for download. Ref 7011.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Credit card bill generated. Pay before due date. Ref 7012.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Transaction declined due to insufficient funds. Ref 7013.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "UPI transaction pending confirmation. Ref 7014.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Reward points credited to your account. Ref 7015.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card limit enhanced successfully. Ref 7016.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "KYC update required. Ref 7017.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Login alert detected. Ref 7018.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Failed transaction notification. Ref 7019.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "OTP for transaction is 445566. Do not share. Ref 7020.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Your statement is ready for download. Ref 7021.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit card bill generated. Pay before due date. Ref 7022.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Transaction declined due to insufficient funds. Ref 7023.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "UPI transaction pending confirmation. Ref 7024.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Reward points credited to your account. Ref 7025.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card limit enhanced successfully. Ref 7026.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "KYC update required. Ref 7027.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Login alert detected. Ref 7028.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Failed transaction notification. Ref 7029.",
+    "expected": null
+  }
+]

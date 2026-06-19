@@ -21,10 +21,20 @@ export function extractMerchantInfo(rawMessage: string): ParsedMerchantInfo {
   let merchant: string | null = null;
   let referenceNo: string | null = null;
 
+  // Special check for BNPL spent via <provider>
+  const bnplMatch = rawMessage.match(/\bspent\s+via\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:due\b|ref\b|bal(?:ance)?\b)|\.|$)/i);
+  if (bnplMatch) {
+    const provider = bnplMatch[1].trim();
+    if (provider && !/bnpl\d+/i.test(provider)) {
+      merchant = provider;
+    }
+  }
+
   // Special early override for salary credits
   if (rawMessage.toLowerCase().startsWith('salary credit')) {
     merchant = 'salary';
   }
+
 
   // 1. VPA (Virtual Payment Address) Detection
   if (!merchant) {
@@ -161,7 +171,9 @@ export function extractMerchantInfo(rawMessage: string): ParsedMerchantInfo {
             cleaned.length >= 2 &&
             cleaned.length <= 50 &&
             (isSalary || !rejectPattern.test(cleaned)) &&
-            !/\bcard\b.*\d/i.test(cleaned)
+            !/\bcard\b.*\d/i.test(cleaned) &&
+            !/\b(?:acct|a\/c|account)\b.*\d/i.test(cleaned) &&
+            !/\b(?:acct|a\/c|account)\s+ending\b/i.test(cleaned)
           ) {
             merchant = cleaned;
             break;

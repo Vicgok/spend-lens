@@ -9,6 +9,9 @@ export function normalizeSMS(message: string): string[] {
 
   let processed = message.toLowerCase();
 
+  // Support withdrawn/debited patterns
+  processed = processed.replace(/\bwithdrawn\s*(?:\/|or)\s*debited\b/gi, 'debited');
+
   // 1. Remove !
   processed = processed.replace(/!/g, '');
 

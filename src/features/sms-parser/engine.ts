@@ -25,6 +25,31 @@ export function parseTransactionSMS(
     return null;
   }
 
+  // Early ignore guard for failed/declined/pending/mandate messages
+  const ignorePatterns = [
+    /\bdeclined due to insufficient limit\b/i,
+    /\bpending\.\s*please wait\b/i,
+    /\bfailed transaction alert\b/i,
+    /\bcould not be debited\b/i,
+    /\bmandate registration\b/i,
+    /\bnot a debit\b/i,
+  ];
+
+  const exceptionPatterns = [
+    /\breversed if debited\b/i,
+    /\brefund\b/i,
+    /\breversal\b/i,
+  ];
+
+
+  const matchesIgnore = ignorePatterns.some(pattern => pattern.test(body));
+  const matchesException = exceptionPatterns.some(pattern => pattern.test(body));
+
+  if (matchesIgnore && !matchesException) {
+    return null;
+  }
+
+
   // 1. Normalize and tokenize raw body once (FIX T13)
   const tokens = normalizeSMS(body);
   if (tokens.length === 0) {
@@ -79,11 +104,11 @@ export function parseTransactionSMS(
     const senderInfo = identifyBankFromSender(sender);
     isKnownBank = senderInfo.isKnownBank;
     
-    // Fill missing account fields from sender information
-    if (!account.name && senderInfo.bankName) {
+    // Fill missing account fields from sender information only if we have explicit digits
+    if (account.number && !account.name && senderInfo.bankName) {
       account.name = senderInfo.bankName;
     }
-    if (!account.type && senderInfo.accountType) {
+    if (account.number && !account.type && senderInfo.accountType) {
       account.type = senderInfo.accountType === 'wallet' ? 'WALLET' : 'ACCOUNT';
     }
   }

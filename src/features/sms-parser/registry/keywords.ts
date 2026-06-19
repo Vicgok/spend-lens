@@ -6,6 +6,7 @@ export interface CombinedWord {
 
 export const combinedWords: CombinedWord[] = [
   { pattern: /credit card/gi, replacement: 'c_card', type: 'CARD' },
+  { pattern: /amazon pay later/gi, replacement: 'amazon_pay_later', type: 'WALLET' },
   { pattern: /amazon pay/gi, replacement: 'amazon_pay', type: 'WALLET' },
   { pattern: /uni card/gi, replacement: 'uni_card', type: 'CARD' },
   { pattern: /niyo card/gi, replacement: 'niyo', type: 'ACCOUNT' },

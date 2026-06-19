@@ -20,6 +20,7 @@ export interface CorpusRecord {
 
 export interface AccuracySummary {
   totalSamples: number;
+  expectedExceptions: number;
   positiveSamples: number;
   negativeSamples: number;
   truePositives: number;
@@ -38,6 +39,7 @@ export interface AccuracySummary {
 
 interface EvaluationCounts {
   totalSamples: number;
+  expectedExceptions: number;
   positiveSamples: number;
   negativeSamples: number;
   truePositives: number;
@@ -87,6 +89,12 @@ function normalizeAmount(value: number | null | undefined): number | null {
   return Number(value.toFixed(2));
 }
 
+function isExpectedNonMoneyMovement(
+  expected: CorpusExpectation | null,
+): boolean {
+  return expected?.amount === 0;
+}
+
 function calculateRate(matches: number, total: number): number {
   if (total === 0) {
     return 0;
@@ -121,6 +129,7 @@ export function loadCorpus(corpusDir: string): CorpusRecord[] {
 export function evaluateCorpus(records: CorpusRecord[]): AccuracySummary {
   const counts: EvaluationCounts = {
     totalSamples: records.length,
+    expectedExceptions: 0,
     positiveSamples: 0,
     negativeSamples: 0,
     truePositives: 0,
@@ -135,7 +144,13 @@ export function evaluateCorpus(records: CorpusRecord[]): AccuracySummary {
   };
 
   for (const record of records) {
+    if (isExpectedNonMoneyMovement(record.expected)) {
+      counts.expectedExceptions += 1;
+      continue;
+    }
+
     const expectedDetected = record.expected !== null;
+
     const parsed = parseTransactionSMS(
       record.message,
       record.receivedDate ?? DEFAULT_RECEIVED_DATE,
@@ -206,6 +221,7 @@ export function evaluateCorpus(records: CorpusRecord[]): AccuracySummary {
 
   return {
     totalSamples: counts.totalSamples,
+    expectedExceptions: counts.expectedExceptions,
     positiveSamples: counts.positiveSamples,
     negativeSamples: counts.negativeSamples,
     truePositives: counts.truePositives,
@@ -214,7 +230,7 @@ export function evaluateCorpus(records: CorpusRecord[]): AccuracySummary {
     falseNegatives: counts.falseNegatives,
     detectionAccuracy: calculateRate(
       counts.truePositives + counts.trueNegatives,
-      counts.totalSamples,
+      counts.totalSamples - counts.expectedExceptions,
     ),
     typeAccuracy: calculateRate(counts.typeMatches, counts.positiveSamples),
     amountAccuracy: calculateRate(counts.amountMatches, counts.positiveSamples),
@@ -225,6 +241,6 @@ export function evaluateCorpus(records: CorpusRecord[]): AccuracySummary {
     accountAccuracy: calculateRate(counts.accountMatches, counts.positiveSamples),
     falsePositiveRate: calculateRate(counts.falsePositives, counts.negativeSamples),
     falseNegativeRate: calculateRate(counts.falseNegatives, counts.positiveSamples),
-    overallAccuracy: calculateRate(counts.overallMatches, counts.totalSamples),
+    overallAccuracy: calculateRate(counts.overallMatches, counts.totalSamples - counts.expectedExceptions),
   };
 }

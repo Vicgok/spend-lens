@@ -1,0 +1,402 @@
+[
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1000 used for Rs. 499.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 50000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 499,
+      "merchant": "amazon",
+      "accountCard": "1000"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1001 used for Rs. 536.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 49700.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 536,
+      "merchant": "swiggy",
+      "accountCard": "1001"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1002 used for Rs. 573.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 49400.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 573,
+      "merchant": "amazon",
+      "accountCard": "1002"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1003 used for Rs. 610.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 49100.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 610,
+      "merchant": "swiggy",
+      "accountCard": "1003"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1004 used for Rs. 647.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 48800.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 647,
+      "merchant": "amazon",
+      "accountCard": "1004"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1005 used for Rs. 684.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 48500.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 684,
+      "merchant": "swiggy",
+      "accountCard": "1005"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1006 used for Rs. 721.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 48200.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 721,
+      "merchant": "amazon",
+      "accountCard": "1006"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1007 used for Rs. 758.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 47900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 758,
+      "merchant": "swiggy",
+      "accountCard": "1007"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1008 used for Rs. 795.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 47600.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 795,
+      "merchant": "amazon",
+      "accountCard": "1008"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1009 used for Rs. 832.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 47300.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 832,
+      "merchant": "swiggy",
+      "accountCard": "1009"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1010 used for Rs. 869.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 47000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 869,
+      "merchant": "amazon",
+      "accountCard": "1010"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1011 used for Rs. 906.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 46700.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 906,
+      "merchant": "swiggy",
+      "accountCard": "1011"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1012 used for Rs. 943.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 46400.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 943,
+      "merchant": "amazon",
+      "accountCard": "1012"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1013 used for Rs. 980.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 46100.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 980,
+      "merchant": "swiggy",
+      "accountCard": "1013"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1014 used for Rs. 1017.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 45800.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1017,
+      "merchant": "amazon",
+      "accountCard": "1014"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1015 used for Rs. 1054.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 45500.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1054,
+      "merchant": "swiggy",
+      "accountCard": "1015"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1016 used for Rs. 1091.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 45200.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1091,
+      "merchant": "amazon",
+      "accountCard": "1016"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1017 used for Rs. 1128.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 44900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1128,
+      "merchant": "swiggy",
+      "accountCard": "1017"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1018 used for Rs. 1165.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 44600.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1165,
+      "merchant": "amazon",
+      "accountCard": "1018"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1019 used for Rs. 1202.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 44300.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1202,
+      "merchant": "swiggy",
+      "accountCard": "1019"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1020 used for Rs. 1239.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 44000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1239,
+      "merchant": "amazon",
+      "accountCard": "1020"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1021 used for Rs. 1276.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 43700.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1276,
+      "merchant": "swiggy",
+      "accountCard": "1021"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1022 used for Rs. 1313.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 43400.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1313,
+      "merchant": "amazon",
+      "accountCard": "1022"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1023 used for Rs. 1350.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 43100.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1350,
+      "merchant": "swiggy",
+      "accountCard": "1023"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1024 used for Rs. 1387.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 42800.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1387,
+      "merchant": "amazon",
+      "accountCard": "1024"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1025 used for Rs. 1424.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 42500.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1424,
+      "merchant": "swiggy",
+      "accountCard": "1025"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1026 used for Rs. 1461.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 42200.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1461,
+      "merchant": "amazon",
+      "accountCard": "1026"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1027 used for Rs. 1498.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 41900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1498,
+      "merchant": "swiggy",
+      "accountCard": "1027"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1028 used for Rs. 1535.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 41600.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1535,
+      "merchant": "amazon",
+      "accountCard": "1028"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1029 used for Rs. 1572.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 41300.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1572,
+      "merchant": "swiggy",
+      "accountCard": "1029"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1030 used for Rs. 1609.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 41000.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1609,
+      "merchant": "amazon",
+      "accountCard": "1030"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1031 used for Rs. 1646.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 40700.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1646,
+      "merchant": "swiggy",
+      "accountCard": "1031"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1032 used for Rs. 1683.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 40400.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1683,
+      "merchant": "amazon",
+      "accountCard": "1032"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1033 used for Rs. 1720.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 40100.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1720,
+      "merchant": "swiggy",
+      "accountCard": "1033"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1034 used for Rs. 1757.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 39800.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1757,
+      "merchant": "amazon",
+      "accountCard": "1034"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1035 used for Rs. 1794.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 39500.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1794,
+      "merchant": "swiggy",
+      "accountCard": "1035"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Card ending 1036 used for Rs. 1831.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 39200.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1831,
+      "merchant": "amazon",
+      "accountCard": "1036"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Card ending 1037 used for Rs. 1868.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 38900.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1868,
+      "merchant": "swiggy",
+      "accountCard": "1037"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Card ending 1038 used for Rs. 1905.00 at AMAZON on 20-Jun-26. Avl Bal Rs. 38600.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1905,
+      "merchant": "amazon",
+      "accountCard": "1038"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Card ending 1039 used for Rs. 1942.00 at SWIGGY on 20-Jun-26. Avl Bal Rs. 38300.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1942,
+      "merchant": "swiggy",
+      "accountCard": "1039"
+    }
+  }
+]

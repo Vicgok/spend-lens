@@ -228,5 +228,255 @@
       "merchant": "croma",
       "accountCard": "3456"
     }
+  },
+  {
+    "sender": "JIO",
+    "message": "Your Jio plan has expired. Recharge now to continue calling and data services.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "OTP for transaction of Rs. 5,000.00 on your HDFC Bank Card ending 1234 is 987654. Do not share it with anyone.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Transaction of INR 2,300.00 on your card ending 7788 was declined due to insufficient limit.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your account statement for May-26 is now available. Download from netbanking.",
+    "expected": null
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Reminder: Credit card bill of Rs 12,450 is due on 25-Jun-26. Pay now to avoid charges.",
+    "expected": null
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Your UPI transaction of Rs 999.00 is pending. Please wait for confirmation.",
+    "expected": null
+  },
+  {
+    "sender": "YESBNK",
+    "message": "You have earned 250 reward points on your recent card usage.",
+    "expected": null
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Your credit card limit has been enhanced to Rs 2,00,000. Login to accept.",
+    "expected": null
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Failed transaction alert: Rs. 4,000.00 could not be debited from A/c XX1234.",
+    "expected": null
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Security alert: Login detected on your mobile banking app. If not you, call bank.",
+    "expected": null
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Mandate registration request for Rs 999.00 is received. This is not a debit.",
+    "expected": null
+  },
+  {
+    "sender": "PAYTMB",
+    "message": "KYC update pending. Complete your KYC to continue wallet services.",
+    "expected": null
+  },
+  {
+    "sender": "AMAZN",
+    "message": "Your order has been shipped and will arrive tomorrow.",
+    "expected": null
+  },
+  {
+    "sender": "FLPKRT",
+    "message": "Your refund request has been accepted and will be processed soon.",
+    "expected": null
+  },
+  {
+    "sender": "CRED",
+    "message": "Your credit score refreshed. Check your latest score now.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "OTP 445566 for adding beneficiary. Valid for 10 minutes.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Cheque book request accepted for account ending 9988.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your FD maturity instruction has been updated successfully.",
+    "expected": null
+  },
+  {
+    "sender": "AXISBK",
+    "message": "International usage is disabled on your card ending 5566.",
+    "expected": null
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Low balance alert threshold changed to Rs 1000 for A/c XX7788.",
+    "expected": null
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Your nominee details have been updated successfully.",
+    "expected": null
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "EMI reminder: Rs 8,999 will be due on 05-Jul-26.",
+    "expected": null
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your debit card PIN has been changed successfully.",
+    "expected": null
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "New payee added successfully. Cooling period applies.",
+    "expected": null
+  },
+  {
+    "sender": "CANBNK",
+    "message": "UPI Lite balance top-up reminder. Add funds for faster payments.",
+    "expected": null
+  },
+  {
+    "sender": "JIO",
+    "message": "Your Jio plan has expired. Recharge now to continue calling and data services. Ref No 700025.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "OTP for transaction of Rs. 5,000.00 on your HDFC Bank Card ending 1234 is 987654. Do not share it with anyone. Ref No 700026.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Transaction of INR 2,300.00 on your card ending 7788 was declined due to insufficient limit. Ref No 700027.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your account statement for May-26 is now available. Download from netbanking. Ref No 700028.",
+    "expected": null
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Reminder: Credit card bill of Rs 12,450 is due on 25-Jun-26. Pay now to avoid charges. Ref No 700029.",
+    "expected": null
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Your UPI transaction of Rs 999.00 is pending. Please wait for confirmation. Ref No 700030.",
+    "expected": null
+  },
+  {
+    "sender": "YESBNK",
+    "message": "You have earned 250 reward points on your recent card usage. Ref No 700031.",
+    "expected": null
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Your credit card limit has been enhanced to Rs 2,00,000. Login to accept. Ref No 700032.",
+    "expected": null
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Failed transaction alert: Rs. 4,000.00 could not be debited from A/c XX1234. Ref No 700033.",
+    "expected": null
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Security alert: Login detected on your mobile banking app. If not you, call bank. Ref No 700034.",
+    "expected": null
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Mandate registration request for Rs 999.00 is received. This is not a debit. Ref No 700035.",
+    "expected": null
+  },
+  {
+    "sender": "PAYTMB",
+    "message": "KYC update pending. Complete your KYC to continue wallet services. Ref No 700036.",
+    "expected": null
+  },
+  {
+    "sender": "AMAZN",
+    "message": "Your order has been shipped and will arrive tomorrow. Ref No 700037.",
+    "expected": null
+  },
+  {
+    "sender": "FLPKRT",
+    "message": "Your refund request has been accepted and will be processed soon. Ref No 700038.",
+    "expected": null
+  },
+  {
+    "sender": "CRED",
+    "message": "Your credit score refreshed. Check your latest score now. Ref No 700039.",
+    "expected": null
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "OTP 445566 for adding beneficiary. Valid for 10 minutes. Ref No 700040.",
+    "expected": null
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Cheque book request accepted for account ending 9988. Ref No 700041.",
+    "expected": null
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your FD maturity instruction has been updated successfully. Ref No 700042.",
+    "expected": null
+  },
+  {
+    "sender": "AXISBK",
+    "message": "International usage is disabled on your card ending 5566. Ref No 700043.",
+    "expected": null
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Low balance alert threshold changed to Rs 1000 for A/c XX7788. Ref No 700044.",
+    "expected": null
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Your nominee details have been updated successfully. Ref No 700045.",
+    "expected": null
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "EMI reminder: Rs 8,999 will be due on 05-Jul-26. Ref No 700046.",
+    "expected": null
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your debit card PIN has been changed successfully. Ref No 700047.",
+    "expected": null
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "New payee added successfully. Cooling period applies. Ref No 700048.",
+    "expected": null
+  },
+  {
+    "sender": "CANBNK",
+    "message": "UPI Lite balance top-up reminder. Add funds for faster payments. Ref No 700049.",
+    "expected": null
   }
 ]

@@ -1,0 +1,302 @@
+[
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 999.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1000.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 999,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1110.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1001.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1110,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1221.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1002.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1221,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1332.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1003.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1332,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1443.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1004.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1443,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1554.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1005.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1554,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1665.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1006.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1665,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1776.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1007.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1776,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1887.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1008.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1887,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 1998.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1009.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1998,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2109.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1010.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2109,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2220.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1011.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2220,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2331.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1012.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2331,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2442.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1013.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2442,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2553.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1014.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2553,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2664.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1015.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2664,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2775.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1016.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2775,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2886.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1017.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2886,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 2997.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1018.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2997,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3108.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1019.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3108,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3219.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1020.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3219,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3330.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1021.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3330,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3441.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1022.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3441,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3552.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1023.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3552,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3663.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1024.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3663,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3774.00 spent via Simpl. Due date 05-Jul-26. Ref BNPL1025.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3774,
+      "merchant": "simpl",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3885.00 spent via LazyPay. Due date 05-Jul-26. Ref BNPL1026.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3885,
+      "merchant": "lazypay",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 3996.00 spent via Amazon Pay Later. Due date 05-Jul-26. Ref BNPL1027.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3996,
+      "merchant": "amazon pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 4107.00 spent via Flipkart Pay Later. Due date 05-Jul-26. Ref BNPL1028.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 4107,
+      "merchant": "flipkart pay later",
+      "accountCard": null
+    }
+  },
+  {
+    "sender": "BNPLAL",
+    "message": "Rs. 4218.00 spent via ZestMoney. Due date 05-Jul-26. Ref BNPL1029.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 4218,
+      "merchant": "zestmoney",
+      "accountCard": null
+    }
+  }
+]

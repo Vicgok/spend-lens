@@ -33,6 +33,10 @@ function normalizeAmount(value: number | null | undefined): number | null {
   return Number(value.toFixed(2));
 }
 
+function isExpectedNonMoneyMovement(expected: any): boolean {
+  return expected?.amount === 0;
+}
+
 const DEFAULT_RECEIVED_DATE = "2026-06-19T00:00:00.000Z";
 
 interface Failure {
@@ -66,11 +70,17 @@ function main() {
   };
 
   let failureCount = 0;
+  let expectedExceptions = 0;
 
   for (let idx = 0; idx < records.length; idx++) {
     const record = records[idx];
+    if (isExpectedNonMoneyMovement(record.expected)) {
+      expectedExceptions++;
+      continue;
+    }
     const recordId = record.id || `sample-${idx}`;
     const expectedDetected = record.expected !== null;
+
     const parsed = parseTransactionSMS(
       record.message,
       record.receivedDate ?? DEFAULT_RECEIVED_DATE,
@@ -191,6 +201,7 @@ function main() {
   console.log("FAILURE REPORT");
   console.log("");
   console.log(`Total Failures: ${failureCount}`);
+  console.log(`Expected Exceptions: ${expectedExceptions}`);
   console.log("");
   console.log("Bucket Counts:");
   

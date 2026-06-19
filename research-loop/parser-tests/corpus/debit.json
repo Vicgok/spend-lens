@@ -278,5 +278,505 @@
       "merchant": "bigbasket",
       "accountCard": "8801"
     }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Alert: Rs. 450.00 debited from A/c XX1000 on 20-May-26 for purchase at FLIPKART. Avl Bal Rs. 45,670.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 450,
+      "merchant": "flipkart",
+      "accountCard": "1000"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, your Acct XX1211 has been debited with INR 1,200.00 on 24-May-26. Avl Bal Rs. 45,248.65.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1200,
+      "merchant": null,
+      "accountCard": "1211"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "IDFCFB: Rs 5,230.50 withdrawn/debited from account ending 1422 at DMART. Balance Rs 44,827.30.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5230.5,
+      "merchant": "dmart",
+      "accountCard": "1422"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Debit Alert: A/c XX1633 debited by Rs.999.00 towards NETFLIX on 15-Jun-26. Avl Bal INR 44,405.95.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 999,
+      "merchant": "netflix",
+      "accountCard": "1633"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account no. XX1844 has a debit of Rs 2,499.00 using UPI at SPOTIFY. Available balance Rs 43,984.60.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2499,
+      "merchant": "spotify",
+      "accountCard": "1844"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Alert: Rs. 75.00 debited from A/c XX2055 on 20-May-26 for purchase at BOOKMYSHOW. Avl Bal Rs. 43,563.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 75,
+      "merchant": "bookmyshow",
+      "accountCard": "2055"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, your Acct XX2266 has been debited with INR 10,000.00 on 24-May-26. Avl Bal Rs. 43,141.90.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10000,
+      "merchant": null,
+      "accountCard": "2266"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "ICICIB: Rs 1,589.75 withdrawn/debited from account ending 2477 at ZEPTONOW. Balance Rs 42,720.55.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1589.75,
+      "merchant": "zeptonow",
+      "accountCard": "2477"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Debit Alert: A/c XX2688 debited by Rs.349.00 towards BLINKIT on 15-Jun-26. Avl Bal INR 42,299.20.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 349,
+      "merchant": "blinkit",
+      "accountCard": "2688"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account no. XX2899 has a debit of Rs 6,700.00 using UPI at RAPIDO. Available balance Rs 41,877.85.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6700,
+      "merchant": "rapido",
+      "accountCard": "2899"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Alert: Rs. 250.00 debited from A/c XX3110 on 20-May-26 for purchase at IRCTC. Avl Bal Rs. 41,456.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 250,
+      "merchant": "irctc",
+      "accountCard": "3110"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, your Acct XX3321 has been debited with INR 18,000.00 on 24-May-26. Avl Bal Rs. 41,035.15.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18000,
+      "merchant": null,
+      "accountCard": "3321"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "IDFCFB: Rs 2,999.00 withdrawn/debited from account ending 3532 at PHONEPE. Balance Rs 40,613.80.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2999,
+      "merchant": "phonepe",
+      "accountCard": "3532"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Debit Alert: A/c XX3743 debited by Rs.123.45 towards CRED on 15-Jun-26. Avl Bal INR 40,192.45.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 123.45,
+      "merchant": "cred",
+      "accountCard": "3743"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account no. XX3954 has a debit of Rs 875.00 using UPI at NYKAA. Available balance Rs 39,771.10.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 875,
+      "merchant": "nykaa",
+      "accountCard": "3954"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Alert: Rs. 539.00 debited from A/c XX4165 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 39,349.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 539,
+      "merchant": "swiggy",
+      "accountCard": "4165"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, your Acct XX4376 has been debited with INR 1,289.00 on 24-May-26. Avl Bal Rs. 38,928.40.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1289,
+      "merchant": null,
+      "accountCard": "4376"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "ICICIB: Rs 5,319.50 withdrawn/debited from account ending 4587 at UBER INDIA. Balance Rs 38,507.05.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5319.5,
+      "merchant": "uber india",
+      "accountCard": "4587"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Debit Alert: A/c XX4798 debited by Rs.1,088.00 towards OLA CABS on 15-Jun-26. Avl Bal INR 38,085.70.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1088,
+      "merchant": "ola cabs",
+      "accountCard": "4798"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account no. XX5009 has a debit of Rs 2,588.00 using UPI at AMAZON PAY. Available balance Rs 37,664.35.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2588,
+      "merchant": "amazon pay",
+      "accountCard": "5009"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Alert: Rs. 164.00 debited from A/c XX5220 on 20-May-26 for purchase at FLIPKART. Avl Bal Rs. 37,243.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 164,
+      "merchant": "flipkart",
+      "accountCard": "5220"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, your Acct XX5431 has been debited with INR 10,089.00 on 24-May-26. Avl Bal Rs. 36,821.65.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10089,
+      "merchant": null,
+      "accountCard": "5431"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "IDFCFB: Rs 1,678.75 withdrawn/debited from account ending 5642 at DMART. Balance Rs 36,400.30.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1678.75,
+      "merchant": "dmart",
+      "accountCard": "5642"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Debit Alert: A/c XX5853 debited by Rs.438.00 towards NETFLIX on 15-Jun-26. Avl Bal INR 35,978.95.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 438,
+      "merchant": "netflix",
+      "accountCard": "5853"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account no. XX6064 has a debit of Rs 6,789.00 using UPI at SPOTIFY. Available balance Rs 35,557.60.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6789,
+      "merchant": "spotify",
+      "accountCard": "6064"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Alert: Rs. 339.00 debited from A/c XX6275 on 20-May-26 for purchase at BOOKMYSHOW. Avl Bal Rs. 35,136.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 339,
+      "merchant": "bookmyshow",
+      "accountCard": "6275"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, your Acct XX6486 has been debited with INR 18,089.00 on 24-May-26. Avl Bal Rs. 34,714.90.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18089,
+      "merchant": null,
+      "accountCard": "6486"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "ICICIB: Rs 3,088.00 withdrawn/debited from account ending 6697 at ZEPTONOW. Balance Rs 34,293.55.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3088,
+      "merchant": "zeptonow",
+      "accountCard": "6697"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Debit Alert: A/c XX6908 debited by Rs.212.45 towards BLINKIT on 15-Jun-26. Avl Bal INR 33,872.20.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 212.45,
+      "merchant": "blinkit",
+      "accountCard": "6908"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account no. XX7119 has a debit of Rs 964.00 using UPI at RAPIDO. Available balance Rs 33,450.85.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 964,
+      "merchant": "rapido",
+      "accountCard": "7119"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Alert: Rs. 628.00 debited from A/c XX7330 on 20-May-26 for purchase at IRCTC. Avl Bal Rs. 33,029.50.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 628,
+      "merchant": "irctc",
+      "accountCard": "7330"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, your Acct XX7541 has been debited with INR 1,378.00 on 24-May-26. Avl Bal Rs. 32,608.15.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1378,
+      "merchant": null,
+      "accountCard": "7541"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "IDFCFB: Rs 5,408.50 withdrawn/debited from account ending 7752 at PHONEPE. Balance Rs 32,186.80.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5408.5,
+      "merchant": "phonepe",
+      "accountCard": "7752"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Debit Alert: A/c XX7963 debited by Rs.1,177.00 towards CRED on 15-Jun-26. Avl Bal INR 31,765.45.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1177,
+      "merchant": "cred",
+      "accountCard": "7963"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account no. XX8174 has a debit of Rs 2,677.00 using UPI at NYKAA. Available balance Rs 31,344.10.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2677,
+      "merchant": "nykaa",
+      "accountCard": "8174"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Alert: Rs. 253.00 debited from A/c XX8385 on 20-May-26 for purchase at SWIGGY. Avl Bal Rs. 30,922.75.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 253,
+      "merchant": "swiggy",
+      "accountCard": "8385"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, your Acct XX8596 has been debited with INR 10,178.00 on 24-May-26. Avl Bal Rs. 30,501.40.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 10178,
+      "merchant": null,
+      "accountCard": "8596"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "ICICIB: Rs 1,767.75 withdrawn/debited from account ending 8807 at UBER INDIA. Balance Rs 30,080.05.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1767.75,
+      "merchant": "uber india",
+      "accountCard": "8807"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Debit Alert: A/c XX9018 debited by Rs.527.00 towards OLA CABS on 15-Jun-26. Avl Bal INR 29,658.70.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 527,
+      "merchant": "ola cabs",
+      "accountCard": "9018"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account no. XX9229 has a debit of Rs 6,878.00 using UPI at AMAZON PAY. Available balance Rs 29,237.35.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 6878,
+      "merchant": "amazon pay",
+      "accountCard": "9229"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Alert: Rs. 428.00 debited from A/c XX9440 on 20-May-26 for purchase at FLIPKART. Avl Bal Rs. 28,816.00.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 428,
+      "merchant": "flipkart",
+      "accountCard": "9440"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "Dear Customer, your Acct XX9651 has been debited with INR 18,178.00 on 24-May-26. Avl Bal Rs. 28,394.65.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 18178,
+      "merchant": null,
+      "accountCard": "9651"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "IDFCFB: Rs 3,177.00 withdrawn/debited from account ending 9862 at DMART. Balance Rs 27,973.30.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 3177,
+      "merchant": "dmart",
+      "accountCard": "9862"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Debit Alert: A/c XX1073 debited by Rs.301.45 towards NETFLIX on 15-Jun-26. Avl Bal INR 27,551.95.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 301.45,
+      "merchant": "netflix",
+      "accountCard": "1073"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account no. XX1284 has a debit of Rs 1,053.00 using UPI at SPOTIFY. Available balance Rs 27,130.60.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1053,
+      "merchant": "spotify",
+      "accountCard": "1284"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Alert: Rs. 717.00 debited from A/c XX1495 on 20-May-26 for purchase at BOOKMYSHOW. Avl Bal Rs. 26,709.25.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 717,
+      "merchant": "bookmyshow",
+      "accountCard": "1495"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "Dear Customer, your Acct XX1706 has been debited with INR 1,467.00 on 24-May-26. Avl Bal Rs. 26,287.90.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1467,
+      "merchant": null,
+      "accountCard": "1706"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "ICICIB: Rs 5,497.50 withdrawn/debited from account ending 1917 at ZEPTONOW. Balance Rs 25,866.55.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 5497.5,
+      "merchant": "zeptonow",
+      "accountCard": "1917"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Debit Alert: A/c XX2128 debited by Rs.1,266.00 towards BLINKIT on 15-Jun-26. Avl Bal INR 25,445.20.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 1266,
+      "merchant": "blinkit",
+      "accountCard": "2128"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account no. XX2339 has a debit of Rs 2,766.00 using UPI at RAPIDO. Available balance Rs 25,023.85.",
+    "expected": {
+      "transactionType": "debit",
+      "amount": 2766,
+      "merchant": "rapido",
+      "accountCard": "2339"
+    }
   }
 ]

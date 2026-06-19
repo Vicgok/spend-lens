@@ -258,5 +258,505 @@
       "merchant": "google pay upi",
       "accountCard": "7654"
     }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX1000 is credited with Rs. 450.00 on 01-May-26 by Salary. Avl Bal Rs. 55,000.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 450,
+      "merchant": null,
+      "accountCard": "1000"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account XX1173 is credited with Rs. 1,200.00 via NEFT on 18-Jun-26. Avl Bal Rs. 56,430.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1200,
+      "merchant": null,
+      "accountCard": "1173"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Dear Customer, INR 5,230.50 has been credited to Acct XX1346. Updated balance Rs 57,861.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 5230.5,
+      "merchant": null,
+      "accountCard": "1346"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "YESBNK: A/c no. ending 1519 credited by Rs.999.00 through UPI. Clear Bal Rs.59,291.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 999,
+      "merchant": null,
+      "accountCard": "1519"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit Alert: Rs 2,499.00 received in your bank account XX1692 on 22-Jun-26. Avl Bal INR 60,722.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2499,
+      "merchant": null,
+      "accountCard": "1692"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your A/c XX1865 is credited with Rs. 75.00 on 01-May-26 by Cash Deposit. Avl Bal Rs. 62,152.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 75,
+      "merchant": null,
+      "accountCard": "1865"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account XX2038 is credited with Rs. 10,000.00 via Interest on 18-Jun-26. Avl Bal Rs. 63,583.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 10000,
+      "merchant": null,
+      "accountCard": "2038"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Dear Customer, INR 1,589.75 has been credited to Acct XX2211. Updated balance Rs 65,013.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1589.75,
+      "merchant": null,
+      "accountCard": "2211"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "HDFCBK: A/c no. ending 2384 credited by Rs.349.00 through Reimbursement. Clear Bal Rs.66,444.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 349,
+      "merchant": null,
+      "accountCard": "2384"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit Alert: Rs 6,700.00 received in your bank account XX2557 on 22-Jun-26. Avl Bal INR 67,874.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 6700,
+      "merchant": null,
+      "accountCard": "2557"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX2730 is credited with Rs. 250.00 on 01-May-26 by Salary. Avl Bal Rs. 69,305.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 250,
+      "merchant": null,
+      "accountCard": "2730"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account XX2903 is credited with Rs. 18,000.00 via NEFT on 18-Jun-26. Avl Bal Rs. 70,735.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 18000,
+      "merchant": null,
+      "accountCard": "2903"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Dear Customer, INR 2,999.00 has been credited to Acct XX3076. Updated balance Rs 72,166.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2999,
+      "merchant": null,
+      "accountCard": "3076"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "YESBNK: A/c no. ending 3249 credited by Rs.123.45 through UPI. Clear Bal Rs.73,596.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 123.45,
+      "merchant": null,
+      "accountCard": "3249"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit Alert: Rs 875.00 received in your bank account XX3422 on 22-Jun-26. Avl Bal INR 75,027.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 875,
+      "merchant": null,
+      "accountCard": "3422"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your A/c XX3595 is credited with Rs. 950.00 on 01-May-26 by Cash Deposit. Avl Bal Rs. 76,457.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 950,
+      "merchant": null,
+      "accountCard": "3595"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account XX3768 is credited with Rs. 1,700.00 via Interest on 18-Jun-26. Avl Bal Rs. 77,888.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1700,
+      "merchant": null,
+      "accountCard": "3768"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Dear Customer, INR 5,730.50 has been credited to Acct XX3941. Updated balance Rs 79,318.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 5730.5,
+      "merchant": null,
+      "accountCard": "3941"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "HDFCBK: A/c no. ending 4114 credited by Rs.1,499.00 through Reimbursement. Clear Bal Rs.80,749.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1499,
+      "merchant": null,
+      "accountCard": "4114"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit Alert: Rs 2,999.00 received in your bank account XX4287 on 22-Jun-26. Avl Bal INR 82,179.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2999,
+      "merchant": null,
+      "accountCard": "4287"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX4460 is credited with Rs. 575.00 on 01-May-26 by Salary. Avl Bal Rs. 83,610.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 575,
+      "merchant": null,
+      "accountCard": "4460"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account XX4633 is credited with Rs. 10,500.00 via NEFT on 18-Jun-26. Avl Bal Rs. 85,040.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 10500,
+      "merchant": null,
+      "accountCard": "4633"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Dear Customer, INR 2,089.75 has been credited to Acct XX4806. Updated balance Rs 86,471.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2089.75,
+      "merchant": null,
+      "accountCard": "4806"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "YESBNK: A/c no. ending 4979 credited by Rs.849.00 through UPI. Clear Bal Rs.87,901.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 849,
+      "merchant": null,
+      "accountCard": "4979"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit Alert: Rs 7,200.00 received in your bank account XX5152 on 22-Jun-26. Avl Bal INR 89,332.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 7200,
+      "merchant": null,
+      "accountCard": "5152"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your A/c XX5325 is credited with Rs. 750.00 on 01-May-26 by Cash Deposit. Avl Bal Rs. 90,762.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 750,
+      "merchant": null,
+      "accountCard": "5325"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account XX5498 is credited with Rs. 18,500.00 via Interest on 18-Jun-26. Avl Bal Rs. 92,193.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 18500,
+      "merchant": null,
+      "accountCard": "5498"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Dear Customer, INR 3,499.00 has been credited to Acct XX5671. Updated balance Rs 93,623.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 3499,
+      "merchant": null,
+      "accountCard": "5671"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "HDFCBK: A/c no. ending 5844 credited by Rs.623.45 through Reimbursement. Clear Bal Rs.95,054.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 623.45,
+      "merchant": null,
+      "accountCard": "5844"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit Alert: Rs 1,375.00 received in your bank account XX6017 on 22-Jun-26. Avl Bal INR 96,484.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1375,
+      "merchant": null,
+      "accountCard": "6017"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX6190 is credited with Rs. 1,450.00 on 01-May-26 by Salary. Avl Bal Rs. 97,915.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1450,
+      "merchant": null,
+      "accountCard": "6190"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account XX6363 is credited with Rs. 2,200.00 via NEFT on 18-Jun-26. Avl Bal Rs. 99,345.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2200,
+      "merchant": null,
+      "accountCard": "6363"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Dear Customer, INR 6,230.50 has been credited to Acct XX6536. Updated balance Rs 100,776.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 6230.5,
+      "merchant": null,
+      "accountCard": "6536"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "YESBNK: A/c no. ending 6709 credited by Rs.1,999.00 through UPI. Clear Bal Rs.102,206.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1999,
+      "merchant": null,
+      "accountCard": "6709"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit Alert: Rs 3,499.00 received in your bank account XX6882 on 22-Jun-26. Avl Bal INR 103,637.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 3499,
+      "merchant": null,
+      "accountCard": "6882"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your A/c XX7055 is credited with Rs. 1,075.00 on 01-May-26 by Cash Deposit. Avl Bal Rs. 105,067.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1075,
+      "merchant": null,
+      "accountCard": "7055"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account XX7228 is credited with Rs. 11,000.00 via Interest on 18-Jun-26. Avl Bal Rs. 106,498.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 11000,
+      "merchant": null,
+      "accountCard": "7228"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Dear Customer, INR 2,589.75 has been credited to Acct XX7401. Updated balance Rs 107,928.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2589.75,
+      "merchant": null,
+      "accountCard": "7401"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "HDFCBK: A/c no. ending 7574 credited by Rs.1,349.00 through Reimbursement. Clear Bal Rs.109,359.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1349,
+      "merchant": null,
+      "accountCard": "7574"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit Alert: Rs 7,700.00 received in your bank account XX7747 on 22-Jun-26. Avl Bal INR 110,789.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 7700,
+      "merchant": null,
+      "accountCard": "7747"
+    }
+  },
+  {
+    "sender": "SBIINB",
+    "message": "Your A/c XX7920 is credited with Rs. 1,250.00 on 01-May-26 by Salary. Avl Bal Rs. 112,220.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1250,
+      "merchant": null,
+      "accountCard": "7920"
+    }
+  },
+  {
+    "sender": "AXISBK",
+    "message": "Your account XX8093 is credited with Rs. 19,000.00 via NEFT on 18-Jun-26. Avl Bal Rs. 113,650.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 19000,
+      "merchant": null,
+      "accountCard": "8093"
+    }
+  },
+  {
+    "sender": "KOTAKB",
+    "message": "Dear Customer, INR 3,999.00 has been credited to Acct XX8266. Updated balance Rs 115,081.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 3999,
+      "merchant": null,
+      "accountCard": "8266"
+    }
+  },
+  {
+    "sender": "YESBNK",
+    "message": "YESBNK: A/c no. ending 8439 credited by Rs.1,123.45 through UPI. Clear Bal Rs.116,511.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1123.45,
+      "merchant": null,
+      "accountCard": "8439"
+    }
+  },
+  {
+    "sender": "IDFCFB",
+    "message": "Credit Alert: Rs 1,875.00 received in your bank account XX8612 on 22-Jun-26. Avl Bal INR 117,942.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1875,
+      "merchant": null,
+      "accountCard": "8612"
+    }
+  },
+  {
+    "sender": "PNBSMS",
+    "message": "Your A/c XX8785 is credited with Rs. 1,950.00 on 01-May-26 by Cash Deposit. Avl Bal Rs. 119,372.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 1950,
+      "merchant": null,
+      "accountCard": "8785"
+    }
+  },
+  {
+    "sender": "BOBSMS",
+    "message": "Your account XX8958 is credited with Rs. 2,700.00 via Interest on 18-Jun-26. Avl Bal Rs. 120,803.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2700,
+      "merchant": null,
+      "accountCard": "8958"
+    }
+  },
+  {
+    "sender": "CANBNK",
+    "message": "Dear Customer, INR 6,730.50 has been credited to Acct XX9131. Updated balance Rs 122,233.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 6730.5,
+      "merchant": null,
+      "accountCard": "9131"
+    }
+  },
+  {
+    "sender": "HDFCBK",
+    "message": "HDFCBK: A/c no. ending 9304 credited by Rs.2,499.00 through Reimbursement. Clear Bal Rs.123,664.00.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 2499,
+      "merchant": null,
+      "accountCard": "9304"
+    }
+  },
+  {
+    "sender": "ICICIB",
+    "message": "Credit Alert: Rs 3,999.00 received in your bank account XX9477 on 22-Jun-26. Avl Bal INR 125,094.50.",
+    "expected": {
+      "transactionType": "credit",
+      "amount": 3999,
+      "merchant": null,
+      "accountCard": "9477"
+    }
   }
 ]
