@@ -127,16 +127,17 @@ export function extractMerchantInfo(rawMessage: string): ParsedMerchantInfo {
   // 4. Keyword-based merchant extraction for non-UPI card/bank transactions
   if (!merchant) {
     const patterns = [
-      /\bpaid\s+to\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\bspent\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\bcharged\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\bpurchase\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\bspent\s+on\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\btransfer\s+to\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\brefund\s+(?:from|for)\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\bcredited\s+by\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\b(?:received|credited|cashback)\s+from\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
-      /\b(?:towards|for|by|at|to|from|as)\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i
+      /\bpaid\s+to\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bspent\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bcharged\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bpurchase\s+at\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bspent\s+on\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\btransfer\s+to\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\brefund\s+(?:from|for)\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bcredited\s+by\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\b(?:received|credited|cashback)\s+from\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\b(?:towards|for|by|at|to|from|as)\s+([A-Za-z0-9\s&.'-]+?)(?=\s+(?:on\b|from\b|using\b|ref\b|upi\s+(?:ref|mandate|setup|transaction)\b|failed\b|declined\b|is\b|was\b|to\b|at\b|for\b|by\b|towards\b|due\s+to\b|bal(?:ance)?\b(?:\s*(?:rs\.?|inr\.?|limit|\d)))|\.|$)/i,
+      /\bby\s+([A-Za-z0-9\s&.'-]+?)(?=\.|$)/i
     ];
 
     for (const pattern of patterns) {
@@ -150,10 +151,16 @@ export function extractMerchantInfo(rawMessage: string): ParsedMerchantInfo {
           // Clean prefix before rejection filters
           cleaned = cleaned.replace(/^(?:nach|neft|imps|rtgs|upi|si|ecs)\s*[-:]\s*/gi, '');
 
+          const isMultiWord = cleaned.includes(' ');
+          const isSalary = cleaned.toLowerCase() === 'salary';
+          const rejectPattern = isMultiWord
+            ? /\b(?:rs|inr|avl|a\/c|ac|account|wallet|limit|transaction|withdrawal|withdrawn|neft|imps|rtgs|nach|si|ecs|mandate|verification|failed|declined|refund|upi\s+payment|payment\s+to|payment\s+for|payment\s+of)\b/i
+            : /\b(?:rs|inr|avl|bal|balance|a\/c|ac|account|wallet|limit|payment|transaction|withdrawal|withdrawn|neft|imps|rtgs|upi|nach|si|ecs|mandate|verification|failed|declined|refund)\b/i;
+
           if (
             cleaned.length >= 2 &&
             cleaned.length <= 50 &&
-            !/\b(?:rs|inr|avl|bal|balance|a\/c|ac|account|wallet|limit|payment|transaction|withdrawal|withdrawn|neft|imps|rtgs|upi|nach|si|ecs|mandate|verification|failed|declined|refund|salary)\b/i.test(cleaned) &&
+            (isSalary || !rejectPattern.test(cleaned)) &&
             !/\bcard\b.*\d/i.test(cleaned)
           ) {
             merchant = cleaned;

@@ -1,7 +1,10 @@
 {
-  "totalSamples": 106,
-  "overallAccuracy": 61.32,
-  "merchantAccuracy": 66,
-  "falsePositiveRate": 16.67,
-  "falseNegativeRate": 13
+  "overallAccuracy": 85.85,
+  "detectionAccuracy": 99.06,
+  "typeAccuracy": 99,
+  "amountAccuracy": 98,
+  "merchantAccuracy": 91,
+  "accountAccuracy": 94,
+  "falsePositiveRate": 0,
+  "falseNegativeRate": 1
 }
