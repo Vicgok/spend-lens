@@ -9,19 +9,24 @@ export function getTransactionType(tokens: string[]): 'debit' | 'credit' | null 
 
   const joined = tokens.join(' ');
 
-  // 1. Debit check
+  // Reject OTP / verification messages
+  if (/\b(?:otp|verification code|one time password)\b/i.test(joined)) {
+    return null;
+  }
+
+  // 1. Explicit Debit check
   if (debitPattern.test(joined)) {
     return 'debit';
   }
 
-  // 2. Misc Debit check
-  if (miscDebitPattern.test(joined)) {
-    return 'debit';
-  }
-
-  // 3. Credit check
+  // 2. Explicit Credit check
   if (creditPattern.test(joined)) {
     return 'credit';
+  }
+
+  // 3. Miscellaneous Debit check
+  if (miscDebitPattern.test(joined)) {
+    return 'debit';
   }
 
   return null;

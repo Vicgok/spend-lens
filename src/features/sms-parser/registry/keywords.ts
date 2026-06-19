@@ -101,8 +101,8 @@ export const outstandingBalanceKeywords = [
 ];
 
 // Transaction type matching patterns
-export const debitPattern = /\b(?:debited|debit|deducted)\b/i;
+export const debitPattern = /\b(?:debited|debit|deducted|withdrawn|withdrawal|withdrew)\b/i;
 
-export const miscDebitPattern = /\b(?:payment|spent|paid|used\s+at|charged|transaction\s+on|transaction\s+fee|tran|booked|purchased|sent|purchase\s+of|spent\s+on|using)\b/i;
+export const miscDebitPattern = /\b(?:payment|spent|paid|used|charged|transaction|tran|booked|purchased|sent|purchase|using|txn|declined|failed|pending)\b/i;
 
 export const creditPattern = /\b(?:credited|credit|deposited|added|received|refund|repayment)\b/i;
