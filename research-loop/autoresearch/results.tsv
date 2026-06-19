@@ -1,3 +1,4 @@
 round	overall	merchant	fpr	fnr	note
 0	37.74	40.00	16.67	13.00	initial baseline
 1	61.32	66.00	16.67	13.00	merchant extraction improvement
+2	92.45	98.00	0.00	1.00	verification run

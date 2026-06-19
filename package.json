@@ -49,6 +49,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "parser:test": "tsx research-loop/parser-tests/run-tests.ts",
+    "failure-report": "tsx research-loop/scripts/failure-report.ts",
     "test": "tsx src/features/sms-parser/__tests__/run-tests.ts",
     "check": "tsc --noEmit",
     "lint": "tsc --project tsconfig.lint.json --noEmit",

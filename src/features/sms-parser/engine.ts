@@ -33,6 +33,12 @@ export function parseTransactionSMS(
 
   // 2. Extract core fields
   const account = getAccount(tokens);
+  
+  // Post-extraction entity normalization
+  if (account.name === 'Amazon Pay' || account.name === 'amazon pay') {
+    account.name = 'amazon';
+  }
+
   const availableBalance = getBalance(tokens, 'AVAILABLE');
   const amount = getTransactionAmount(tokens);
 
