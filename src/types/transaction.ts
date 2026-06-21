@@ -12,6 +12,8 @@ export interface Transaction {
   date: string; // ISO 8601
   source: TransactionSource;
   smsHash: string | null;
+  dedupeGroupId?: string | null;
+  dedupeVersion?: string | null;
   isRecurring: boolean;
   tags: string[];
   createdAt: string;
@@ -28,6 +30,8 @@ export interface TransactionCreateInput {
   date?: string;
   source: TransactionSource;
   smsHash?: string;
+  dedupeGroupId?: string;
+  dedupeVersion?: string;
   isRecurring?: boolean;
   tags?: string[];
 }

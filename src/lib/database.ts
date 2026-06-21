@@ -49,6 +49,26 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
     console.warn('Error running accounts migration:', e);
   }
 
+  try {
+    const txColumns = await database.getAllAsync<{ name: string }>('PRAGMA table_info(transactions)');
+    if (txColumns.length > 0) {
+      const hasDedupeGroupId = txColumns.some((col) => col.name === 'dedupe_group_id');
+      const hasDedupeVersion = txColumns.some((col) => col.name === 'dedupe_version');
+
+      if (!hasDedupeGroupId) {
+        await database.execAsync('ALTER TABLE transactions ADD COLUMN dedupe_group_id TEXT');
+        console.log('Database migration: Added dedupe_group_id to transactions table');
+      }
+
+      if (!hasDedupeVersion) {
+        await database.execAsync('ALTER TABLE transactions ADD COLUMN dedupe_version TEXT');
+        console.log('Database migration: Added dedupe_version to transactions table');
+      }
+    }
+  } catch (e) {
+    console.warn('Error running transactions dedupe migration:', e);
+  }
+
   await database.execAsync(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -89,6 +109,8 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
       date TEXT NOT NULL,
       source TEXT NOT NULL,
       sms_hash TEXT,
+      dedupe_group_id TEXT,
+      dedupe_version TEXT,
       is_recurring INTEGER DEFAULT 0,
       tags TEXT,
       created_at TEXT NOT NULL,
@@ -133,6 +155,8 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
     CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_sms_hash ON transactions(sms_hash);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_sms_hash_unique ON transactions(sms_hash);
+    CREATE INDEX IF NOT EXISTS idx_transactions_dedupe_group_id ON transactions(dedupe_group_id);
+    CREATE INDEX IF NOT EXISTS idx_transactions_source_date ON transactions(source, date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   `);
 
@@ -306,6 +330,8 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
     date: input.date || now,
     source: input.source,
     smsHash: input.smsHash || null,
+    dedupeGroupId: input.dedupeGroupId || null,
+    dedupeVersion: input.dedupeVersion || null,
     isRecurring: input.isRecurring || false,
     tags: input.tags || [],
     createdAt: now,
@@ -313,11 +339,12 @@ export async function createTransaction(input: TransactionCreateInput): Promise<
   };
 
   const result = await database.runAsync(
-    `INSERT OR IGNORE INTO transactions (id, account_id, type, amount, category_id, merchant, description, date, source, sms_hash, is_recurring, tags, created_at, synced_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT OR IGNORE INTO transactions (id, account_id, type, amount, category_id, merchant, description, date, source, sms_hash, dedupe_group_id, dedupe_version, is_recurring, tags, created_at, synced_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     transaction.id, transaction.accountId, transaction.type, transaction.amount,
     transaction.categoryId, transaction.merchant, transaction.description,
     transaction.date, transaction.source, transaction.smsHash,
+    transaction.dedupeGroupId ?? null, transaction.dedupeVersion ?? null,
     transaction.isRecurring ? 1 : 0, JSON.stringify(transaction.tags),
     transaction.createdAt, transaction.syncedAt
   );
@@ -389,7 +416,8 @@ export async function getTransactions(
   const rows = await database.getAllAsync<{
     id: string; account_id: string; type: string; amount: number;
     category_id: string | null; merchant: string | null; description: string | null;
-    date: string; source: string; sms_hash: string | null; is_recurring: number;
+    date: string; source: string; sms_hash: string | null; dedupe_group_id: string | null;
+    dedupe_version: string | null; is_recurring: number;
     tags: string | null; created_at: string; synced_at: string | null;
   }>(query, ...params);
 
@@ -404,6 +432,8 @@ export async function getTransactions(
     date: row.date,
     source: row.source as Transaction['source'],
     smsHash: row.sms_hash,
+    dedupeGroupId: row.dedupe_group_id,
+    dedupeVersion: row.dedupe_version,
     isRecurring: row.is_recurring === 1,
     tags: row.tags ? JSON.parse(row.tags) : [],
     createdAt: row.created_at,
@@ -522,6 +552,42 @@ export async function checkSMSHashExists(hash: string): Promise<boolean> {
     'SELECT COUNT(*) as count FROM transactions WHERE sms_hash = ?', hash
   );
   return (result?.count ?? 0) > 0;
+}
+
+export async function getRecentSMSTransactions(dateFrom: string, dateTo: string): Promise<Transaction[]> {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<{
+    id: string; account_id: string; type: string; amount: number;
+    category_id: string | null; merchant: string | null; description: string | null;
+    date: string; source: string; sms_hash: string | null; dedupe_group_id: string | null;
+    dedupe_version: string | null; is_recurring: number; tags: string | null;
+    created_at: string; synced_at: string | null;
+  }>(
+    `SELECT * FROM transactions
+     WHERE source = 'sms' AND date >= ? AND date <= ?
+     ORDER BY date DESC`,
+    dateFrom,
+    dateTo
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    accountId: row.account_id,
+    type: row.type as Transaction['type'],
+    amount: row.amount,
+    categoryId: row.category_id,
+    merchant: row.merchant,
+    description: row.description,
+    date: row.date,
+    source: row.source as Transaction['source'],
+    smsHash: row.sms_hash,
+    dedupeGroupId: row.dedupe_group_id,
+    dedupeVersion: row.dedupe_version,
+    isRecurring: row.is_recurring === 1,
+    tags: row.tags ? JSON.parse(row.tags) : [],
+    createdAt: row.created_at,
+    syncedAt: row.synced_at,
+  }));
 }
 
 // ========== ANALYTICS ==========
