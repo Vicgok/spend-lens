@@ -1,0 +1,48 @@
+{
+  "suite": "dedupe",
+  "status": "PASS",
+  "timestamp": "2026-06-21T19:15:40.369Z",
+  "metrics": {
+    "totalSamples": 120,
+    "totalMessages": 260,
+    "expectedUnique": 146,
+    "actualUnique": 146,
+    "duplicatesRemoved": 114,
+    "pairwiseTP": 134,
+    "pairwiseFP": 0,
+    "pairwiseFN": 0,
+    "pairwiseTN": 26,
+    "dedupePrecision": 100,
+    "dedupeRecall": 100,
+    "dedupeF1": 100,
+    "falseMergeRate": 0,
+    "missedDuplicateRate": 0,
+    "samplePassRate": 100,
+    "groupExactMatchAccuracy": 100,
+    "configViolationCount": 0,
+    "samplesWithConfigViolation": [],
+    "expectedDuplicatePairsOutsideWindow": 0,
+    "configValid": true
+  },
+  "failureBuckets": {
+    "bnpl-bank-wording-mismatch": 0,
+    "false-merge": 0,
+    "group-count-mismatch": 0,
+    "merchant-spelling-variation": 0,
+    "missed-duplicate": 0,
+    "multi-sms-same-transaction": 0,
+    "parser-output-invalid": 0,
+    "repeated-same-day-false-merge": 0,
+    "same-amount-legit-repeat": 0,
+    "time-window-boundary": 0,
+    "wrong-canonical-transaction": 0
+  },
+  "artifacts": {
+    "latestMetrics": "dedupe/reports/latest-metrics.json",
+    "summary": "dedupe/reports/summary.json",
+    "failure": "dedupe/reports/failure.json",
+    "failureBuckets": "dedupe/reports/failure-buckets.json",
+    "configValidation": "dedupe/reports/config-validation.json",
+    "evaluatorAudit": "dedupe/reports/evaluator-audit.json"
+  }
+}

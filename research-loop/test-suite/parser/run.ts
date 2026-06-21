@@ -2,6 +2,11 @@ import * as fs from "fs";
 import path from "path";
 
 import { evaluateCorpus, loadCorpus } from "./evaluator";
+import {
+  buildLatestMetricsReport,
+  relativeArtifactPath,
+  writeLatestMetricsReport,
+} from "../shared/report-utils";
 
 function formatPercent(value: number): string {
   return `${Number(value.toFixed(2))}%`;
@@ -35,8 +40,7 @@ function main() {
   console.log("");
   console.log(`Overall Accuracy: ${formatPercent(summary.overallAccuracy)}`);
 
-  // Write latest-metrics.json on every run
-  const latestMetrics = {
+  const metrics = {
     overallAccuracy: summary.overallAccuracy,
     detectionAccuracy: summary.detectionAccuracy,
     typeAccuracy: summary.typeAccuracy,
@@ -46,9 +50,35 @@ function main() {
     falsePositiveRate: summary.falsePositiveRate,
     falseNegativeRate: summary.falseNegativeRate,
   };
-  const latestMetricsPath = path.join(reportsDir, "latest-metrics.json");
-  fs.writeFileSync(latestMetricsPath, JSON.stringify(latestMetrics, null, 2) + "\n", "utf8");
-  console.log(`\n💾 Saved latest-metrics.json to ${latestMetricsPath}`);
+
+  const testSuiteDir = path.resolve(suiteDir, "..");
+  const artifactFiles: Record<string, string> = {
+    latestMetrics: "latest-metrics.json",
+    baseline: "baseline.json",
+    failuresJson: "failures.json",
+    failuresTsv: "failures.tsv",
+    resultsTsv: "results.tsv",
+    parserSpec: "parser-spec.md",
+  };
+  const artifacts: Record<string, string> = {};
+
+  for (const [artifactKey, fileName] of Object.entries(artifactFiles)) {
+    const artifactPath = path.join(reportsDir, fileName);
+    if (artifactKey === "latestMetrics" || fs.existsSync(artifactPath)) {
+      artifacts[artifactKey] = relativeArtifactPath(testSuiteDir, artifactPath);
+    }
+  }
+
+  const latestMetricsReport = buildLatestMetricsReport({
+    suite: "parser",
+    status: summary.overallAccuracy >= 97 ? "PASS" : "FAIL",
+    metrics,
+    failureBuckets: {},
+    artifacts,
+  });
+
+  const latestMetricsPath = writeLatestMetricsReport(suiteDir, latestMetricsReport);
+  console.log(`\n?? Saved latest-metrics.json to ${latestMetricsPath}`);
 }
 
 main();
