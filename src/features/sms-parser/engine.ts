@@ -301,7 +301,7 @@ export interface DedupeGroupResult {
   groupKey: string;
 }
 
-function isDuplicatePair(a: TransactionInput, b: TransactionInput): boolean {
+export function areTransactionsDuplicate(a: TransactionInput, b: TransactionInput): boolean {
   if (!a.parsed || !b.parsed) {
     return false;
   }
@@ -433,7 +433,7 @@ export function dedupeTransactions(transactions: TransactionInput[]): DedupeGrou
     for (const tx of bucketTxs) {
       let matchedGroup: DedupeGroupResult | null = null;
       for (const bg of bucketGroups) {
-        if (isDuplicatePair(tx, bg.canonical)) {
+        if (areTransactionsDuplicate(tx, bg.canonical)) {
           matchedGroup = bg;
           break;
         }
@@ -460,4 +460,3 @@ export function dedupeTransactions(transactions: TransactionInput[]): DedupeGrou
 
   return finalGroups;
 }
-

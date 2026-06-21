@@ -1,12 +1,38 @@
-import { Platform, PermissionsAndroid} from 'react-native';
-import { parseTransactionSMS, generateSMSHash } from './engine';
+import { Platform, PermissionsAndroid } from 'react-native';
+import {
+  parseTransactionSMS,
+  generateSMSHash,
+  dedupeTransactions,
+  areTransactionsDuplicate,
+  TransactionInput,
+} from './engine';
 import { useTransactionStore } from '../../stores/transaction-store';
-import { checkSMSHashExists, writeLog, addPendingDetection } from '../../lib/database';
+import {
+  checkSMSHashExists,
+  writeLog,
+  addPendingDetection,
+  getRecentSMSTransactions,
+} from '../../lib/database';
 import { Account } from '../../types';
 import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
 import { identifyBankFromSender, normalizeBankName } from './enrichment/sender';
 import { ParsedTransaction } from './types';
 
+const DEDUPE_VERSION = 'comparator-v2';
+const LIVE_DEDUPE_WINDOW_MS = 5 * 60 * 1000;
+
+interface ParsedSMSCandidate {
+  body: string;
+  sender?: string;
+  receivedDate: string;
+  dateStr: string;
+  parsed: ParsedTransaction;
+}
+
+interface InsertResult {
+  inserted: boolean;
+  resolvedAccount: Account | null;
+}
 
 /**
  * Check if the app has SMS reading permission.
@@ -19,13 +45,12 @@ export async function checkSMSPermission(): Promise<boolean> {
   try {
     const readGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_SMS);
     const receiveGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECEIVE_SMS);
-    
-    // Check notification permission for Android 13+ (API 33+)
+
     let notificationGranted = true;
     if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
       notificationGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     }
-    
+
     return readGranted && receiveGranted && notificationGranted;
   } catch (error) {
     console.error('Error checking SMS permissions:', error);
@@ -47,16 +72,16 @@ export async function requestSMSPermission(): Promise<boolean> {
       PermissionsAndroid.PERMISSIONS.READ_SMS,
       PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
     ];
-    
+
     if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
       permissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     }
 
     const results = await PermissionsAndroid.requestMultiple(permissions);
-    
+
     const readGranted = results[PermissionsAndroid.PERMISSIONS.READ_SMS] === PermissionsAndroid.RESULTS.GRANTED;
     const receiveGranted = results[PermissionsAndroid.PERMISSIONS.RECEIVE_SMS] === PermissionsAndroid.RESULTS.GRANTED;
-    
+
     let notificationGranted = true;
     if (Platform.Version >= 33 && PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS) {
       notificationGranted = results[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS] === PermissionsAndroid.RESULTS.GRANTED;
@@ -85,58 +110,182 @@ export async function resolveAccountForParsedSMS(
   const info = identifyBankFromSender(sender);
   const bankId = info.bankId || (parsed.account.name ? normalizeBankName(parsed.account.name) : null);
 
-  // 1. Match by last 4 digits first if present (Priority 1)
   if (parsed.account.number) {
     const numberMatch = accounts.find((a) => a.name.includes(parsed.account.number!));
     if (numberMatch) {
-      await writeLog('ACCOUNT_MATCHED', `Resolved account by last 4 digits: ${numberMatch.name}`, { bankId, accountNumber: parsed.account.number });
+      await writeLog('ACCOUNT_MATCHED', `Resolved account by last 4 digits: ${numberMatch.name}`, {
+        bankId,
+        accountNumber: parsed.account.number,
+      });
       return numberMatch;
     }
   }
 
-  // 2. Match by bankId (Priority 2)
   if (bankId) {
     const matchingAccounts = accounts.filter((a) => a.bankId === bankId);
     if (matchingAccounts.length > 0) {
-      // Refined matching: try to match type (e.g. card/wallet vs bank account)
       const isCardTransaction = parsed.account.type === 'CARD';
       const typeMatchedMatch = matchingAccounts.find((a) => {
         const nameLower = a.name.toLowerCase();
         if (isCardTransaction) {
           return nameLower.includes('card');
-        } else {
-          return !nameLower.includes('card') && !nameLower.includes('wallet');
         }
+        return !nameLower.includes('card') && !nameLower.includes('wallet');
       });
       const resolved = typeMatchedMatch || matchingAccounts[0];
-      await writeLog('ACCOUNT_MATCHED', `Resolved account by bankId and type: ${resolved.name}`, { bankId, type: parsed.account.type });
+      await writeLog('ACCOUNT_MATCHED', `Resolved account by bankId and type: ${resolved.name}`, {
+        bankId,
+        type: parsed.account.type,
+      });
       return resolved;
     }
   }
 
-  // 3. Match by bank name / normalizer (Priority 3)
   const parsedBankName = parsed.account.name || info.bankName;
   if (parsedBankName) {
     const nameNorm = normalizeBankName(parsedBankName);
     if (nameNorm) {
-      const match = accounts.find((a) => a.bankId === nameNorm || a.name.toLowerCase().includes(parsedBankName.toLowerCase()));
+      const match = accounts.find(
+        (a) => a.bankId === nameNorm || a.name.toLowerCase().includes(parsedBankName.toLowerCase())
+      );
       if (match) {
-        await writeLog('ACCOUNT_MATCHED', `Resolved account by normalized name: ${match.name}`, { parsedBankName });
+        await writeLog('ACCOUNT_MATCHED', `Resolved account by normalized name: ${match.name}`, {
+          parsedBankName,
+        });
         return match;
       }
     }
   }
 
-  // 4. No match exists - Create pending bank detection (if valid bankId)
   if (bankId) {
     const name = info.bankName || parsed.account.name || bankId.toUpperCase();
     await addPendingDetection(bankId, name);
   }
 
-  // Log as not found since no active account was resolved
   await writeLog('ACCOUNT_NOT_FOUND', `Could not resolve account for sender: ${sender}`, { sender, parsed });
+  return null;
+}
+
+function toTransactionInput(candidate: ParsedSMSCandidate): TransactionInput {
+  return {
+    body: candidate.body,
+    date: candidate.dateStr,
+    parsed: candidate.parsed,
+  };
+}
+
+function toStoredTransactionInput(tx: {
+  amount: number;
+  date: string;
+  merchant: string | null;
+  type: 'income' | 'expense' | 'transfer';
+  description: string | null;
+}): TransactionInput | null {
+  if (tx.type === 'transfer') {
+    return null;
+  }
+
+  const reparsed = tx.description ? parseTransactionSMS(tx.description, tx.date) : null;
+  if (reparsed && reparsed.transaction.amount && reparsed.transaction.type) {
+    return {
+      body: tx.description || '',
+      date: tx.date,
+      parsed: reparsed,
+    };
+  }
+
+  return {
+    body: tx.description || '',
+    date: tx.date,
+    parsed: {
+      account: {
+        type: null,
+        number: null,
+        name: null,
+      },
+      balance: {
+        available: null,
+        outstanding: null,
+      },
+      transaction: {
+        type: tx.type === 'income' ? 'credit' : 'debit',
+        amount: tx.amount,
+        merchant: tx.merchant,
+        referenceNo: null,
+      },
+      date: tx.date,
+      confidence: 'low',
+      rawBody: tx.description || '',
+    },
+  };
+}
+
+async function findRecentComparatorDuplicate(candidate: ParsedSMSCandidate): Promise<string | null> {
+  const parsedTime = new Date(candidate.parsed.date || candidate.dateStr).getTime();
+  if (Number.isNaN(parsedTime)) {
+    return null;
+  }
+
+  const dateFrom = new Date(parsedTime - LIVE_DEDUPE_WINDOW_MS).toISOString();
+  const dateTo = new Date(parsedTime + LIVE_DEDUPE_WINDOW_MS).toISOString();
+  const recentTransactions = await getRecentSMSTransactions(dateFrom, dateTo);
+  const candidateInput = toTransactionInput(candidate);
+
+  for (const transaction of recentTransactions) {
+    const storedInput = toStoredTransactionInput(transaction);
+    if (!storedInput) {
+      continue;
+    }
+
+    if (
+      areTransactionsDuplicate(candidateInput, storedInput) ||
+      areTransactionsDuplicate(storedInput, candidateInput)
+    ) {
+      return transaction.dedupeGroupId || transaction.smsHash || transaction.id;
+    }
+  }
 
   return null;
+}
+
+async function insertParsedTransaction(
+  candidate: ParsedSMSCandidate,
+  dedupeGroupId: string,
+  resolvedAccount?: Account | null
+): Promise<InsertResult> {
+  const hash = generateSMSHash(candidate.body, candidate.dateStr, candidate.parsed);
+  const alreadyExists = await checkSMSHashExists(hash);
+  if (alreadyExists) {
+    await writeLog('TXN_SKIPPED_DUPLICATE', `Message duplicate skipped for hash ${hash}`);
+    return { inserted: false, resolvedAccount: null };
+  }
+
+  const account = resolvedAccount ?? await resolveAccountForParsedSMS(candidate.parsed, candidate.sender || '');
+  if (!account) {
+    return { inserted: false, resolvedAccount: null };
+  }
+
+  const store = useTransactionStore.getState();
+  await store.addTransaction({
+    accountId: account.id,
+    type: candidate.parsed.transaction.type === 'credit' ? 'income' : 'expense',
+    amount: candidate.parsed.transaction.amount!,
+    merchant: candidate.parsed.transaction.merchant || undefined,
+    description: candidate.parsed.rawBody,
+    date: candidate.parsed.date || candidate.dateStr,
+    source: 'sms',
+    smsHash: hash,
+    dedupeGroupId,
+    dedupeVersion: DEDUPE_VERSION,
+  });
+
+  await writeLog(
+    'TXN_CREATED',
+    `Transaction of Rs ${candidate.parsed.transaction.amount} persisted to account ${account.name}`,
+    { hash, dedupeGroupId, dedupeVersion: DEDUPE_VERSION }
+  );
+
+  return { inserted: true, resolvedAccount: account };
 }
 
 /**
@@ -155,58 +304,54 @@ export async function processIncomingSMS(
   const dateStr = new Date(receivedDate).toISOString();
   await writeLog('SMS_RECEIVED', `Intercepted SMS from ${sender || 'unknown'}`, { body, sender, receivedDate });
 
-  // 1. Parse SMS using engine
   const parsed = parseTransactionSMS(body, dateStr, sender);
   if (!parsed || !parsed.transaction.amount || !parsed.transaction.type) {
-    await writeLog('SMS_FAILED', `SMS failed validation or not financial`, { body, sender });
+    await writeLog('SMS_FAILED', 'SMS failed validation or not financial', { body, sender });
     return false;
   }
 
-  await writeLog('SMS_PARSED', `SMS parsed successfully: ₹${parsed.transaction.amount} at ${parsed.transaction.merchant || 'unknown'}`, { parsed });
+  await writeLog('SMS_PARSED', `SMS parsed successfully: Rs ${parsed.transaction.amount} at ${parsed.transaction.merchant || 'unknown'}`, { parsed });
 
-  // 2. Generate canonical hash using the parsed transaction details for deduplication
-  const hash = generateSMSHash(body, dateStr, parsed);
+  const candidate: ParsedSMSCandidate = {
+    body,
+    sender,
+    receivedDate,
+    dateStr,
+    parsed,
+  };
 
-  // 3. Duplicate Check
-  const alreadyExists = await checkSMSHashExists(hash);
-  if (alreadyExists) {
-    await writeLog('TXN_SKIPPED_DUPLICATE', `Transaction duplicate skipped for hash ${hash}`);
+  const duplicateGroupId = await findRecentComparatorDuplicate(candidate);
+  if (duplicateGroupId) {
+    await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped during live ingest', {
+      dedupeGroupId: duplicateGroupId,
+      sender,
+      dateStr,
+    });
     return false;
   }
 
-  // 4. Resolve account for this transaction
   const resolvedAccount = await resolveAccountForParsedSMS(parsed, sender || '');
   if (!resolvedAccount) {
-    return false; // Skip persisting since we cannot map it to a tracked account yet
+    return false;
   }
 
-  // 5. Add Transaction to store
-  const store = useTransactionStore.getState();
-  await store.addTransaction({
-    accountId: resolvedAccount.id,
-    type: parsed.transaction.type === 'credit' ? 'income' : 'expense',
-    amount: parsed.transaction.amount,
-    merchant: parsed.transaction.merchant || undefined,
-    description: parsed.rawBody,
-    date: parsed.date || dateStr,
-    source: 'sms',
-    smsHash: hash,
-  });
+  const liveGroupId = `${generateSMSHash(body, dateStr, parsed)}_t${new Date(parsed.date || dateStr).getTime()}`;
+  const { inserted } = await insertParsedTransaction(candidate, liveGroupId, resolvedAccount);
+  if (!inserted) {
+    return false;
+  }
 
-  await writeLog('TXN_CREATED', `Transaction of ₹${parsed.transaction.amount} persisted to account ${resolvedAccount.name}`, { hash });
-
-  // 6. Trigger native notification if requested
   if (shouldNotify && SpendLensSmsModule && typeof SpendLensSmsModule.showNotification === 'function') {
-    const amountFormatted = `₹${parsed.transaction.amount.toLocaleString('en-IN')}`;
+    const amountFormatted = `Rs ${parsed.transaction.amount.toLocaleString('en-IN')}`;
     const actionText = parsed.transaction.type === 'credit' ? 'credited to' : 'debited from';
     const merchantText = parsed.transaction.merchant ? ` at ${parsed.transaction.merchant}` : '';
-    
+
     try {
       await SpendLensSmsModule.showNotification(
-        parsed.transaction.type === 'credit' ? 'Income Detected 💰' : 'Expense Detected 💸',
+        parsed.transaction.type === 'credit' ? 'Income Detected' : 'Expense Detected',
         `${amountFormatted} ${actionText} ${resolvedAccount.name}${merchantText}.`
       );
-      await writeLog('NOTIFICATION_CREATED', `Triggered transaction notification: ₹${parsed.transaction.amount}`);
+      await writeLog('NOTIFICATION_CREATED', `Triggered transaction notification: Rs ${parsed.transaction.amount}`);
     } catch (err) {
       console.warn('Failed to trigger native notification:', err);
     }
@@ -228,23 +373,66 @@ export async function syncSMSFromDevice(): Promise<number> {
   }
 
   let newCount = 0;
-  
+
   if (Platform.OS === 'android' && SpendLensSmsModule) {
     console.log('Scanning Android SMS inbox...');
     try {
       const messages = await SpendLensSmsModule.readSmsInbox();
       if (messages && messages.length > 0) {
         const tenDaysAgo = Date.now() - 10 * 24 * 60 * 60 * 1000;
-        
+        const parsedCandidates: ParsedSMSCandidate[] = [];
+
         for (const sms of messages) {
           const smsTime = new Date(sms.date).getTime();
-          // STRICT constraint: history scan max upto 10days
           if (smsTime < tenDaysAgo) {
             continue;
           }
-          
-          const wasAdded = await processIncomingSMS(sms.body, sms.date, sms.address, false);
-          if (wasAdded) {
+
+          const dateStr = new Date(sms.date).toISOString();
+          const parsed = parseTransactionSMS(sms.body, dateStr, sms.address);
+          if (!parsed || !parsed.transaction.amount || !parsed.transaction.type) {
+            continue;
+          }
+
+          parsedCandidates.push({
+            body: sms.body,
+            sender: sms.address,
+            receivedDate: sms.date,
+            dateStr,
+            parsed,
+          });
+        }
+
+        const groups = dedupeTransactions(parsedCandidates.map(toTransactionInput));
+        const canonicalByKey = new Map<string, string>();
+        const duplicateKeys = new Set<string>();
+
+        for (const group of groups) {
+          const canonicalKey = `${group.canonical.body}__${group.canonical.date}`;
+          canonicalByKey.set(canonicalKey, group.groupKey);
+
+          for (const duplicate of group.duplicates) {
+            duplicateKeys.add(`${duplicate.body}__${duplicate.date}`);
+          }
+        }
+
+        for (const candidate of parsedCandidates) {
+          const candidateKey = `${candidate.body}__${candidate.dateStr}`;
+          if (duplicateKeys.has(candidateKey)) {
+            await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped during historical sync', {
+              sender: candidate.sender,
+              dateStr: candidate.dateStr,
+            });
+            continue;
+          }
+
+          const dedupeGroupId = canonicalByKey.get(candidateKey);
+          if (!dedupeGroupId) {
+            continue;
+          }
+
+          const { inserted } = await insertParsedTransaction(candidate, dedupeGroupId);
+          if (inserted) {
             newCount++;
           }
         }
@@ -253,10 +441,9 @@ export async function syncSMSFromDevice(): Promise<number> {
       console.error('Failed to scan Android SMS inbox:', error);
     }
   }
-  
+
   return newCount;
 }
-
 
 /**
  * Start listening for incoming SMS messages (Android only).
@@ -265,13 +452,11 @@ export async function syncSMSFromDevice(): Promise<number> {
  * which triggers SmsHeadlessTaskService. This JS-side listener is no longer needed
  * and was causing native crashes due to the @maniac-tech/react-native-expo-read-sms
  * library registering a duplicate BroadcastReceiver. The native pipeline handles
- * everything: receive SMS → HeadlessJS → processIncomingSMS → notification.
+ * everything: receive SMS -> HeadlessJS -> processIncomingSMS -> notification.
  *
  * This function now only sets up a polling-based refresh when the app is foregrounded
  * to pick up any transactions created by the background headless task.
  */
 export function startSMSListener(_onNewTransactionAdded: (count: number) => void) {
-  // No-op: native SmsReceiver in AndroidManifest handles incoming SMS
-  // The HeadlessJS task processes them in the background
   return () => {};
 }
