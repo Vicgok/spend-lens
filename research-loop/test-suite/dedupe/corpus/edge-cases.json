@@ -1,0 +1,314 @@
+[
+  {
+    "id": "edge-001",
+    "messages": [
+      {
+        "sender": "SIMPL",
+        "message": "You spent Rs.4,900.75 via SIMPL at IRCTC on 21-May-26 13:41. Repay by 05-Jun-26. Ref BNPL6000."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 4,900.75 debited from A/c XX5566 towards IRCTC on 21-May-26 13:41. Bal Rs 40,099.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4900.75,
+        "merchant": "irctc",
+        "accountCard": "5566",
+        "time": "2026-05-21T13:40Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "BNPL/provider wording should dedupe with bank txn, provider not account"
+  },
+  {
+    "id": "edge-002",
+    "messages": [
+      {
+        "sender": "LAZYPA",
+        "message": "You spent Rs.5,037.50 via LAZYPAY at MYNTRA on 22-May-26 14:48. Repay by 05-Jun-26. Ref BNPL6001."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 5,037.50 debited from A/c XX1122 towards MYNTRA on 22-May-26 14:48. Bal Rs 39,962.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5037.5,
+        "merchant": "myntra",
+        "accountCard": "1122",
+        "time": "2026-05-22T14:47Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "BNPL/provider wording should dedupe with bank txn, provider not account"
+  },
+  {
+    "id": "edge-003",
+    "messages": [
+      {
+        "sender": "AMAZON",
+        "message": "You spent Rs.5,174.00 via AMAZON PAY LATER at AJIO on 23-May-26 15:55. Repay by 05-Jun-26. Ref BNPL6002."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 5,174.00 debited from A/c XX4321 towards AJIO on 23-May-26 15:55. Bal Rs 39,826.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5174,
+        "merchant": "ajio",
+        "accountCard": "4321",
+        "time": "2026-05-23T15:54Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "BNPL/provider wording should dedupe with bank txn, provider not account"
+  },
+  {
+    "id": "edge-004",
+    "messages": [
+      {
+        "sender": "FLIPKA",
+        "message": "You spent Rs.5,311.75 via FLIPKART PAY LATER at RELIANCE DIGITAL on 24-May-26 16:02. Repay by 05-Jun-26. Ref BNPL6003."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 5,311.75 debited from A/c XX8890 towards RELIANCE DIGITAL on 24-May-26 16:02. Bal Rs 39,688.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5311.75,
+        "merchant": "reliance-digital",
+        "accountCard": "8890",
+        "time": "2026-05-24T16:01Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "BNPL/provider wording should dedupe with bank txn, provider not account"
+  },
+  {
+    "id": "edge-005",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Cash Deposit of Rs.10,000.00 credited to A/c XX9876 at CDM AXIS Chennai on 25-May-26 17:08. Avl Bal Rs.90,000.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Cash Deposit of Rs.10,000.00 credited to A/c XX9876 at CDM AXIS Chennai on 25-May-26 17:15. Avl Bal Rs.100,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 10000,
+        "merchant": "cash-deposit",
+        "accountCard": "9876",
+        "time": "2026-05-25T17:08Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 10000,
+        "merchant": "cash-deposit",
+        "accountCard": "9876",
+        "time": "2026-05-25T17:15Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "cash deposits repeated; protect from false merge"
+  },
+  {
+    "id": "edge-006",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Cash Deposit of Rs.10,000.00 credited to A/c XX5566 at CDM KOTAK Chennai on 26-May-26 18:15. Avl Bal Rs.90,000.00."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Cash Deposit of Rs.10,000.00 credited to A/c XX5566 at CDM KOTAK Chennai on 26-May-26 18:22. Avl Bal Rs.100,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 10000,
+        "merchant": "cash-deposit",
+        "accountCard": "5566",
+        "time": "2026-05-26T18:15Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 10000,
+        "merchant": "cash-deposit",
+        "accountCard": "5566",
+        "time": "2026-05-26T18:22Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "cash deposits repeated; protect from false merge"
+  },
+  {
+    "id": "edge-007",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Cash Deposit of Rs.20,000.00 credited to A/c XX1122 at CDM SBI Chennai on 27-May-26 19:22. Avl Bal Rs.100,000.00."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "Cash Deposit of Rs.20,000.00 credited to A/c XX1122 at CDM SBI Chennai on 27-May-26 19:29. Avl Bal Rs.110,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 20000,
+        "merchant": "cash-deposit",
+        "accountCard": "1122",
+        "time": "2026-05-27T19:22Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 20000,
+        "merchant": "cash-deposit",
+        "accountCard": "1122",
+        "time": "2026-05-27T19:29Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "cash deposits repeated; protect from false merge"
+  },
+  {
+    "id": "edge-008",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX4321 from ACME TECHNOLOGIES on 28-May-26. Avl Bal Rs.225,000.00."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX4321 from ACME TECHNOLOGIES on 29-May-26. Avl Bal Rs.300,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "4321",
+        "time": "2026-05-28T20:29Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "4321",
+        "time": "2026-05-29T20:29Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "salary credits are business-rule merchant cases and should not false merge across dates"
+  },
+  {
+    "id": "edge-009",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX8890 from ACME TECHNOLOGIES on 01-May-26. Avl Bal Rs.225,000.00."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX8890 from ACME TECHNOLOGIES on 02-May-26. Avl Bal Rs.300,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "8890",
+        "time": "2026-05-01T09:36Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "8890",
+        "time": "2026-05-02T09:36Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "salary credits are business-rule merchant cases and should not false merge across dates"
+  },
+  {
+    "id": "edge-010",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX9876 from ACME TECHNOLOGIES on 02-May-26. Avl Bal Rs.225,000.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Salary credit Rs.75,000.00 received in A/c XX9876 from ACME TECHNOLOGIES on 03-May-26. Avl Bal Rs.300,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "9876",
+        "time": "2026-05-02T10:43Z"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 75000,
+        "merchant": "salary",
+        "accountCard": "9876",
+        "time": "2026-05-03T10:43Z"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "salary credits are business-rule merchant cases and should not false merge across dates"
+  }
+]

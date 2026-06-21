@@ -1,0 +1,642 @@
+[
+  {
+    "id": "false-merge-001",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.2,000.00 debited from A/c XX9876 at SPOTIFY on 09-May-26 09:00. UPI Ref 800100000000. Bal Rs.58,000.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.2,000.00 debited from A/c XX9876 at SPOTIFY on 09-May-26 09:18. UPI Ref 800200000000. Bal Rs.57,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "spotify",
+        "accountCard": "9876",
+        "time": "2026-05-09T09:00"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "spotify",
+        "accountCard": "9876",
+        "time": "2026-05-09T09:18"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-002",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.499.00 debited from A/c XX5566 at APOLLO PHARMACY on 10-May-26 10:07. UPI Ref 800100000001. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.499.00 debited from A/c XX5566 at APOLLO PHARMACY on 10-May-26 10:25. UPI Ref 800200000001. Bal Rs.58,501.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "5566",
+        "time": "2026-05-10T10:07"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "5566",
+        "time": "2026-05-10T10:25"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-003",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.2,000.00 debited from A/c XX1122 at IRCTC on 11-May-26 11:14. UPI Ref 800100000002. Bal Rs.58,000.00."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.2,000.00 debited from A/c XX1122 at IRCTC on 11-May-26 11:32. UPI Ref 800200000002. Bal Rs.57,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "irctc",
+        "accountCard": "1122",
+        "time": "2026-05-11T11:14"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "irctc",
+        "accountCard": "1122",
+        "time": "2026-05-11T11:32"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-004",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.499.00 debited from A/c XX4321 at MYNTRA on 12-May-26 12:21. UPI Ref 800100000003. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.499.00 debited from A/c XX4321 at MYNTRA on 12-May-26 12:39. UPI Ref 800200000003. Bal Rs.58,501.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "myntra",
+        "accountCard": "4321",
+        "time": "2026-05-12T12:21"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "myntra",
+        "accountCard": "4321",
+        "time": "2026-05-12T12:39"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-005",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.499.00 debited from A/c XX8890 at AJIO on 13-May-26 13:28. UPI Ref 800100000004. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.499.00 debited from A/c XX8890 at AJIO on 13-May-26 13:46. UPI Ref 800200000004. Bal Rs.58,501.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "ajio",
+        "accountCard": "8890",
+        "time": "2026-05-13T13:28"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "ajio",
+        "accountCard": "8890",
+        "time": "2026-05-13T13:46"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-006",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.1,500.00 debited from A/c XX9876 at RELIANCE DIGITAL on 14-May-26 14:35. UPI Ref 800100000005. Bal Rs.58,500.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.1,500.00 debited from A/c XX9876 at RELIANCE DIGITAL on 14-May-26 14:53. UPI Ref 800200000005. Bal Rs.57,500.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1500.0,
+        "merchant": "reliance-digital",
+        "accountCard": "9876",
+        "time": "2026-05-14T14:35"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 1500.0,
+        "merchant": "reliance-digital",
+        "accountCard": "9876",
+        "time": "2026-05-14T14:53"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-007",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.1,500.00 debited from A/c XX5566 at TATA 1MG on 15-May-26 15:42. UPI Ref 800100000006. Bal Rs.58,500.00."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.1,500.00 debited from A/c XX5566 at TATA 1MG on 15-May-26 16:00. UPI Ref 800200000006. Bal Rs.57,500.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1500.0,
+        "merchant": "tata-1mg",
+        "accountCard": "5566",
+        "time": "2026-05-15T15:42"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 1500.0,
+        "merchant": "tata-1mg",
+        "accountCard": "5566",
+        "time": "2026-05-15T16:00"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-008",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.999.00 debited from A/c XX1122 at BLINKIT on 16-May-26 16:49. UPI Ref 800100000007. Bal Rs.59,001.00."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.999.00 debited from A/c XX1122 at BLINKIT on 16-May-26 17:07. UPI Ref 800200000007. Bal Rs.58,001.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "blinkit",
+        "accountCard": "1122",
+        "time": "2026-05-16T16:49"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "blinkit",
+        "accountCard": "1122",
+        "time": "2026-05-16T17:07"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "legitimate repeated same merchant amount outside dedupe window"
+  },
+  {
+    "id": "false-merge-009",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.2,000.00 debited from A/c XX4321 at ZEPTONOW on 17-May-26 17:56. UPI Ref 800100000008. Bal Rs.58,000.00."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.2,000.00 debited from A/c XX8890 at ZEPTONOW on 17-May-26 17:59. UPI Ref 800200000008. Bal Rs.57,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "zeptonow",
+        "accountCard": "4321",
+        "time": "2026-05-17T17:56"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "zeptonow",
+        "accountCard": "8890",
+        "time": "2026-05-17T17:59"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-010",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.499.00 debited from A/c XX8890 at SWIGGY on 18-May-26 18:03. UPI Ref 800100000009. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.499.00 debited from A/c XX9876 at SWIGGY on 18-May-26 18:06. UPI Ref 800200000009. Bal Rs.58,501.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "swiggy",
+        "accountCard": "8890",
+        "time": "2026-05-18T18:03"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "swiggy",
+        "accountCard": "9876",
+        "time": "2026-05-18T18:06"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-011",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.999.00 debited from A/c XX9876 at ZOMATO on 19-May-26 19:10. UPI Ref 800100000010. Bal Rs.59,001.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.999.00 debited from A/c XX5566 at ZOMATO on 19-May-26 19:13. UPI Ref 800200000010. Bal Rs.58,001.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "zomato",
+        "accountCard": "9876",
+        "time": "2026-05-19T19:10"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "zomato",
+        "accountCard": "5566",
+        "time": "2026-05-19T19:13"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-012",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.199.00 debited from A/c XX5566 at AMAZON SELLER SERVICES on 20-May-26 20:17. UPI Ref 800100000011. Bal Rs.59,801.00."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.199.00 debited from A/c XX1122 at AMAZON SELLER SERVICES on 20-May-26 20:20. UPI Ref 800200000011. Bal Rs.58,801.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 199.0,
+        "merchant": "amazon-seller-services",
+        "accountCard": "5566",
+        "time": "2026-05-20T20:17"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 199.0,
+        "merchant": "amazon-seller-services",
+        "accountCard": "1122",
+        "time": "2026-05-20T20:20"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-013",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.499.00 debited from A/c XX1122 at FLIPKART INTERNET on 21-May-26 09:24. UPI Ref 800100000012. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.499.00 debited from A/c XX4321 at FLIPKART INTERNET on 21-May-26 09:27. UPI Ref 800200000012. Bal Rs.58,501.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "flipkart-internet",
+        "accountCard": "1122",
+        "time": "2026-05-21T09:24"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "flipkart-internet",
+        "accountCard": "4321",
+        "time": "2026-05-21T09:27"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-014",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.199.00 debited from A/c XX4321 at UBER INDIA on 22-May-26 10:31. UPI Ref 800100000013. Bal Rs.59,801.00."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.199.00 debited from A/c XX8890 at UBER INDIA on 22-May-26 10:34. UPI Ref 800200000013. Bal Rs.58,801.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 199.0,
+        "merchant": "uber-india",
+        "accountCard": "4321",
+        "time": "2026-05-22T10:31"
+      },
+      {
+        "transactionType": "debit",
+        "amount": 199.0,
+        "merchant": "uber-india",
+        "accountCard": "8890",
+        "time": "2026-05-22T10:34"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/merchant/time but different account must not merge"
+  },
+  {
+    "id": "false-merge-015",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.999.00 debited from A/c XX8890 at OLA CABS on 23-May-26 11:38. UPI Ref 800100000014. Bal Rs.59,001.00."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Refund of Rs.999.00 credited to A/c XX8890 from OLA CABS on 23-May-26 11:40. Ref 800200000014. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "ola-cabs",
+        "accountCard": "8890",
+        "time": "2026-05-23T11:38"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 999.0,
+        "merchant": "ola-cabs",
+        "accountCard": "8890",
+        "time": "2026-05-23T11:40"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  },
+  {
+    "id": "false-merge-016",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Rs.1,500.00 debited from A/c XX9876 at BIGBASKET on 24-May-26 12:45. UPI Ref 800100000015. Bal Rs.58,500.00."
+      },
+      {
+        "sender": "AXISBK",
+        "message": "AXIS Alert: Refund of Rs.1,500.00 credited to A/c XX9876 from BIGBASKET on 24-May-26 12:47. Ref 800200000015. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1500.0,
+        "merchant": "bigbasket",
+        "accountCard": "9876",
+        "time": "2026-05-24T12:45"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 1500.0,
+        "merchant": "bigbasket",
+        "accountCard": "9876",
+        "time": "2026-05-24T12:47"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  },
+  {
+    "id": "false-merge-017",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Rs.999.00 debited from A/c XX5566 at DMART READY on 25-May-26 13:52. UPI Ref 800100000016. Bal Rs.59,001.00."
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK Alert: Refund of Rs.999.00 credited to A/c XX5566 from DMART READY on 25-May-26 13:54. Ref 800200000016. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 999.0,
+        "merchant": "dmart-ready",
+        "accountCard": "5566",
+        "time": "2026-05-25T13:52"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 999.0,
+        "merchant": "dmart-ready",
+        "accountCard": "5566",
+        "time": "2026-05-25T13:54"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  },
+  {
+    "id": "false-merge-018",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Rs.199.00 debited from A/c XX1122 at NETFLIX on 26-May-26 14:59. UPI Ref 800100000017. Bal Rs.59,801.00."
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: Refund of Rs.199.00 credited to A/c XX1122 from NETFLIX on 26-May-26 15:01. Ref 800200000017. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 199.0,
+        "merchant": "netflix",
+        "accountCard": "1122",
+        "time": "2026-05-26T14:59"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 199.0,
+        "merchant": "netflix",
+        "accountCard": "1122",
+        "time": "2026-05-26T15:01"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  },
+  {
+    "id": "false-merge-019",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Rs.499.00 debited from A/c XX4321 at SPOTIFY on 27-May-26 15:06. UPI Ref 800100000018. Bal Rs.59,501.00."
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC Alert: Refund of Rs.499.00 credited to A/c XX4321 from SPOTIFY on 27-May-26 15:08. Ref 800200000018. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 499.0,
+        "merchant": "spotify",
+        "accountCard": "4321",
+        "time": "2026-05-27T15:06"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 499.0,
+        "merchant": "spotify",
+        "accountCard": "4321",
+        "time": "2026-05-27T15:08"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  },
+  {
+    "id": "false-merge-020",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Rs.2,000.00 debited from A/c XX8890 at APOLLO PHARMACY on 28-May-26 16:13. UPI Ref 800100000019. Bal Rs.58,000.00."
+      },
+      {
+        "sender": "ICICIB",
+        "message": "ICICI Alert: Refund of Rs.2,000.00 credited to A/c XX8890 from APOLLO PHARMACY on 28-May-26 16:15. Ref 800200000019. Bal Rs.60,000.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2000.0,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "8890",
+        "time": "2026-05-28T16:13"
+      },
+      {
+        "transactionType": "credit",
+        "amount": 2000.0,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "8890",
+        "time": "2026-05-28T16:15"
+      }
+    ],
+    "expectedDuplicateGroups": [],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/time but opposite transaction type must not merge"
+  }
+]

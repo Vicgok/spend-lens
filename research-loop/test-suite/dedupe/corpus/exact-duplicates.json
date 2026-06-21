@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "exact-001",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.99.75 on 01-May-26 09:00 by NEFT-SALARY. Avl Bal Rs.50,099.75. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 99.75 credited to A/c XX1122 via NEFT SALARY on 01-May-26 09:00. Bal INR 50,099.75."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 99.75,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-01T09:00Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-002",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.236.00 debited from A/c XX4321 on 02-May-26 10:07 at ZOMATO. Avl Bal Rs.49,764.00. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 236.00 spent from HDFC A/c XX4321 at ZOMATO on 02-May-26 10:07. Available balance INR 49,764.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 236,
+        "merchant": "zomato",
+        "accountCard": "4321",
+        "time": "2026-05-02T10:07Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-003",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.373.00 debited from A/c XX8890 on 03-May-26 11:14 at AMAZON SELLER SERVICES. Avl Bal Rs.49,627.00. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 373.00 spent from ICICI A/c XX8890 at AMAZON SELLER SERVICES on 03-May-26 11:14. Available balance INR 49,627.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 373,
+        "merchant": "amazon-seller-services",
+        "accountCard": "8890",
+        "time": "2026-05-03T11:14Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-004",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.510.75 debited from A/c XX9876 on 04-May-26 12:21 at FLIPKART INTERNET. Avl Bal Rs.49,489.25. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 510.75 spent from AXIS A/c XX9876 at FLIPKART INTERNET on 04-May-26 12:21. Available balance INR 49,489.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 510.75,
+        "merchant": "flipkart-internet",
+        "accountCard": "9876",
+        "time": "2026-05-04T12:21Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-005",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.647.50 debited from A/c XX5566 on 05-May-26 13:28 at UBER INDIA. Avl Bal Rs.49,352.50. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 647.50 spent from KOTAK A/c XX5566 at UBER INDIA on 05-May-26 13:28. Available balance INR 49,352.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 647.5,
+        "merchant": "uber-india",
+        "accountCard": "5566",
+        "time": "2026-05-05T13:28Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-006",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.784.00 on 06-May-26 14:35 by NEFT-SALARY. Avl Bal Rs.50,784.00. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 784.00 credited to A/c XX1122 via NEFT SALARY on 06-May-26 14:35. Bal INR 50,784.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 784,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-06T14:35Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-007",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.921.00 debited from A/c XX4321 on 07-May-26 15:42 at BIGBASKET. Avl Bal Rs.49,079.00. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 921.00 spent from HDFC A/c XX4321 at BIGBASKET on 07-May-26 15:42. Available balance INR 49,079.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 921,
+        "merchant": "bigbasket",
+        "accountCard": "4321",
+        "time": "2026-05-07T15:42Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-008",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.1,058.00 debited from A/c XX8890 on 08-May-26 16:49 at DMART READY. Avl Bal Rs.48,942.00. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 1,058.00 spent from ICICI A/c XX8890 at DMART READY on 08-May-26 16:49. Available balance INR 48,942.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1058,
+        "merchant": "dmart-ready",
+        "accountCard": "8890",
+        "time": "2026-05-08T16:49Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-009",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.1,195.75 debited from A/c XX9876 on 09-May-26 17:56 at NETFLIX. Avl Bal Rs.48,804.25. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 1,195.75 spent from AXIS A/c XX9876 at NETFLIX on 09-May-26 17:56. Available balance INR 48,804.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1195.75,
+        "merchant": "netflix",
+        "accountCard": "9876",
+        "time": "2026-05-09T17:56Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-010",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.1,332.00 debited from A/c XX5566 on 10-May-26 18:03 at SPOTIFY. Avl Bal Rs.48,668.00. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 1,332.00 spent from KOTAK A/c XX5566 at SPOTIFY on 10-May-26 18:03. Available balance INR 48,668.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1332,
+        "merchant": "spotify",
+        "accountCard": "5566",
+        "time": "2026-05-10T18:03Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-011",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.1,469.75 on 11-May-26 19:10 by NEFT-SALARY. Avl Bal Rs.51,469.75. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 1,469.75 credited to A/c XX1122 via NEFT SALARY on 11-May-26 19:10. Bal INR 51,469.75."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 1469.75,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-11T19:10Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-012",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.1,606.75 debited from A/c XX4321 on 12-May-26 20:17 at IRCTC. Avl Bal Rs.48,393.25. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 1,606.75 spent from HDFC A/c XX4321 at IRCTC on 12-May-26 20:17. Available balance INR 48,393.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1606.75,
+        "merchant": "irctc",
+        "accountCard": "4321",
+        "time": "2026-05-12T20:17Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-013",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.1,743.75 debited from A/c XX8890 on 13-May-26 09:24 at MYNTRA. Avl Bal Rs.48,256.25. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 1,743.75 spent from ICICI A/c XX8890 at MYNTRA on 13-May-26 09:24. Available balance INR 48,256.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1743.75,
+        "merchant": "myntra",
+        "accountCard": "8890",
+        "time": "2026-05-13T09:24Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-014",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.1,880.00 debited from A/c XX9876 on 14-May-26 10:31 at AJIO. Avl Bal Rs.48,120.00. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 1,880.00 spent from AXIS A/c XX9876 at AJIO on 14-May-26 10:31. Available balance INR 48,120.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1880,
+        "merchant": "ajio",
+        "accountCard": "9876",
+        "time": "2026-05-14T10:31Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-015",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.2,017.75 debited from A/c XX5566 on 15-May-26 11:38 at RELIANCE DIGITAL. Avl Bal Rs.47,982.25. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 2,017.75 spent from KOTAK A/c XX5566 at RELIANCE DIGITAL on 15-May-26 11:38. Available balance INR 47,982.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2017.75,
+        "merchant": "reliance-digital",
+        "accountCard": "5566",
+        "time": "2026-05-15T11:38Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-016",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.2,154.50 on 16-May-26 12:45 by NEFT-SALARY. Avl Bal Rs.52,154.50. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 2,154.50 credited to A/c XX1122 via NEFT SALARY on 16-May-26 12:45. Bal INR 52,154.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 2154.5,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-16T12:45Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-017",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.2,291.00 debited from A/c XX4321 on 17-May-26 13:52 at BLINKIT. Avl Bal Rs.47,709.00. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 2,291.00 spent from HDFC A/c XX4321 at BLINKIT on 17-May-26 13:52. Available balance INR 47,709.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2291,
+        "merchant": "blinkit",
+        "accountCard": "4321",
+        "time": "2026-05-17T13:52Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-018",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.2,428.00 debited from A/c XX8890 on 18-May-26 14:59 at ZEPTONOW. Avl Bal Rs.47,572.00. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 2,428.00 spent from ICICI A/c XX8890 at ZEPTONOW on 18-May-26 14:59. Available balance INR 47,572.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2428,
+        "merchant": "zeptonow",
+        "accountCard": "8890",
+        "time": "2026-05-18T14:59Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-019",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.2,565.00 debited from A/c XX9876 on 19-May-26 15:06 at SWIGGY. Avl Bal Rs.47,435.00. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 2,565.00 spent from AXIS A/c XX9876 at SWIGGY on 19-May-26 15:06. Available balance INR 47,435.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2565,
+        "merchant": "swiggy",
+        "accountCard": "9876",
+        "time": "2026-05-19T15:06Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-020",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.2,702.00 debited from A/c XX5566 on 20-May-26 16:13 at ZOMATO. Avl Bal Rs.47,298.00. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 2,702.00 spent from KOTAK A/c XX5566 at ZOMATO on 20-May-26 16:13. Available balance INR 47,298.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2702,
+        "merchant": "zomato",
+        "accountCard": "5566",
+        "time": "2026-05-20T16:13Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-021",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.2,839.00 on 21-May-26 17:20 by NEFT-SALARY. Avl Bal Rs.52,839.00. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 2,839.00 credited to A/c XX1122 via NEFT SALARY on 21-May-26 17:20. Bal INR 52,839.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 2839,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-21T17:20Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-022",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.2,976.75 debited from A/c XX4321 on 22-May-26 18:27 at FLIPKART INTERNET. Avl Bal Rs.47,023.25. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 2,976.75 spent from HDFC A/c XX4321 at FLIPKART INTERNET on 22-May-26 18:27. Available balance INR 47,023.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2976.75,
+        "merchant": "flipkart-internet",
+        "accountCard": "4321",
+        "time": "2026-05-22T18:27Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-023",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.3,113.75 debited from A/c XX8890 on 23-May-26 19:34 at UBER INDIA. Avl Bal Rs.46,886.25. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 3,113.75 spent from ICICI A/c XX8890 at UBER INDIA on 23-May-26 19:34. Available balance INR 46,886.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3113.75,
+        "merchant": "uber-india",
+        "accountCard": "8890",
+        "time": "2026-05-23T19:34Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-024",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.3,250.00 debited from A/c XX9876 on 24-May-26 20:41 at OLA CABS. Avl Bal Rs.46,750.00. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 3,250.00 spent from AXIS A/c XX9876 at OLA CABS on 24-May-26 20:41. Available balance INR 46,750.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3250,
+        "merchant": "ola-cabs",
+        "accountCard": "9876",
+        "time": "2026-05-24T20:41Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-025",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.3,387.75 debited from A/c XX5566 on 25-May-26 09:48 at BIGBASKET. Avl Bal Rs.46,612.25. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 3,387.75 spent from KOTAK A/c XX5566 at BIGBASKET on 25-May-26 09:48. Available balance INR 46,612.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3387.75,
+        "merchant": "bigbasket",
+        "accountCard": "5566",
+        "time": "2026-05-25T09:48Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-026",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.3,524.00 on 26-May-26 10:55 by NEFT-SALARY. Avl Bal Rs.53,524.00. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 3,524.00 credited to A/c XX1122 via NEFT SALARY on 26-May-26 10:55. Bal INR 53,524.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 3524,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-26T10:55Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-027",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.3,661.75 debited from A/c XX4321 on 27-May-26 11:02 at NETFLIX. Avl Bal Rs.46,338.25. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 3,661.75 spent from HDFC A/c XX4321 at NETFLIX on 27-May-26 11:02. Available balance INR 46,338.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3661.75,
+        "merchant": "netflix",
+        "accountCard": "4321",
+        "time": "2026-05-27T11:02Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-028",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.3,798.75 debited from A/c XX8890 on 28-May-26 12:09 at SPOTIFY. Avl Bal Rs.46,201.25. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 3,798.75 spent from ICICI A/c XX8890 at SPOTIFY on 28-May-26 12:09. Available balance INR 46,201.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3798.75,
+        "merchant": "spotify",
+        "accountCard": "8890",
+        "time": "2026-05-28T12:09Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-029",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.3,935.75 debited from A/c XX9876 on 01-May-26 13:16 at APOLLO PHARMACY. Avl Bal Rs.46,064.25. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 3,935.75 spent from AXIS A/c XX9876 at APOLLO PHARMACY on 01-May-26 13:16. Available balance INR 46,064.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 3935.75,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "9876",
+        "time": "2026-05-01T13:16Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-030",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.4,072.75 debited from A/c XX5566 on 02-May-26 14:23 at IRCTC. Avl Bal Rs.45,927.25. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 4,072.75 spent from KOTAK A/c XX5566 at IRCTC on 02-May-26 14:23. Available balance INR 45,927.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4072.75,
+        "merchant": "irctc",
+        "accountCard": "5566",
+        "time": "2026-05-02T14:23Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-031",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.4,209.50 on 03-May-26 15:30 by NEFT-SALARY. Avl Bal Rs.54,209.50. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 4,209.50 credited to A/c XX1122 via NEFT SALARY on 03-May-26 15:30. Bal INR 54,209.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 4209.5,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-03T15:30Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-032",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.4,346.00 debited from A/c XX4321 on 04-May-26 16:37 at AJIO. Avl Bal Rs.45,654.00. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 4,346.00 spent from HDFC A/c XX4321 at AJIO on 04-May-26 16:37. Available balance INR 45,654.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4346,
+        "merchant": "ajio",
+        "accountCard": "4321",
+        "time": "2026-05-04T16:37Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-033",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.4,483.50 debited from A/c XX8890 on 05-May-26 17:44 at RELIANCE DIGITAL. Avl Bal Rs.45,516.50. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 4,483.50 spent from ICICI A/c XX8890 at RELIANCE DIGITAL on 05-May-26 17:44. Available balance INR 45,516.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4483.5,
+        "merchant": "reliance-digital",
+        "accountCard": "8890",
+        "time": "2026-05-05T17:44Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-034",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.4,620.75 debited from A/c XX9876 on 06-May-26 18:51 at TATA 1MG. Avl Bal Rs.45,379.25. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 4,620.75 spent from AXIS A/c XX9876 at TATA 1MG on 06-May-26 18:51. Available balance INR 45,379.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4620.75,
+        "merchant": "tata-1mg",
+        "accountCard": "9876",
+        "time": "2026-05-06T18:51Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-035",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.4,757.50 debited from A/c XX5566 on 07-May-26 19:58 at BLINKIT. Avl Bal Rs.45,242.50. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 4,757.50 spent from KOTAK A/c XX5566 at BLINKIT on 07-May-26 19:58. Available balance INR 45,242.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 4757.5,
+        "merchant": "blinkit",
+        "accountCard": "5566",
+        "time": "2026-05-07T19:58Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-036",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Your A/c XX1122 is credited with Rs.4,894.00 on 08-May-26 20:05 by NEFT-SALARY. Avl Bal Rs.54,894.00. -SBI"
+      },
+      {
+        "sender": "SBIINB",
+        "message": "SBI Alert: INR 4,894.00 credited to A/c XX1122 via NEFT SALARY on 08-May-26 20:05. Bal INR 54,894.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "credit",
+        "amount": 4894,
+        "merchant": "salary-credit",
+        "accountCard": "1122",
+        "time": "2026-05-08T20:05Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-037",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Dear Customer, Rs.5,031.00 debited from A/c XX4321 on 09-May-26 09:12 at SWIGGY. Avl Bal Rs.44,969.00. -HDFC"
+      },
+      {
+        "sender": "HDFCBK",
+        "message": "Alert: INR 5,031.00 spent from HDFC A/c XX4321 at SWIGGY on 09-May-26 09:12. Available balance INR 44,969.00."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5031,
+        "merchant": "swiggy",
+        "accountCard": "4321",
+        "time": "2026-05-09T09:12Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-038",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Dear Customer, Rs.5,168.75 debited from A/c XX8890 on 10-May-26 10:19 at ZOMATO. Avl Bal Rs.44,831.25. -ICICI"
+      },
+      {
+        "sender": "ICICIB",
+        "message": "Alert: INR 5,168.75 spent from ICICI A/c XX8890 at ZOMATO on 10-May-26 10:19. Available balance INR 44,831.25."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5168.75,
+        "merchant": "zomato",
+        "accountCard": "8890",
+        "time": "2026-05-10T10:19Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-039",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Dear Customer, Rs.5,305.50 debited from A/c XX9876 on 11-May-26 11:26 at AMAZON SELLER SERVICES. Avl Bal Rs.44,694.50. -AXIS"
+      },
+      {
+        "sender": "AXISBK",
+        "message": "Alert: INR 5,305.50 spent from AXIS A/c XX9876 at AMAZON SELLER SERVICES on 11-May-26 11:26. Available balance INR 44,694.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5305.5,
+        "merchant": "amazon-seller-services",
+        "accountCard": "9876",
+        "time": "2026-05-11T11:26Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  },
+  {
+    "id": "exact-040",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Dear Customer, Rs.5,442.50 debited from A/c XX5566 on 12-May-26 12:33 at FLIPKART INTERNET. Avl Bal Rs.44,557.50. -KOTAK"
+      },
+      {
+        "sender": "KOTAKB",
+        "message": "Alert: INR 5,442.50 spent from KOTAK A/c XX5566 at FLIPKART INTERNET on 12-May-26 12:33. Available balance INR 44,557.50."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 5442.5,
+        "merchant": "flipkart-internet",
+        "accountCard": "5566",
+        "time": "2026-05-12T12:33Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same transaction, duplicate bank wording"
+  }
+]

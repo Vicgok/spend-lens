@@ -1,0 +1,18 @@
+{
+  "totalSamples": 120,
+  "files": {
+    "exact-duplicates.json": 40,
+    "near-duplicates.json": 30,
+    "multi-sms.json": 20,
+    "false-merge-protection.json": 20,
+    "edge-cases.json": 10
+  },
+  "schema": {
+    "id": "group id",
+    "messages": "realistic Indian SMS messages for same/different txns",
+    "expectedUniqueTransactions": "expected final txns after dedupe",
+    "expectedDuplicateGroups": "message indexes that should merge",
+    "expectedIgnoredDuplicates": "optional duplicates ignored by rules",
+    "notes": "dedupe intent"
+  }
+}

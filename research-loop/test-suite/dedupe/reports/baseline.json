@@ -1,0 +1,22 @@
+{
+  "totalSamples": 120,
+  "totalMessages": 260,
+  "expectedUnique": 146,
+  "actualUnique": 146,
+  "duplicatesRemoved": 114,
+  "pairwiseTP": 134,
+  "pairwiseFP": 0,
+  "pairwiseFN": 0,
+  "pairwiseTN": 26,
+  "dedupePrecision": 100,
+  "dedupeRecall": 100,
+  "dedupeF1": 100,
+  "falseMergeRate": 0,
+  "missedDuplicateRate": 0,
+  "samplePassRate": 100,
+  "groupExactMatchAccuracy": 100,
+  "configViolationCount": 0,
+  "samplesWithConfigViolation": [],
+  "expectedDuplicatePairsOutsideWindow": 0,
+  "configValid": true
+}

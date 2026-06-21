@@ -1,0 +1,13 @@
+{
+  "bnpl-bank-wording-mismatch": [],
+  "false-merge": [],
+  "group-count-mismatch": [],
+  "merchant-spelling-variation": [],
+  "missed-duplicate": [],
+  "multi-sms-same-transaction": [],
+  "parser-output-invalid": [],
+  "repeated-same-day-false-merge": [],
+  "same-amount-legit-repeat": [],
+  "time-window-boundary": [],
+  "wrong-canonical-transaction": []
+}

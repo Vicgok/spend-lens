@@ -1,0 +1,902 @@
+[
+  {
+    "id": "near-001",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 6,949.50 debited from A/c XX4321 on 13-May-26 13:42 towards UPI/FLIPKARTINTERNET. UPI Ref 926300000000. Bal Rs 63,050.50."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.6,949.50 to Flipkart Internet using PhonePe UPI from bank a/c ending 4321 at 13:42. UPI txn no 926300000000."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 6949.5,
+        "merchant": "flipkart-internet",
+        "accountCard": "4321",
+        "time": "2026-05-13T13:40Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-002",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 7,086.00 debited from A/c XX8890 on 14-May-26 14:49 towards UPI/UBERINDIA. UPI Ref 926300000001. Bal Rs 62,914.00."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.7,086.00 to Uber India using GPay UPI from bank a/c ending 8890 at 14:49. UPI txn no 926300000001."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7086,
+        "merchant": "uber-india",
+        "accountCard": "8890",
+        "time": "2026-05-14T14:47Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-003",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 7,223.00 debited from A/c XX9876 on 15-May-26 15:56 towards UPI/OLACABS. UPI Ref 926300000002. Bal Rs 62,777.00."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.7,223.00 to Ola Cabs using Paytm UPI from bank a/c ending 9876 at 15:56. UPI txn no 926300000002."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7223,
+        "merchant": "ola-cabs",
+        "accountCard": "9876",
+        "time": "2026-05-15T15:54Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-004",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 7,360.50 debited from A/c XX5566 on 16-May-26 16:03 towards UPI/BIGBASKET. UPI Ref 926300000003. Bal Rs 62,639.50."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.7,360.50 to Bigbasket using BHIM UPI from bank a/c ending 5566 at 16:03. UPI txn no 926300000003."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7360.5,
+        "merchant": "bigbasket",
+        "accountCard": "5566",
+        "time": "2026-05-16T16:01Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-005",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 7,497.00 debited from A/c XX1122 on 17-May-26 17:10 towards UPI/DMARTREADY. UPI Ref 926300000004. Bal Rs 62,503.00."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.7,497.00 to Dmart Ready using PhonePe UPI from bank a/c ending 1122 at 17:10. UPI txn no 926300000004."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7497,
+        "merchant": "dmart-ready",
+        "accountCard": "1122",
+        "time": "2026-05-17T17:08Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-006",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 7,634.00 debited from A/c XX4321 on 18-May-26 18:17 towards UPI/NETFLIX. UPI Ref 926300000005. Bal Rs 62,366.00."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.7,634.00 to Netflix using GPay UPI from bank a/c ending 4321 at 18:17. UPI txn no 926300000005."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7634,
+        "merchant": "netflix",
+        "accountCard": "4321",
+        "time": "2026-05-18T18:15Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-007",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 7,771.50 debited from A/c XX8890 on 19-May-26 19:24 towards UPI/SPOTIFY. UPI Ref 926300000006. Bal Rs 62,228.50."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.7,771.50 to Spotify using Paytm UPI from bank a/c ending 8890 at 19:24. UPI txn no 926300000006."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7771.5,
+        "merchant": "spotify",
+        "accountCard": "8890",
+        "time": "2026-05-19T19:22Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-008",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 7,908.00 debited from A/c XX9876 on 20-May-26 20:31 towards UPI/APOLLOPHARMACY. UPI Ref 926300000007. Bal Rs 62,092.00."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.7,908.00 to Apollo Pharmacy using BHIM UPI from bank a/c ending 9876 at 20:31. UPI txn no 926300000007."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 7908,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "9876",
+        "time": "2026-05-20T20:29Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-009",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 8,045.50 debited from A/c XX5566 on 21-May-26 09:38 towards UPI/IRCTC. UPI Ref 926300000008. Bal Rs 61,954.50."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.8,045.50 to Irctc using PhonePe UPI from bank a/c ending 5566 at 09:38. UPI txn no 926300000008."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8045.5,
+        "merchant": "irctc",
+        "accountCard": "5566",
+        "time": "2026-05-21T09:36Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-010",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 8,182.50 debited from A/c XX1122 on 22-May-26 10:45 towards UPI/MYNTRA. UPI Ref 926300000009. Bal Rs 61,817.50."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.8,182.50 to Myntra using GPay UPI from bank a/c ending 1122 at 10:45. UPI txn no 926300000009."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8182.5,
+        "merchant": "myntra",
+        "accountCard": "1122",
+        "time": "2026-05-22T10:43Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-011",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 8,319.75 debited from A/c XX4321 on 23-May-26 11:52 towards UPI/AJIO. UPI Ref 926300000010. Bal Rs 61,680.25."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.8,319.75 to Ajio using Paytm UPI from bank a/c ending 4321 at 11:52. UPI txn no 926300000010."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8319.75,
+        "merchant": "ajio",
+        "accountCard": "4321",
+        "time": "2026-05-23T11:50Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-012",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 8,456.50 debited from A/c XX8890 on 24-May-26 12:59 towards UPI/RELIANCEDIGITAL. UPI Ref 926300000011. Bal Rs 61,543.50."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.8,456.50 to Reliance Digital using BHIM UPI from bank a/c ending 8890 at 12:59. UPI txn no 926300000011."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8456.5,
+        "merchant": "reliance-digital",
+        "accountCard": "8890",
+        "time": "2026-05-24T12:57Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-013",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 8,593.00 debited from A/c XX9876 on 25-May-26 13:06 towards UPI/TATA1MG. UPI Ref 926300000012. Bal Rs 61,407.00."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.8,593.00 to Tata 1Mg using PhonePe UPI from bank a/c ending 9876 at 13:06. UPI txn no 926300000012."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8593,
+        "merchant": "tata-1mg",
+        "accountCard": "9876",
+        "time": "2026-05-25T13:04Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-014",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 8,730.75 debited from A/c XX5566 on 26-May-26 14:13 towards UPI/BLINKIT. UPI Ref 926300000013. Bal Rs 61,269.25."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.8,730.75 to Blinkit using GPay UPI from bank a/c ending 5566 at 14:13. UPI txn no 926300000013."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8730.75,
+        "merchant": "blinkit",
+        "accountCard": "5566",
+        "time": "2026-05-26T14:11Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-015",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 8,867.50 debited from A/c XX1122 on 27-May-26 15:20 towards UPI/ZEPTONOW. UPI Ref 926300000014. Bal Rs 61,132.50."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.8,867.50 to Zeptonow using Paytm UPI from bank a/c ending 1122 at 15:20. UPI txn no 926300000014."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 8867.5,
+        "merchant": "zeptonow",
+        "accountCard": "1122",
+        "time": "2026-05-27T15:18Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-016",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 103.75 debited from A/c XX4321 on 28-May-26 16:27 towards UPI/SWIGGY. UPI Ref 926300000015. Bal Rs 69,896.25."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.103.75 to Swiggy using BHIM UPI from bank a/c ending 4321 at 16:27. UPI txn no 926300000015."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 103.75,
+        "merchant": "swiggy",
+        "accountCard": "4321",
+        "time": "2026-05-28T16:25Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-017",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 240.00 debited from A/c XX8890 on 01-May-26 17:34 towards UPI/ZOMATO. UPI Ref 926300000016. Bal Rs 69,760.00."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.240.00 to Zomato using PhonePe UPI from bank a/c ending 8890 at 17:34. UPI txn no 926300000016."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 240,
+        "merchant": "zomato",
+        "accountCard": "8890",
+        "time": "2026-05-01T17:32Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-018",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 377.50 debited from A/c XX9876 on 02-May-26 18:41 towards UPI/AMAZONSELLERSERVICES. UPI Ref 926300000017. Bal Rs 69,622.50."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.377.50 to Amazon Seller Services using GPay UPI from bank a/c ending 9876 at 18:41. UPI txn no 926300000017."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 377.5,
+        "merchant": "amazon-seller-services",
+        "accountCard": "9876",
+        "time": "2026-05-02T18:39Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-019",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 514.00 debited from A/c XX5566 on 03-May-26 19:48 towards UPI/FLIPKARTINTERNET. UPI Ref 926300000018. Bal Rs 69,486.00."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.514.00 to Flipkart Internet using Paytm UPI from bank a/c ending 5566 at 19:48. UPI txn no 926300000018."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 514,
+        "merchant": "flipkart-internet",
+        "accountCard": "5566",
+        "time": "2026-05-03T19:46Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-020",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 651.75 debited from A/c XX1122 on 04-May-26 20:55 towards UPI/UBERINDIA. UPI Ref 926300000019. Bal Rs 69,348.25."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.651.75 to Uber India using BHIM UPI from bank a/c ending 1122 at 20:55. UPI txn no 926300000019."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 651.75,
+        "merchant": "uber-india",
+        "accountCard": "1122",
+        "time": "2026-05-04T20:53Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-021",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 788.50 debited from A/c XX4321 on 05-May-26 09:02 towards UPI/OLACABS. UPI Ref 926300000020. Bal Rs 69,211.50."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.788.50 to Ola Cabs using PhonePe UPI from bank a/c ending 4321 at 09:02. UPI txn no 926300000020."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 788.5,
+        "merchant": "ola-cabs",
+        "accountCard": "4321",
+        "time": "2026-05-05T09:00Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-022",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 925.75 debited from A/c XX8890 on 06-May-26 10:09 towards UPI/BIGBASKET. UPI Ref 926300000021. Bal Rs 69,074.25."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.925.75 to Bigbasket using GPay UPI from bank a/c ending 8890 at 10:09. UPI txn no 926300000021."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 925.75,
+        "merchant": "bigbasket",
+        "accountCard": "8890",
+        "time": "2026-05-06T10:07Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-023",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 1,062.75 debited from A/c XX9876 on 07-May-26 11:16 towards UPI/DMARTREADY. UPI Ref 926300000022. Bal Rs 68,937.25."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.1,062.75 to Dmart Ready using Paytm UPI from bank a/c ending 9876 at 11:16. UPI txn no 926300000022."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1062.75,
+        "merchant": "dmart-ready",
+        "accountCard": "9876",
+        "time": "2026-05-07T11:14Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-024",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 1,199.50 debited from A/c XX5566 on 08-May-26 12:23 towards UPI/NETFLIX. UPI Ref 926300000023. Bal Rs 68,800.50."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.1,199.50 to Netflix using BHIM UPI from bank a/c ending 5566 at 12:23. UPI txn no 926300000023."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1199.5,
+        "merchant": "netflix",
+        "accountCard": "5566",
+        "time": "2026-05-08T12:21Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-025",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 1,336.75 debited from A/c XX1122 on 09-May-26 13:30 towards UPI/SPOTIFY. UPI Ref 926300000024. Bal Rs 68,663.25."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.1,336.75 to Spotify using PhonePe UPI from bank a/c ending 1122 at 13:30. UPI txn no 926300000024."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1336.75,
+        "merchant": "spotify",
+        "accountCard": "1122",
+        "time": "2026-05-09T13:28Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-026",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "HDFC: Rs 1,473.00 debited from A/c XX4321 on 10-May-26 14:37 towards UPI/APOLLOPHARMACY. UPI Ref 926300000025. Bal Rs 68,527.00."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.1,473.00 to Apollo Pharmacy using GPay UPI from bank a/c ending 4321 at 14:37. UPI txn no 926300000025."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1473,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "4321",
+        "time": "2026-05-10T14:35Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-027",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "ICICI: Rs 1,610.75 debited from A/c XX8890 on 11-May-26 15:44 towards UPI/IRCTC. UPI Ref 926300000026. Bal Rs 68,389.25."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Paid Rs.1,610.75 to Irctc using Paytm UPI from bank a/c ending 8890 at 15:44. UPI txn no 926300000026."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1610.75,
+        "merchant": "irctc",
+        "accountCard": "8890",
+        "time": "2026-05-11T15:42Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-028",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "AXIS: Rs 1,747.00 debited from A/c XX9876 on 12-May-26 16:51 towards UPI/MYNTRA. UPI Ref 926300000027. Bal Rs 68,253.00."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Paid Rs.1,747.00 to Myntra using BHIM UPI from bank a/c ending 9876 at 16:51. UPI txn no 926300000027."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1747,
+        "merchant": "myntra",
+        "accountCard": "9876",
+        "time": "2026-05-12T16:49Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-029",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "KOTAK: Rs 1,884.00 debited from A/c XX5566 on 13-May-26 17:58 towards UPI/AJIO. UPI Ref 926300000028. Bal Rs 68,116.00."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Paid Rs.1,884.00 to Ajio using PhonePe UPI from bank a/c ending 5566 at 17:58. UPI txn no 926300000028."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 1884,
+        "merchant": "ajio",
+        "accountCard": "5566",
+        "time": "2026-05-13T17:56Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  },
+  {
+    "id": "near-030",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "SBI: Rs 2,021.75 debited from A/c XX1122 on 14-May-26 18:05 towards UPI/RELIANCEDIGITAL. UPI Ref 926300000029. Bal Rs 67,978.25."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Paid Rs.2,021.75 to Reliance Digital using GPay UPI from bank a/c ending 1122 at 18:05. UPI txn no 926300000029."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 2021.75,
+        "merchant": "reliance-digital",
+        "accountCard": "1122",
+        "time": "2026-05-14T18:03Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "same amount/account/merchant within dedupe window, different senders/wording"
+  }
+]

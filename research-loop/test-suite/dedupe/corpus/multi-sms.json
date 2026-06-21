@@ -1,0 +1,702 @@
+[
+  {
+    "id": "multi-001",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Txn Alert: Rs.12,480.00 debited from ICICI A/c XX8890 for purchase at BIGBASKET on 25-May-26 17:20. Bal Rs.77,520.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4000 used for INR 12,480.00 at BIGBASKET on 25-May-26 17:21. If not you, call bank."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Payment successful! Rs 12,480.00 paid to Bigbasket from ICICI account ending 8890. Ref ID 735900000000."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 12480,
+        "merchant": "bigbasket",
+        "accountCard": "8890",
+        "time": "2026-05-25T17:20Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-002",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Txn Alert: Rs.12,617.50 debited from AXIS A/c XX9876 for purchase at DMART READY on 26-May-26 18:27. Bal Rs.77,382.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4001 used for INR 12,617.50 at DMART READY on 26-May-26 18:28. If not you, call bank."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Payment successful! Rs 12,617.50 paid to Dmart Ready from AXIS account ending 9876. Ref ID 735900000001."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 12617.5,
+        "merchant": "dmart-ready",
+        "accountCard": "9876",
+        "time": "2026-05-26T18:27Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-003",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Txn Alert: Rs.12,754.00 debited from KOTAK A/c XX5566 for purchase at NETFLIX on 27-May-26 19:34. Bal Rs.77,246.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4002 used for INR 12,754.00 at NETFLIX on 27-May-26 19:35. If not you, call bank."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Payment successful! Rs 12,754.00 paid to Netflix from KOTAK account ending 5566. Ref ID 735900000002."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 12754,
+        "merchant": "netflix",
+        "accountCard": "5566",
+        "time": "2026-05-27T19:34Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-004",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Txn Alert: Rs.12,891.00 debited from SBI A/c XX1122 for purchase at SPOTIFY on 28-May-26 20:41. Bal Rs.77,109.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4003 used for INR 12,891.00 at SPOTIFY on 28-May-26 20:42. If not you, call bank."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Payment successful! Rs 12,891.00 paid to Spotify from SBI account ending 1122. Ref ID 735900000003."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 12891,
+        "merchant": "spotify",
+        "accountCard": "1122",
+        "time": "2026-05-28T20:41Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-005",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Txn Alert: Rs.13,028.00 debited from HDFC A/c XX4321 for purchase at APOLLO PHARMACY on 01-May-26 09:48. Bal Rs.76,972.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4004 used for INR 13,028.00 at APOLLO PHARMACY on 01-May-26 09:49. If not you, call bank."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Payment successful! Rs 13,028.00 paid to Apollo Pharmacy from HDFC account ending 4321. Ref ID 735900000004."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13028,
+        "merchant": "apollo-pharmacy",
+        "accountCard": "4321",
+        "time": "2026-05-01T09:48Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-006",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Txn Alert: Rs.13,165.50 debited from ICICI A/c XX8890 for purchase at IRCTC on 02-May-26 10:55. Bal Rs.76,834.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4005 used for INR 13,165.50 at IRCTC on 02-May-26 10:56. If not you, call bank."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Payment successful! Rs 13,165.50 paid to Irctc from ICICI account ending 8890. Ref ID 735900000005."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13165.5,
+        "merchant": "irctc",
+        "accountCard": "8890",
+        "time": "2026-05-02T10:55Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-007",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Txn Alert: Rs.13,302.50 debited from AXIS A/c XX9876 for purchase at MYNTRA on 03-May-26 11:02. Bal Rs.76,697.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4006 used for INR 13,302.50 at MYNTRA on 03-May-26 11:03. If not you, call bank."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Payment successful! Rs 13,302.50 paid to Myntra from AXIS account ending 9876. Ref ID 735900000006."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13302.5,
+        "merchant": "myntra",
+        "accountCard": "9876",
+        "time": "2026-05-03T11:02Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-008",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Txn Alert: Rs.13,439.50 debited from KOTAK A/c XX5566 for purchase at AJIO on 04-May-26 12:09. Bal Rs.76,560.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4007 used for INR 13,439.50 at AJIO on 04-May-26 12:10. If not you, call bank."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Payment successful! Rs 13,439.50 paid to Ajio from KOTAK account ending 5566. Ref ID 735900000007."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13439.5,
+        "merchant": "ajio",
+        "accountCard": "5566",
+        "time": "2026-05-04T12:09Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-009",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Txn Alert: Rs.13,576.75 debited from SBI A/c XX1122 for purchase at RELIANCE DIGITAL on 05-May-26 13:16. Bal Rs.76,423.25."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4008 used for INR 13,576.75 at RELIANCE DIGITAL on 05-May-26 13:17. If not you, call bank."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Payment successful! Rs 13,576.75 paid to Reliance Digital from SBI account ending 1122. Ref ID 735900000008."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13576.75,
+        "merchant": "reliance-digital",
+        "accountCard": "1122",
+        "time": "2026-05-05T13:16Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-010",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Txn Alert: Rs.13,713.50 debited from HDFC A/c XX4321 for purchase at TATA 1MG on 06-May-26 14:23. Bal Rs.76,286.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4009 used for INR 13,713.50 at TATA 1MG on 06-May-26 14:24. If not you, call bank."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Payment successful! Rs 13,713.50 paid to Tata 1Mg from HDFC account ending 4321. Ref ID 735900000009."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13713.5,
+        "merchant": "tata-1mg",
+        "accountCard": "4321",
+        "time": "2026-05-06T14:23Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-011",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Txn Alert: Rs.13,850.00 debited from ICICI A/c XX8890 for purchase at BLINKIT on 07-May-26 15:30. Bal Rs.76,150.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4010 used for INR 13,850.00 at BLINKIT on 07-May-26 15:31. If not you, call bank."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Payment successful! Rs 13,850.00 paid to Blinkit from ICICI account ending 8890. Ref ID 735900000010."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13850,
+        "merchant": "blinkit",
+        "accountCard": "8890",
+        "time": "2026-05-07T15:30Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-012",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Txn Alert: Rs.13,987.50 debited from AXIS A/c XX9876 for purchase at ZEPTONOW on 08-May-26 16:37. Bal Rs.76,012.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4011 used for INR 13,987.50 at ZEPTONOW on 08-May-26 16:38. If not you, call bank."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Payment successful! Rs 13,987.50 paid to Zeptonow from AXIS account ending 9876. Ref ID 735900000011."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 13987.5,
+        "merchant": "zeptonow",
+        "accountCard": "9876",
+        "time": "2026-05-08T16:37Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-013",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Txn Alert: Rs.14,124.50 debited from KOTAK A/c XX5566 for purchase at SWIGGY on 09-May-26 17:44. Bal Rs.75,875.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4012 used for INR 14,124.50 at SWIGGY on 09-May-26 17:45. If not you, call bank."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Payment successful! Rs 14,124.50 paid to Swiggy from KOTAK account ending 5566. Ref ID 735900000012."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14124.5,
+        "merchant": "swiggy",
+        "accountCard": "5566",
+        "time": "2026-05-09T17:44Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-014",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Txn Alert: Rs.14,261.00 debited from SBI A/c XX1122 for purchase at ZOMATO on 10-May-26 18:51. Bal Rs.75,739.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4013 used for INR 14,261.00 at ZOMATO on 10-May-26 18:52. If not you, call bank."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Payment successful! Rs 14,261.00 paid to Zomato from SBI account ending 1122. Ref ID 735900000013."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14261,
+        "merchant": "zomato",
+        "accountCard": "1122",
+        "time": "2026-05-10T18:51Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-015",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Txn Alert: Rs.14,398.75 debited from HDFC A/c XX4321 for purchase at AMAZON SELLER SERVICES on 11-May-26 19:58. Bal Rs.75,601.25."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4014 used for INR 14,398.75 at AMAZON SELLER SERVICES on 11-May-26 19:59. If not you, call bank."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Payment successful! Rs 14,398.75 paid to Amazon Seller Services from HDFC account ending 4321. Ref ID 735900000014."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14398.75,
+        "merchant": "amazon-seller-services",
+        "accountCard": "4321",
+        "time": "2026-05-11T19:58Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-016",
+    "messages": [
+      {
+        "sender": "ICICIB",
+        "message": "Txn Alert: Rs.14,535.50 debited from ICICI A/c XX8890 for purchase at FLIPKART INTERNET on 12-May-26 20:05. Bal Rs.75,464.50."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4015 used for INR 14,535.50 at FLIPKART INTERNET on 12-May-26 20:06. If not you, call bank."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Payment successful! Rs 14,535.50 paid to Flipkart Internet from ICICI account ending 8890. Ref ID 735900000015."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14535.5,
+        "merchant": "flipkart-internet",
+        "accountCard": "8890",
+        "time": "2026-05-12T20:05Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-017",
+    "messages": [
+      {
+        "sender": "AXISBK",
+        "message": "Txn Alert: Rs.14,672.75 debited from AXIS A/c XX9876 for purchase at UBER INDIA on 13-May-26 09:12. Bal Rs.75,327.25."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4016 used for INR 14,672.75 at UBER INDIA on 13-May-26 09:13. If not you, call bank."
+      },
+      {
+        "sender": "PHONEPE",
+        "message": "Payment successful! Rs 14,672.75 paid to Uber India from AXIS account ending 9876. Ref ID 735900000016."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14672.75,
+        "merchant": "uber-india",
+        "accountCard": "9876",
+        "time": "2026-05-13T09:12Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-018",
+    "messages": [
+      {
+        "sender": "KOTAKB",
+        "message": "Txn Alert: Rs.14,809.75 debited from KOTAK A/c XX5566 for purchase at OLA CABS on 14-May-26 10:19. Bal Rs.75,190.25."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4017 used for INR 14,809.75 at OLA CABS on 14-May-26 10:20. If not you, call bank."
+      },
+      {
+        "sender": "GPAY",
+        "message": "Payment successful! Rs 14,809.75 paid to Ola Cabs from KOTAK account ending 5566. Ref ID 735900000017."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14809.75,
+        "merchant": "ola-cabs",
+        "accountCard": "5566",
+        "time": "2026-05-14T10:19Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-019",
+    "messages": [
+      {
+        "sender": "SBIINB",
+        "message": "Txn Alert: Rs.14,946.75 debited from SBI A/c XX1122 for purchase at BIGBASKET on 15-May-26 11:26. Bal Rs.75,053.25."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4018 used for INR 14,946.75 at BIGBASKET on 15-May-26 11:27. If not you, call bank."
+      },
+      {
+        "sender": "PAYTM",
+        "message": "Payment successful! Rs 14,946.75 paid to Bigbasket from SBI account ending 1122. Ref ID 735900000018."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 14946.75,
+        "merchant": "bigbasket",
+        "accountCard": "1122",
+        "time": "2026-05-15T11:26Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  },
+  {
+    "id": "multi-020",
+    "messages": [
+      {
+        "sender": "HDFCBK",
+        "message": "Txn Alert: Rs.233.00 debited from HDFC A/c XX4321 for purchase at DMART READY on 16-May-26 12:33. Bal Rs.89,767.00."
+      },
+      {
+        "sender": "VK-VISA",
+        "message": "Card ending 4019 used for INR 233.00 at DMART READY on 16-May-26 12:34. If not you, call bank."
+      },
+      {
+        "sender": "BHIM",
+        "message": "Payment successful! Rs 233.00 paid to Dmart Ready from HDFC account ending 4321. Ref ID 735900000019."
+      }
+    ],
+    "expectedUniqueTransactions": [
+      {
+        "transactionType": "debit",
+        "amount": 233,
+        "merchant": "dmart-ready",
+        "accountCard": "4321",
+        "time": "2026-05-16T12:33Z"
+      }
+    ],
+    "expectedDuplicateGroups": [
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "expectedIgnoredDuplicates": [],
+    "notes": "bank + network/app notifications for one purchase; keep richest transaction"
+  }
+]
