@@ -1,0 +1,20 @@
+[
+  {
+    "phase": "phase-0-machine-readable-test-output",
+    "status": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "commands": {
+      "npm run test:research parser": "PASS",
+      "npm run test:research dedupe": "PASS",
+      "npm run test:research all": "PASS",
+      "npm test": "PASS"
+    },
+    "artifacts": {
+      "parser": "research-loop/test-suite/parser/reports/latest-metrics.json",
+      "dedupe": "research-loop/test-suite/dedupe/reports/latest-metrics.json",
+      "all": "research-loop/test-suite/reports/latest-metrics.json"
+    },
+    "decision": "KEEP",
+    "notes": "Phase 0 completed. Normalized latest-metrics.json artifacts are now emitted for parser, dedupe, and all. Orchestrator should consume JSON files instead of console logs."
+  }
+]
