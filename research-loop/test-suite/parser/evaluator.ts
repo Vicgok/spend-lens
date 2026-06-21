@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import path from "path";
 
-import { parseTransactionSMS } from "../../src/features/sms-parser/engine";
+import { parseTransactionSMS } from "../../../src/features/sms-parser/engine";
 
 export interface CorpusExpectation {
   transactionType: "debit" | "credit" | null;

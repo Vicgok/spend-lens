@@ -2,6 +2,18 @@ import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 
+/**
+ * parser-loop.ts
+ *
+ * Runs the parser test suite, compares metrics against the stored baseline,
+ * and decides KEEP or REVERT.
+ *
+ * All outputs are written to test-suite/parser/reports/:
+ *   baseline.json       - current accepted baseline (updated on KEEP)
+ *   latest-metrics.json - metrics from the most recent run (also written by run.ts)
+ *   results.tsv         - append-only history log
+ */
+
 function extractMetric(stdout: string, label: string): number {
   const regex = new RegExp(`${label}:\\s*([\\d.]+)%?`, "i");
   const match = stdout.match(regex);
@@ -12,31 +24,43 @@ function extractMetric(stdout: string, label: string): number {
 }
 
 function main() {
-  const projectRoot = path.resolve(__dirname, "../..");
-  const baselinePath = path.resolve(projectRoot, "research-loop/autoresearch/baseline.json");
-  const latestMetricsPath = path.resolve(projectRoot, "research-loop/autoresearch/latest-metrics.json");
-  const tsvPath = path.resolve(projectRoot, "research-loop/autoresearch/results.tsv");
+  const projectRoot = path.resolve(__dirname, "../../../..");
+  const reportsDir = path.resolve(__dirname, "../reports");
 
-  // 1. Read autoresearch/baseline.json
+  const baselinePath = path.join(reportsDir, "baseline.json");
+  const latestMetricsPath = path.join(reportsDir, "latest-metrics.json");
+  const tsvPath = path.join(reportsDir, "results.tsv");
+
+  // Ensure reports dir exists
+  if (!fs.existsSync(reportsDir)) {
+    fs.mkdirSync(reportsDir, { recursive: true });
+  }
+
+  // Initialize results.tsv header if it does not exist
+  if (!fs.existsSync(tsvPath)) {
+    fs.writeFileSync(tsvPath, "round\toverall\tmerchant\tfpr\tfnr\tnote\n", "utf8");
+  }
+
+  // 1. Read baseline.json
   if (!fs.existsSync(baselinePath)) {
     console.error(`Baseline file not found at ${baselinePath}`);
     process.exit(1);
   }
-  const baselineContent = fs.readFileSync(baselinePath, "utf8");
-  const baseline = JSON.parse(baselineContent);
+  const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
 
   let stdout = "";
   try {
-    // 2. Run npm run parser:test
+    // 2. Run parser tests
     console.log("Running parser tests...");
-    stdout = execSync("npm run parser:test", { cwd: projectRoot, encoding: "utf8" });
+    stdout = execSync("npx tsx research-loop/test-suite/parser/run.ts", {
+      cwd: projectRoot,
+      encoding: "utf8",
+    });
     console.log(stdout);
   } catch (error: any) {
     console.error("Parser tests failed to run or exited with error.");
     if (error.stdout) console.log(error.stdout.toString());
     if (error.stderr) console.error(error.stderr.toString());
-
-    // 7. If REVERT, run git restore src/features/sms-parser
     console.log("REVERT");
     try {
       execSync("git restore src/features/sms-parser", { cwd: projectRoot, stdio: "inherit" });
@@ -47,7 +71,7 @@ function main() {
     process.exit(1);
   }
 
-  // 3. Read latest metrics output JSON
+  // 3. Parse metrics from stdout
   let latestMetrics: any;
   try {
     latestMetrics = {
@@ -60,8 +84,6 @@ function main() {
       falsePositiveRate: extractMetric(stdout, "False Positive Rate"),
       falseNegativeRate: extractMetric(stdout, "False Negative Rate"),
     };
-
-    // Write to latest-metrics.json
     fs.writeFileSync(latestMetricsPath, JSON.stringify(latestMetrics, null, 2) + "\n", "utf8");
     console.log(`Saved latest metrics to ${latestMetricsPath}`);
   } catch (parseErr: any) {
@@ -91,18 +113,17 @@ function main() {
   console.log(`False Negative Rate:\t${baseline.falseNegativeRate}%\t\t${latestMetrics.falseNegativeRate}%`);
   console.log("--------------------------\n");
 
-  // 5. Print KEEP or REVERT
+  // 5. KEEP or REVERT
   if (isKeep) {
     console.log("KEEP");
 
-    // 6. If KEEP, update results.tsv
     try {
       let note = process.argv[2];
       if (!note) {
         try {
           note = execSync("git log -1 --pretty=%s", { cwd: projectRoot, encoding: "utf8" }).trim();
           note = note.replace(/^parser:\s*/i, "");
-        } catch (gitErr) {
+        } catch {
           note = "improvement";
         }
       }
@@ -121,27 +142,22 @@ function main() {
           latestMetrics.merchantAccuracy.toFixed(2),
           latestMetrics.falsePositiveRate.toFixed(2),
           latestMetrics.falseNegativeRate.toFixed(2),
-          note
+          note,
         ].join("\t");
 
         const newTsvContent = lines.concat(newLine).join("\n") + "\n";
         fs.writeFileSync(tsvPath, newTsvContent, "utf8");
         console.log(`Updated results.tsv with round ${nextRound}`);
-      } else {
-        console.warn(`results.tsv not found at ${tsvPath}`);
       }
 
-      // Also update baseline.json so next loop rounds compare against this new KEEP baseline
+      // Update baseline to the new passing metrics
       fs.writeFileSync(baselinePath, JSON.stringify(latestMetrics, null, 2) + "\n", "utf8");
-      console.log(`Updated baseline.json with new metrics`);
-
+      console.log("Updated baseline.json with new metrics");
     } catch (tsvErr: any) {
       console.error("Failed to update results.tsv or baseline.json:", tsvErr.message);
     }
   } else {
     console.log("REVERT");
-
-    // 7. If REVERT, run git restore src/features/sms-parser
     try {
       execSync("git restore src/features/sms-parser", { cwd: projectRoot, stdio: "inherit" });
       console.log("Restored src/features/sms-parser");

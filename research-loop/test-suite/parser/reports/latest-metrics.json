@@ -1,0 +1,10 @@
+{
+  "overallAccuracy": 97.28,
+  "detectionAccuracy": 100,
+  "typeAccuracy": 100,
+  "amountAccuracy": 100,
+  "merchantAccuracy": 96.54,
+  "accountAccuracy": 100,
+  "falsePositiveRate": 0,
+  "falseNegativeRate": 0
+}

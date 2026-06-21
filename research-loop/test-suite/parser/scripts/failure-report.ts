@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { loadCorpus } from "../parser-tests/evaluator";
-import { parseTransactionSMS } from "../../src/features/sms-parser/engine";
+import { loadCorpus } from "../evaluator";
+import { parseTransactionSMS } from "../../../../src/features/sms-parser/engine";
 
 // Copy exact normalization functions from evaluator.ts to ensure identical comparisons.
 function normalizeText(value: string | null | undefined): string | null {
@@ -50,10 +50,10 @@ interface Failure {
 }
 
 function main() {
-  const projectRoot = path.resolve(__dirname, "../..");
-  const corpusDir = path.resolve(projectRoot, "research-loop/parser-tests/corpus");
-  const failuresJsonPath = path.resolve(projectRoot, "research-loop/autoresearch/failures.json");
-  const failuresTsvPath = path.resolve(projectRoot, "research-loop/autoresearch/failures.tsv");
+  const parserDir = path.resolve(__dirname, "..");
+  const corpusDir = path.resolve(parserDir, "corpus");
+  const failuresJsonPath = path.resolve(parserDir, "reports/failures.json");
+  const failuresTsvPath = path.resolve(parserDir, "reports/failures.tsv");
 
   const records = loadCorpus(corpusDir);
   const failures: Failure[] = [];
