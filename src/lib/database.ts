@@ -150,12 +150,20 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
       timestamp TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS processed_sms_messages (
+      sms_hash TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      dedupe_group_id TEXT,
+      transaction_id TEXT,
+      processed_at TEXT NOT NULL
+    );
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
     CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_sms_hash ON transactions(sms_hash);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_sms_hash_unique ON transactions(sms_hash);
     CREATE INDEX IF NOT EXISTS idx_transactions_dedupe_group_id ON transactions(dedupe_group_id);
+    CREATE INDEX IF NOT EXISTS idx_processed_sms_messages_processed_at ON processed_sms_messages(processed_at);
     CREATE INDEX IF NOT EXISTS idx_transactions_source_date ON transactions(source, date);
     CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
   `);
@@ -554,6 +562,38 @@ export async function checkSMSHashExists(hash: string): Promise<boolean> {
   return (result?.count ?? 0) > 0;
 }
 
+export async function hasProcessedSMSHash(hash: string): Promise<boolean> {
+  const database = await getDatabase();
+  const result = await database.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM processed_sms_messages WHERE sms_hash = ?', hash
+  );
+  return (result?.count ?? 0) > 0;
+}
+
+export async function markSMSMessageProcessed(
+  hash: string,
+  status: 'inserted' | 'duplicate',
+  dedupeGroupId?: string | null,
+  transactionId?: string | null
+): Promise<void> {
+  const database = await getDatabase();
+  const processedAt = new Date().toISOString();
+  await database.runAsync(
+    `INSERT INTO processed_sms_messages (sms_hash, status, dedupe_group_id, transaction_id, processed_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(sms_hash) DO UPDATE SET
+       status = excluded.status,
+       dedupe_group_id = COALESCE(excluded.dedupe_group_id, processed_sms_messages.dedupe_group_id),
+       transaction_id = COALESCE(excluded.transaction_id, processed_sms_messages.transaction_id),
+       processed_at = excluded.processed_at`,
+    hash,
+    status,
+    dedupeGroupId ?? null,
+    transactionId ?? null,
+    processedAt
+  );
+}
+
 export async function getRecentSMSTransactions(dateFrom: string, dateTo: string): Promise<Transaction[]> {
   const database = await getDatabase();
   const rows = await database.getAllAsync<{
@@ -902,4 +942,7 @@ export async function updateDetectionStatus(bankId: string, status: 'pending' | 
   );
   await writeLog('ACCOUNT_MATCHED', `Updated bank detection status for ${bankId} to ${status}`);
 }
+
+
+
 

@@ -12,6 +12,8 @@ import {
   writeLog,
   addPendingDetection,
   getRecentSMSTransactions,
+  hasProcessedSMSHash,
+  markSMSMessageProcessed,
 } from '../../lib/database';
 import { Account } from '../../types';
 import SpendLensSmsModule from '../../../modules/spendlens-sms-module';
@@ -174,6 +176,10 @@ function toTransactionInput(candidate: ParsedSMSCandidate): TransactionInput {
   };
 }
 
+function getRawSMSHash(body: string, dateStr: string): string {
+  return generateSMSHash(body, dateStr, null);
+}
+
 function toStoredTransactionInput(tx: {
   amount: number;
   date: string;
@@ -220,15 +226,25 @@ function toStoredTransactionInput(tx: {
   };
 }
 
-async function findRecentComparatorDuplicate(candidate: ParsedSMSCandidate): Promise<string | null> {
+function getComparatorWindow(candidate: ParsedSMSCandidate): { dateFrom: string; dateTo: string } | null {
   const parsedTime = new Date(candidate.parsed.date || candidate.dateStr).getTime();
   if (Number.isNaN(parsedTime)) {
     return null;
   }
 
-  const dateFrom = new Date(parsedTime - LIVE_DEDUPE_WINDOW_MS).toISOString();
-  const dateTo = new Date(parsedTime + LIVE_DEDUPE_WINDOW_MS).toISOString();
-  const recentTransactions = await getRecentSMSTransactions(dateFrom, dateTo);
+  return {
+    dateFrom: new Date(parsedTime - LIVE_DEDUPE_WINDOW_MS).toISOString(),
+    dateTo: new Date(parsedTime + LIVE_DEDUPE_WINDOW_MS).toISOString(),
+  };
+}
+
+async function findPersistedComparatorDuplicate(candidate: ParsedSMSCandidate): Promise<string | null> {
+  const window = getComparatorWindow(candidate);
+  if (!window) {
+    return null;
+  }
+
+  const recentTransactions = await getRecentSMSTransactions(window.dateFrom, window.dateTo);
   const candidateInput = toTransactionInput(candidate);
 
   for (const transaction of recentTransactions) {
@@ -253,10 +269,14 @@ async function insertParsedTransaction(
   dedupeGroupId: string,
   resolvedAccount?: Account | null
 ): Promise<InsertResult> {
-  const hash = generateSMSHash(candidate.body, candidate.dateStr, candidate.parsed);
-  const alreadyExists = await checkSMSHashExists(hash);
+  const rawSmsHash = getRawSMSHash(candidate.body, candidate.dateStr);
+  const alreadyExists = await checkSMSHashExists(rawSmsHash);
   if (alreadyExists) {
-    await writeLog('TXN_SKIPPED_DUPLICATE', `Message duplicate skipped for hash ${hash}`);
+    await markSMSMessageProcessed(rawSmsHash, 'duplicate', dedupeGroupId);
+    await writeLog('TXN_SKIPPED_DUPLICATE', `Raw message duplicate skipped for hash ${rawSmsHash}`, {
+      hash: rawSmsHash,
+      guard: 'sms_hash',
+    });
     return { inserted: false, resolvedAccount: null };
   }
 
@@ -266,7 +286,7 @@ async function insertParsedTransaction(
   }
 
   const store = useTransactionStore.getState();
-  await store.addTransaction({
+  const transaction = await store.addTransaction({
     accountId: account.id,
     type: candidate.parsed.transaction.type === 'credit' ? 'income' : 'expense',
     amount: candidate.parsed.transaction.amount!,
@@ -274,15 +294,16 @@ async function insertParsedTransaction(
     description: candidate.parsed.rawBody,
     date: candidate.parsed.date || candidate.dateStr,
     source: 'sms',
-    smsHash: hash,
+    smsHash: rawSmsHash,
     dedupeGroupId,
     dedupeVersion: DEDUPE_VERSION,
   });
 
+  await markSMSMessageProcessed(rawSmsHash, 'inserted', dedupeGroupId, transaction.id);
   await writeLog(
     'TXN_CREATED',
     `Transaction of Rs ${candidate.parsed.transaction.amount} persisted to account ${account.name}`,
-    { hash, dedupeGroupId, dedupeVersion: DEDUPE_VERSION }
+    { hash: rawSmsHash, dedupeGroupId, dedupeVersion: DEDUPE_VERSION }
   );
 
   return { inserted: true, resolvedAccount: account };
@@ -302,6 +323,15 @@ export async function processIncomingSMS(
   if (!body) return false;
 
   const dateStr = new Date(receivedDate).toISOString();
+  const rawSmsHash = getRawSMSHash(body, dateStr);
+  if (await hasProcessedSMSHash(rawSmsHash)) {
+    await writeLog('TXN_SKIPPED_DUPLICATE', `Previously processed raw SMS skipped for hash ${rawSmsHash}`, {
+      hash: rawSmsHash,
+      guard: 'processed_sms_messages',
+    });
+    return false;
+  }
+
   await writeLog('SMS_RECEIVED', `Intercepted SMS from ${sender || 'unknown'}`, { body, sender, receivedDate });
 
   const parsed = parseTransactionSMS(body, dateStr, sender);
@@ -320,8 +350,9 @@ export async function processIncomingSMS(
     parsed,
   };
 
-  const duplicateGroupId = await findRecentComparatorDuplicate(candidate);
+  const duplicateGroupId = await findPersistedComparatorDuplicate(candidate);
   if (duplicateGroupId) {
+    await markSMSMessageProcessed(rawSmsHash, 'duplicate', duplicateGroupId);
     await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped during live ingest', {
       dedupeGroupId: duplicateGroupId,
       sender,
@@ -389,6 +420,15 @@ export async function syncSMSFromDevice(): Promise<number> {
           }
 
           const dateStr = new Date(sms.date).toISOString();
+          const rawSmsHash = getRawSMSHash(sms.body, dateStr);
+          if (await hasProcessedSMSHash(rawSmsHash)) {
+            await writeLog('TXN_SKIPPED_DUPLICATE', `Previously processed raw SMS skipped during historical sync for hash ${rawSmsHash}`, {
+              hash: rawSmsHash,
+              guard: 'processed_sms_messages',
+            });
+            continue;
+          }
+
           const parsed = parseTransactionSMS(sms.body, dateStr, sms.address);
           if (!parsed || !parsed.transaction.amount || !parsed.transaction.type) {
             continue;
@@ -404,30 +444,47 @@ export async function syncSMSFromDevice(): Promise<number> {
         }
 
         const groups = dedupeTransactions(parsedCandidates.map(toTransactionInput));
-        const canonicalByKey = new Map<string, string>();
+        const groupIdByKey = new Map<string, string>();
         const duplicateKeys = new Set<string>();
 
         for (const group of groups) {
           const canonicalKey = `${group.canonical.body}__${group.canonical.date}`;
-          canonicalByKey.set(canonicalKey, group.groupKey);
+          groupIdByKey.set(canonicalKey, group.groupKey);
 
           for (const duplicate of group.duplicates) {
-            duplicateKeys.add(`${duplicate.body}__${duplicate.date}`);
+            const duplicateKey = `${duplicate.body}__${duplicate.date}`;
+            duplicateKeys.add(duplicateKey);
+            groupIdByKey.set(duplicateKey, group.groupKey);
           }
         }
 
         for (const candidate of parsedCandidates) {
           const candidateKey = `${candidate.body}__${candidate.dateStr}`;
+          const rawSmsHash = getRawSMSHash(candidate.body, candidate.dateStr);
+          const dedupeGroupId = groupIdByKey.get(candidateKey);
+
           if (duplicateKeys.has(candidateKey)) {
-            await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped during historical sync', {
+            await markSMSMessageProcessed(rawSmsHash, 'duplicate', dedupeGroupId ?? null);
+            await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped during historical sync batch dedupe', {
+              dedupeGroupId,
               sender: candidate.sender,
               dateStr: candidate.dateStr,
             });
             continue;
           }
 
-          const dedupeGroupId = canonicalByKey.get(candidateKey);
           if (!dedupeGroupId) {
+            continue;
+          }
+
+          const persistedDuplicateGroupId = await findPersistedComparatorDuplicate(candidate);
+          if (persistedDuplicateGroupId) {
+            await markSMSMessageProcessed(rawSmsHash, 'duplicate', persistedDuplicateGroupId);
+            await writeLog('TXN_SKIPPED_DEDUPE', 'Comparator-v2 duplicate skipped against persisted SMS during historical sync', {
+              dedupeGroupId: persistedDuplicateGroupId,
+              sender: candidate.sender,
+              dateStr: candidate.dateStr,
+            });
             continue;
           }
 
