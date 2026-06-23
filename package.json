@@ -54,7 +54,7 @@
     "dedupe:safety": "tsx research-loop/test-suite/dedupe/scripts/production-safety.ts",
     "failure-report": "tsx research-loop/test-suite/parser/scripts/failure-report.ts",
     "test:research": "tsx research-loop/test-suite/run.ts",
-    "test": "tsx src/features/sms-parser/__tests__/run-tests.ts",
+    "test": "tsx src/features/sms-parser/__tests__/run-tests.ts && tsx src/features/insights-engine/__tests__/aggregation.test.ts && tsx src/features/insights-engine/__tests__/detector.test.ts",
     "check": "tsc --noEmit",
     "lint": "tsc --project tsconfig.lint.json --noEmit",
     "gadd": "node scripts/git-add-clean.js",

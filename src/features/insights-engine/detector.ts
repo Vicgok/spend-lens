@@ -1,4 +1,6 @@
 import { Transaction, Category } from '../../types';
+import { InsightsTransaction, SubscriptionCandidate } from './types';
+import { filterDuplicateTransactions } from './normalization';
 
 export interface InsightCardData {
   id: string;
@@ -292,3 +294,75 @@ export function generateAllInsights(
     ...detectSalaryRisk(transactions, currentBalance),
   ];
 }
+
+/**
+ * Detects recurring subscription candidates locally from normalized InsightsTransaction history.
+ */
+export function detectSubscriptionCandidates(txs: InsightsTransaction[]): SubscriptionCandidate[] {
+  const filteredTxs = filterDuplicateTransactions(txs);
+  
+  // Group transactions by normalized merchant
+  const groups: Record<string, InsightsTransaction[]> = {};
+  filteredTxs.forEach((tx) => {
+    if (tx.flowType !== 'expense' || !tx.merchant) return;
+    const norm = tx.merchant.toLowerCase().trim();
+    if (!norm) return;
+    if (!groups[norm]) {
+      groups[norm] = [];
+    }
+    groups[norm].push(tx);
+  });
+
+  const candidates: SubscriptionCandidate[] = [];
+
+  for (const [normMerchant, group] of Object.entries(groups)) {
+    if (group.length < 2) continue;
+
+    // Sort chronologically
+    group.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    // Calculate average amount
+    const avgAmount = group.reduce((sum, t) => sum + t.amount, 0) / group.length;
+
+    // Check amount variance <= 10%: abs(amount - avgAmount) / avgAmount <= 0.10
+    const isAmountStable = group.every((t) => {
+      if (avgAmount === 0) return t.amount === 0;
+      return Math.abs(t.amount - avgAmount) / avgAmount <= 0.10;
+    });
+    if (!isAmountStable) continue;
+
+    // Calculate adjacent intervals in days
+    const intervals: number[] = [];
+    for (let i = 1; i < group.length; i++) {
+      const diffMs = group[i].date.getTime() - group[i - 1].date.getTime();
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      intervals.push(diffDays);
+    }
+
+    // All intervals must fit either weekly (6 to 8 days) or monthly (27 to 33 days)
+    const isAllWeekly = intervals.every((days) => days >= 6 && days <= 8);
+    const isAllMonthly = intervals.every((days) => days >= 27 && days <= 33);
+
+    if (!isAllWeekly && !isAllMonthly) continue;
+
+    const frequencyType = isAllWeekly ? 'weekly' : 'monthly';
+    const totalInterval = intervals.reduce((sum, val) => sum + val, 0);
+    const avgInterval = totalInterval / intervals.length;
+
+    candidates.push({
+      merchant: group[group.length - 1].merchant || '',
+      normalizedMerchant: normMerchant,
+      avgAmount,
+      intervalDays: Math.round(avgInterval),
+      frequencyType,
+      occurrencesCount: group.length,
+      confidence: group.length === 2 ? 'possible' : 'likely',
+      lastDate: group[group.length - 1].date,
+      transactionIds: group.map((t) => t.id),
+    });
+  }
+
+  // Sort output by lastDate descending
+  return candidates.sort((a, b) => b.lastDate.getTime() - a.lastDate.getTime());
+}
+
