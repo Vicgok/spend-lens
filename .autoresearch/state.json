@@ -1,10 +1,10 @@
 {
-  "phase": "phase-1c-runtime-observability-hardening",
+  "phase": "phase-2c-unusual-spend-detector",
   "status": "ready",
   "mode": "plan-only",
   "attempt": 1,
   "maxAttempts": 5,
   "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
   "lastDecision": "KEEP",
-  "nextPriority": "optional-backfill-runtime-observability-hardening"
+  "nextPriority": "unusual-spend-detector"
 }

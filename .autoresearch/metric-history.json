@@ -55,5 +55,42 @@
     "decision": "KEEP",
     "filesChanged": [],
     "notes": "Audit only. No implementation needed. Runtime dedupe hardening is sufficient for current app behavior."
+  },
+  {
+    "phase": "phase-2a-insights-data-contract-baseline-aggregation",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/normalization.ts",
+      "src/features/insights-engine/aggregation.ts",
+      "src/features/insights-engine/__tests__/aggregation.test.ts",
+      "package.json"
+    ],
+    "tests": {
+      "insightsAggregationTest": "PASS",
+      "npmTest": "PASS",
+      "testResearchAll": "PASS"
+    },
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "notes": "Phase 2A completed. Insights data contract, normalization, duplicate-safe filtering, and baseline aggregation were implemented."
+  },
+  {
+    "phase": "phase-2b-subscription-candidate-detector",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/detector.ts",
+      "src/features/insights-engine/__tests__/detector.test.ts",
+      "package.json"
+    ],
+    "tests": {
+      "insightsDetectorTest": "PASS",
+      "npmTest": "PASS",
+      "testResearchAll": "PASS"
+    },
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "notes": "Phase 2B completed. Subscription candidate detector implemented using local recurring merchant pattern detection."
   }
 ]

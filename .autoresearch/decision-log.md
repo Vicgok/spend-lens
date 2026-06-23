@@ -100,5 +100,47 @@ Findings:
 - Backfill is not required for current runtime correctness.
 - No files changed.
 
+## Phase 2A — Insights Data Contract + Baseline Aggregation
+
+Decision: KEEP
+
+Reason:
+Insights foundation was implemented using local-only pure functions and tests passed.
+
+Files changed:
+- src/features/insights-engine/types.ts
+- src/features/insights-engine/normalization.ts
+- src/features/insights-engine/aggregation.ts
+- src/features/insights-engine/__tests__/aggregation.test.ts
+- package.json
+
+Tests:
+- npm test src/features/insights-engine/__tests__/aggregation.test.ts
+- npm test
+- npm run test:research all
+
 Next phase:
-Phase 2 — Insights Engine Foundation
+Phase 2B — Subscription Candidate Detector
+
+## Phase 2B — Subscription Candidate Detector
+
+Decision: KEEP
+
+Reason:
+Local subscription candidate detection was implemented and tests passed.
+
+Files changed:
+- src/features/insights-engine/types.ts
+- src/features/insights-engine/detector.ts
+- src/features/insights-engine/__tests__/detector.test.ts
+- package.json
+
+Tests:
+- npm test src/features/insights-engine/__tests__/detector.test.ts
+- npm test
+- npm run test:research all
+
+Next phase:
+Phase 2C — Unusual Spend Detector
+
+

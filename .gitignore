@@ -60,6 +60,7 @@ fix/
 # AI
 .antigravity/
 .codex/
+.agents/
 
 # creds
 credentials.json
