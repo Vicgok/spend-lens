@@ -1,10 +1,10 @@
 {
-  "phase": "phase-1a-sms-reader-comparator-v2",
+  "phase": "phase-1c-runtime-observability-hardening",
   "status": "ready",
   "mode": "plan-only",
   "attempt": 1,
   "maxAttempts": 5,
   "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
   "lastDecision": "KEEP",
-  "nextPriority": "sms-reader-minimal-runtime-integration"
+  "nextPriority": "optional-backfill-runtime-observability-hardening"
 }

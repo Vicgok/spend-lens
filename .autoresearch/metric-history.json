@@ -16,5 +16,44 @@
     },
     "decision": "KEEP",
     "notes": "Phase 0 completed. Normalized latest-metrics.json artifacts are now emitted for parser, dedupe, and all. Orchestrator should consume JSON files instead of console logs."
+  },
+  {
+    "phase": "phase-1a-sms-reader-comparator-v2",
+    "status": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "commands": {
+      "npm test": "PASS",
+      "npm run test:research all": "PASS"
+    },
+    "artifacts": {
+      "all": "research-loop/test-suite/reports/latest-metrics.json",
+      "parser": "research-loop/test-suite/parser/reports/latest-metrics.json",
+      "dedupe": "research-loop/test-suite/dedupe/reports/latest-metrics.json"
+    },
+    "decision": "KEEP",
+    "notes": "Phase 1A completed. Historical sync and live SMS ingest now perform comparator-v2 persisted duplicate checks before insert, while sms_hash remains as a temporary raw-message guard."
+  },
+  {
+    "phase": "phase-1b-runtime-dedupe-hardening",
+    "status": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "commands": {
+      "npm test": "PASS",
+      "npm run test:research all": "PASS"
+    },
+    "artifacts": {
+      "all": "research-loop/test-suite/reports/latest-metrics.json",
+      "parser": "research-loop/test-suite/parser/reports/latest-metrics.json",
+      "dedupe": "research-loop/test-suite/dedupe/reports/latest-metrics.json"
+    },
+    "decision": "KEEP",
+    "notes": "Phase 1B completed. Raw SMS processing is now persisted separately from transaction rows, while comparator-v2 remains the transaction-level duplicate decision."
+  },
+  {
+    "phase": "phase-1c-runtime-observability-hardening",
+    "status": "KEEP_NO_OP",
+    "decision": "KEEP",
+    "filesChanged": [],
+    "notes": "Audit only. No implementation needed. Runtime dedupe hardening is sufficient for current app behavior."
   }
 ]

@@ -1,7 +1,7 @@
 {
   "suite": "parser",
   "status": "PASS",
-  "timestamp": "2026-06-21T19:15:34.012Z",
+  "timestamp": "2026-06-21T21:06:24.923Z",
   "metrics": {
     "overallAccuracy": 97.28,
     "detectionAccuracy": 100,
