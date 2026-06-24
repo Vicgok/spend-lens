@@ -525,14 +525,21 @@ export default function InsightsScreen() {
   // Section 2: What We Found mini cards mapping
   const foundInsights = useMemo(() => {
     const leakInsight = detectedInsights.find((i) => i.type === 'money_leak');
+    const subscriptionInsight = detectedInsights.find((i) => i.type === 'subscription');
     const overspendInsight = detectedInsights.find(
-      (i) => i.type === 'weekend_overspend' || i.type === 'impulse_spending' || i.type === 'shopping_increase'
+      (i) =>
+        i.type === 'unusual_spend' ||
+        i.type === 'weekend_overspend' ||
+        i.type === 'impulse_spending' ||
+        i.type === 'shopping_increase'
     );
 
     return {
-      leaks: leakInsight
+      leaks: subscriptionInsight
+        ? { title: 'Recurring Subscription', desc: subscriptionInsight.subtitle }
+        : leakInsight
         ? { title: 'Possible Money Leak', desc: leakInsight.subtitle }
-        : { title: 'No Money Leaks', desc: 'No recurring charges were detected.' },
+        : { title: 'No Money Leaks', desc: 'No recurring leaks or subscriptions were detected.' },
       spends: overspendInsight
         ? { title: 'Unusual Spending', desc: overspendInsight.subtitle }
         : { title: 'No Unusual Spending', desc: 'Your spending pattern looks normal.' },
@@ -768,9 +775,11 @@ export default function InsightsScreen() {
 
     const impulseCount = detectedInsights.filter((i) => i.type === 'impulse_spending').length;
     const weekendCount = detectedInsights.filter((i) => i.type === 'weekend_overspend').length;
+    const unusualSpendCount = detectedInsights.filter((i) => i.type === 'unusual_spend').length;
+    const subscriptionCount = detectedInsights.filter((i) => i.type === 'subscription').length;
     const leakCount = detectedInsights.filter((i) => i.type === 'money_leak').length;
 
-    const totalAnomalies = impulseCount + weekendCount + leakCount;
+    const totalAnomalies = impulseCount + weekendCount + unusualSpendCount + subscriptionCount + leakCount;
     if (totalAnomalies >= 3) {
       riskLevel = 'High';
     } else if (totalAnomalies > 0) {
@@ -780,8 +789,12 @@ export default function InsightsScreen() {
     detectedInsights.forEach((insight) => {
       if (insight.type === 'impulse_spending') {
         list.push('Large transaction or impulse detected');
+      } else if (insight.type === 'unusual_spend') {
+        list.push('Merchant spending spike detected');
       } else if (insight.type === 'weekend_overspend') {
         list.push('Weekend spending is increasing');
+      } else if (insight.type === 'subscription') {
+        list.push('Recurring subscription charge detected');
       } else if (insight.type === 'money_leak' && activeCategoryInfo) {
         list.push(`${activeCategoryInfo.category} expenses are above normal`);
       }
@@ -903,7 +916,13 @@ export default function InsightsScreen() {
       return 'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get my custom coach advice!';
     }
 
-    // 1. If a leak exists, show savings details
+    // 1. If a recurring subscription exists, surface a direct action
+    const subscription = detectedInsights.find((i) => i.type === 'subscription');
+    if (subscription && subscription.metric) {
+      return `Reviewing ${subscription.subtitle} could free up ${subscription.metric} from your monthly budget.`;
+    }
+
+    // 2. If a leak exists, show savings details
     const leak = detectedInsights.find((i) => i.type === 'money_leak');
     if (leak && leak.impactAmount) {
       const merchant = leak.subtitle.replace('Frequent small spends at ', '') || 'micro-spends';
@@ -911,7 +930,7 @@ export default function InsightsScreen() {
       return `Cutting your spends at ${merchant} by 50% would add ₹${annualSavings.toLocaleString('en-IN')} back to your annual savings.`;
     }
 
-    // 2. If weekend spend is significantly higher
+    // 3. If weekend spend is significantly higher
     let weekdaySum = 0;
     let weekdayDays = new Set<string>();
     let weekendSum = 0;

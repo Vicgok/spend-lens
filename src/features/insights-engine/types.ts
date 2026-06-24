@@ -22,3 +22,19 @@ export interface SubscriptionCandidate {
   lastDate: Date;
   transactionIds: string[];
 }
+
+export interface UnusualSpendCandidate {
+  transactionId: string;
+  merchant: string;
+  normalizedMerchant: string;
+  transactionDate: Date;
+  transactionAmount: number;
+  baselineCount: number;
+  baselineMeanAmount: number;
+  baselineStdDevAmount: number;
+  baselineMaxAmount: number;
+  deviationAmount: number;
+  deviationRatio: number;
+  zScore: number | null;
+  severity: 'medium' | 'high';
+}

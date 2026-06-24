@@ -1,5 +1,5 @@
 import { Transaction, Category } from '../../types';
-import { InsightsTransaction, SubscriptionCandidate } from './types';
+import { InsightsTransaction, SubscriptionCandidate, UnusualSpendCandidate } from './types';
 import { filterDuplicateTransactions } from './normalization';
 
 export interface InsightCardData {
@@ -7,6 +7,7 @@ export interface InsightCardData {
   type:
     | 'money_leak'
     | 'subscription'
+    | 'unusual_spend'
     | 'weekend_overspend'
     | 'food_inflation'
     | 'shopping_increase'
@@ -278,6 +279,63 @@ export function detectSalaryRisk(
   return [];
 }
 
+function toInsightsTransactions(transactions: Transaction[]): InsightsTransaction[] {
+  return transactions.map((tx) => ({
+    id: tx.id,
+    accountId: tx.accountId,
+    type: tx.type,
+    flowType: tx.type === 'income' ? 'income' : 'expense',
+    amount: Math.abs(Number(tx.amount) || 0),
+    categoryId: tx.categoryId ?? null,
+    merchant: tx.merchant ?? null,
+    description: tx.description ?? null,
+    date: new Date(tx.date),
+    dedupeGroupId: tx.dedupeGroupId ?? null,
+  }));
+}
+
+function formatCurrency(amount: number): string {
+  return `Rs ${Math.round(amount)}`;
+}
+
+function mapSubscriptionCandidateToInsight(
+  candidate: SubscriptionCandidate
+): InsightCardData {
+  const cadenceLabel = candidate.frequencyType === 'monthly' ? 'month' : 'week';
+  const priority: InsightCardData['priority'] =
+    candidate.confidence === 'likely' && candidate.avgAmount >= 500 ? 'high' : 'medium';
+
+  return {
+    id: `subscription-candidate-${candidate.normalizedMerchant}-${candidate.transactionIds[0] ?? 'unknown'}`,
+    type: 'subscription',
+    title: 'Recurring Subscription Detected',
+    subtitle: `${candidate.merchant} every ${candidate.intervalDays} days`,
+    metric: `${formatCurrency(candidate.avgAmount)} / ${cadenceLabel}`,
+    impactAmount: Math.round(candidate.avgAmount),
+    whatHappened: `${candidate.occurrencesCount} similar payments to ${candidate.merchant} were detected on a ${candidate.frequencyType} cadence.`,
+    why: `A repeated merchant cadence suggests a subscription or recurring commitment that quietly reduces flexible cash flow.`,
+    whatToDo: `Review ${candidate.merchant} and keep it only if you still use it regularly.`,
+    priority,
+  };
+}
+
+function mapUnusualSpendCandidateToInsight(
+  candidate: UnusualSpendCandidate
+): InsightCardData {
+  return {
+    id: `unusual-spend-${candidate.transactionId}`,
+    type: 'unusual_spend',
+    title: 'Unusual Spending Detected',
+    subtitle: `${formatCurrency(candidate.transactionAmount)} at ${candidate.merchant} vs usual ${formatCurrency(candidate.baselineMeanAmount)}`,
+    metric: `${candidate.deviationRatio.toFixed(1)}x usual`,
+    impactAmount: Math.round(candidate.deviationAmount),
+    whatHappened: `A payment of ${formatCurrency(candidate.transactionAmount)} at ${candidate.merchant} was much higher than your prior average of ${formatCurrency(candidate.baselineMeanAmount)} across ${candidate.baselineCount} earlier transactions.`,
+    why: `This merchant-level spike stands out from your normal local transaction history and may reflect an exceptional bill or accidental overspend.`,
+    whatToDo: `Double-check whether this was intentional and consider watching ${candidate.merchant} more closely this month.`,
+    priority: candidate.severity,
+  };
+}
+
 /**
  * Combines all detectors to return a feed of current insights.
  */
@@ -286,10 +344,22 @@ export function generateAllInsights(
   categories: Category[],
   currentBalance: number
 ): InsightCardData[] {
+  if (transactions.length === 0) {
+    return [];
+  }
+
+  const normalizedTransactions = toInsightsTransactions(transactions);
+  const structuredSubscriptionCandidates = detectSubscriptionCandidates(normalizedTransactions);
+  const unusualSpendCandidates = detectUnusualSpendCandidates(normalizedTransactions);
+  const heuristicSubscriptionInsights =
+    structuredSubscriptionCandidates.length > 0 ? [] : detectSubscriptionBurden(transactions, categories);
+
   return [
     ...detectImpulseSpending(transactions),
     ...detectWeekendOverspend(transactions),
-    ...detectSubscriptionBurden(transactions, categories),
+    ...structuredSubscriptionCandidates.map(mapSubscriptionCandidateToInsight),
+    ...unusualSpendCandidates.map(mapUnusualSpendCandidateToInsight),
+    ...heuristicSubscriptionInsights,
     ...detectMoneyLeaks(transactions),
     ...detectSalaryRisk(transactions, currentBalance),
   ];
@@ -364,5 +434,104 @@ export function detectSubscriptionCandidates(txs: InsightsTransaction[]): Subscr
 
   // Sort output by lastDate descending
   return candidates.sort((a, b) => b.lastDate.getTime() - a.lastDate.getTime());
+}
+
+function calculateMean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function calculateStdDev(values: number[], mean: number): number {
+  if (values.length === 0) return 0;
+
+  const variance =
+    values.reduce((sum, value) => sum + (value - mean) * (value - mean), 0) / values.length;
+
+  return Math.sqrt(variance);
+}
+
+/**
+ * Detects unusually high merchant-level expenses using prior-only local history.
+ */
+export function detectUnusualSpendCandidates(
+  txs: InsightsTransaction[]
+): UnusualSpendCandidate[] {
+  const filteredTxs = filterDuplicateTransactions(txs);
+  const groups: Record<string, InsightsTransaction[]> = {};
+
+  filteredTxs.forEach((tx) => {
+    if (tx.flowType !== 'expense' || !tx.merchant) return;
+
+    const normalizedMerchant = tx.merchant.toLowerCase().trim();
+    if (!normalizedMerchant) return;
+
+    if (!groups[normalizedMerchant]) {
+      groups[normalizedMerchant] = [];
+    }
+
+    groups[normalizedMerchant].push(tx);
+  });
+
+  const candidates: UnusualSpendCandidate[] = [];
+
+  for (const [normalizedMerchant, group] of Object.entries(groups)) {
+    if (group.length < 4) continue;
+
+    const sortedGroup = [...group].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    for (let i = 3; i < sortedGroup.length; i++) {
+      const currentTx = sortedGroup[i];
+      const priorTxs = sortedGroup.slice(0, i);
+      const priorAmounts = priorTxs.map((tx) => tx.amount);
+      const priorMean = calculateMean(priorAmounts);
+
+      if (priorTxs.length < 3 || priorMean < 100) {
+        continue;
+      }
+
+      const priorStdDev = calculateStdDev(priorAmounts, priorMean);
+      const baselineMaxAmount = Math.max(...priorAmounts);
+      const thresholdMultiplier = priorMean * 2.5;
+      const thresholdDeviation = priorMean + Math.max(priorStdDev * 2, 500);
+
+      if (
+        currentTx.amount < thresholdMultiplier ||
+        currentTx.amount < thresholdDeviation
+      ) {
+        continue;
+      }
+
+      const deviationAmount = currentTx.amount - priorMean;
+      const deviationRatio = priorMean === 0 ? 0 : currentTx.amount / priorMean;
+      const zScore = priorStdDev === 0 ? null : deviationAmount / priorStdDev;
+      const severity =
+        currentTx.amount >= priorMean * 3 || (zScore !== null && zScore >= 3) ? 'high' : 'medium';
+
+      candidates.push({
+        transactionId: currentTx.id,
+        merchant: currentTx.merchant,
+        normalizedMerchant,
+        transactionDate: currentTx.date,
+        transactionAmount: currentTx.amount,
+        baselineCount: priorTxs.length,
+        baselineMeanAmount: priorMean,
+        baselineStdDevAmount: priorStdDev,
+        baselineMaxAmount,
+        deviationAmount,
+        deviationRatio,
+        zScore,
+        severity,
+      });
+    }
+  }
+
+  return candidates.sort((a, b) => {
+    const dateDiff = b.transactionDate.getTime() - a.transactionDate.getTime();
+    if (dateDiff !== 0) {
+      return dateDiff;
+    }
+
+    return b.deviationRatio - a.deviationRatio;
+  });
 }
 
