@@ -92,5 +92,77 @@
     },
     "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
     "notes": "Phase 2B completed. Subscription candidate detector implemented using local recurring merchant pattern detection."
+  },
+  {
+    "phase": "phase-2c-unusual-spend-detector",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/detector.ts",
+      "src/features/insights-engine/__tests__/detector.test.ts"
+    ],
+    "tests": {
+      "insightsDetectorTest": "PASS",
+      "npmTest": "PASS",
+      "testResearchAll": "PASS"
+    },
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "notes": "Phase 2C completed. Unusual spend detection now uses local prior-only merchant baselines with statistical deviation thresholds."
+  },
+  {
+    "phase": "metrics-snapshot-2026-06-25T00:52:44.846+05:30",
+    "status": "PASS",
+    "decision": "METRICS_APPEND",
+    "metrics": {
+      "parserAccuracy": 97.28,
+      "dedupePrecision": 100,
+      "dedupeRecall": 100,
+      "falseMerge": 0
+    },
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "notes": "Appended latest combined research-loop metrics snapshot from latest-metrics.json."
+  },
+  {
+    "phase": "phase-2d-insights-engine-composer",
+    "timestamp": "2026-06-25T00:52:44.846+05:30",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "metrics": {
+      "parserAccuracy": 97.28,
+      "dedupePrecision": 100,
+      "dedupeRecall": 100,
+      "falseMerge": 0
+    },
+    "notes": "Phase 2D completed. generateAllInsights() is now the single composer API for insight cards."
+  },
+  {
+    "phase": "phase-2e-insights-ui-integration",
+    "timestamp": "2026-06-25T01:51:52.961+05:30",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "metrics": {
+      "parserAccuracy": 97.28,
+      "dedupePrecision": 100,
+      "dedupeRecall": 100,
+      "falseMerge": 0
+    },
+    "notes": "Phase 2E completed. The existing insights screen now consumes composer output for unusual spend and structured subscription cards without redesigning the UI."
+  },
+  {
+    "phase": "phase-2f-insights-ui-regression-audit-follow-up",
+    "timestamp": "2026-06-25T02:05:48.695+05:30",
+    "status": "KEEP",
+    "decision": "KEEP",
+    "sourceOfTruth": "research-loop/test-suite/reports/latest-metrics.json",
+    "metrics": {
+      "parserAccuracy": 97.28,
+      "dedupePrecision": 100,
+      "dedupeRecall": 100,
+      "falseMerge": 0
+    },
+    "notes": "Phase 2F follow-up completed. The insights screen now uses more consistent fallback, checklist, and guidance copy for structured subscription and unusual-spend cards."
   }
 ]

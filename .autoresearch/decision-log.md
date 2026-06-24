@@ -144,3 +144,88 @@ Next phase:
 Phase 2C — Unusual Spend Detector
 
 
+
+## Phase 2C - Unusual Spend Detector
+
+Decision: KEEP
+
+Reason:
+Local unusual spend detection was implemented using prior-only merchant baselines, deduped normalized transaction history, and passing validation.
+
+Files changed:
+- src/features/insights-engine/types.ts
+- src/features/insights-engine/detector.ts
+- src/features/insights-engine/__tests__/detector.test.ts
+
+Tests:
+- npm test src/features/insights-engine/__tests__/detector.test.ts
+- npm test
+- npm run test:research all
+
+Source of truth:
+research-loop/test-suite/reports/latest-metrics.json
+
+Next phase:
+Phase 2D - Insights Engine Composer
+
+## Phase 2D - Insights Engine Composer
+
+Decision: KEEP
+
+Reason:
+The insights engine now exposes one local app-facing composer API through generateAllInsights, with structured subscription and unusual-spend cards integrated and validated.
+
+Files changed:
+- src/features/insights-engine/detector.ts
+- src/features/insights-engine/__tests__/detector.test.ts
+
+Tests:
+- npm test src/features/insights-engine/__tests__/detector.test.ts
+- npm test
+- npm run test:research all
+
+Source of truth:
+research-loop/test-suite/reports/latest-metrics.json
+
+Next phase:
+Phase 2E - Insights UI Integration
+
+## Phase 2E - Insights UI Integration
+
+Decision: KEEP
+
+Reason:
+The existing insights screen now surfaces composer-driven unusual spend and structured subscription cards using the current UI patterns, with no visual redesign.
+
+Files changed:
+- app/(tabs)/insights.tsx
+
+Tests:
+- npm test
+- npm run test:research all
+
+Source of truth:
+research-loop/test-suite/reports/latest-metrics.json
+
+Next phase:
+Phase 2F - Insights UI Regression Audit
+
+## Phase 2F - Insights UI Regression Audit Follow-up
+
+Decision: KEEP
+
+Reason:
+Presentation-only follow-up fixes were applied so fallback copy, checklist language, and guidance better match composer-driven subscription and unusual-spend insights.
+
+Files changed:
+- app/(tabs)/insights.tsx
+
+Tests:
+- npm test
+- npm run test:research all
+
+Source of truth:
+research-loop/test-suite/reports/latest-metrics.json
+
+Next phase:
+Phase 2G - Insights Copy Consistency Audit

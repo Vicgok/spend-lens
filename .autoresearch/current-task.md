@@ -1,6 +1,6 @@
 # Current Task
 
-Phase: Phase 2C — Unusual Spend Detector
+Phase: Phase 2G - Insights Copy Consistency Audit
 
 Status: Ready
 
@@ -10,23 +10,22 @@ Source of truth:
 research-loop/test-suite/reports/latest-metrics.json
 
 Goal:
-Detect unusually high spend locally using transaction history and baseline aggregations.
+Audit the insights screen copy so summary text, checklist language, and guidance stay consistent with composer-driven insight types.
 
 Scope:
-- insights-engine only
+- insights UI audit planning
 
 Allowed:
-- detector.ts
-- detector.test.ts
+- app-facing audit plan only
 
 Not Allowed:
-- DB schema changes
 - parser changes
 - dedupe changes
+- DB schema changes
 - AI/external APIs
 
 Requirements:
-- Plan the unusual spend detector algorithm using local transaction history and statistical parameters (e.g. standard deviation).
+- Plan a copy-consistency audit for the existing insights screen after the Phase 2F regression follow-up.
 
 Success Gates:
 - Plan created and approved
