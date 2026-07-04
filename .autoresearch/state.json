@@ -1,10 +1,10 @@
 {
-  "phase": "phase-2-insights-engine-foundation",
+  "phase": "phase-2c-audited-insights-parser-categorizer-hardening",
   "status": "completed",
   "mode": "implemented",
   "attempt": 1,
   "maxAttempts": 5,
-  "sourceOfTruth": "src/features/insights-engine/aggregates.ts",
+  "sourceOfTruth": "src/features/insights-engine/presenter.ts",
   "lastDecision": "KEEP",
-  "nextPriority": "migrate-remaining-insights-screen-heuristics-to-snapshot-layer"
+  "nextPriority": "add-insights-presenter-and-sections-contract-coverage"
 }

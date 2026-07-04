@@ -76,5 +76,84 @@
     ],
     "decision": "KEEP",
     "notes": "Implemented the local insights foundation. Added a reusable insights snapshot layer, conservative candidate detectors, store integration, focused tests, and partial insights-screen consumption of snapshot-backed outputs."
+  },
+  {
+    "phase": "phase-2b-insights-screen-snapshot-sections",
+    "status": "KEEP",
+    "sourceOfTruth": "src/features/insights-engine/aggregates.ts",
+    "commands": {
+      "npm run test:insights": "PASS"
+    },
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/aggregates.ts",
+      "src/features/insights-engine/__tests__/run-tests.ts",
+      "app/(tabs)/insights.tsx"
+    ],
+    "decision": "KEEP",
+    "notes": "Migrated more insights-tab sections onto snapshot-backed outputs for spending patterns, habits, risks, observations, and coach tips."
+  },
+  {
+    "phase": "phase-2c-audited-insights-parser-categorizer-hardening",
+    "status": "KEEP",
+    "sourceOfTruth": "src/features/sms-parser/engine.ts",
+    "commands": {
+      "npm test": "PASS",
+      "npm run test:insights": "PASS",
+      ".\\node_modules\\.bin\\tsx.cmd src\\features\\categorizer\\__tests__\\run-tests.ts": "PASS",
+      ".\\node_modules\\.bin\\tsx.cmd src\\features\\sms-parser\\__tests__\\test-production-safety.ts": "PASS"
+    },
+    "filesChanged": [
+      "src/features/sms-parser/engine.ts",
+      "src/features/sms-parser/__tests__/test-production-safety.ts",
+      "src/features/categorizer/categorizer.ts",
+      "src/features/categorizer/categories.ts",
+      "src/features/categorizer/__tests__/run-tests.ts",
+      "src/features/insights-engine/aggregates.ts",
+      "src/features/insights-engine/__tests__/run-tests.ts"
+    ],
+    "decision": "KEEP",
+    "notes": "Closed the audited parser dedupe blocker, added categorizer regression coverage and safer matching, and fixed insights local-day key generation plus targeted snapshot coverage."
+  },
+  {
+    "phase": "phase-2c-follow-up-remaining-categorizer-and-insights-audit-closures",
+    "status": "KEEP",
+    "sourceOfTruth": "src/features/categorizer/categorizer.ts",
+    "commands": {
+      ".\\node_modules\\.bin\\tsx.cmd src\\features\\categorizer\\__tests__\\run-tests.ts": "PASS",
+      "npm run test:insights": "PASS"
+    },
+    "filesChanged": [
+      "src/features/categorizer/categorizer.ts",
+      "src/features/categorizer/__tests__/run-tests.ts",
+      "src/features/insights-engine/__tests__/run-tests.ts",
+      ".autoresearch/audits/2026-07-04-codebase-readiness-audit.md",
+      ".autoresearch/current-task.md",
+      ".autoresearch/decision-log.md",
+      ".autoresearch/state.json"
+    ],
+    "decision": "KEEP",
+    "notes": "Closed the remaining broad-keyword categorizer collision path with low-signal keyword fallback behavior and expanded insights snapshot coverage for threshold, sparse-history, cadence, and mixed-category edges."
+  },
+  {
+    "phase": "phase-2c-follow-up-insights-presentation-boundary-split",
+    "status": "KEEP",
+    "sourceOfTruth": "src/features/insights-engine/presenter.ts",
+    "commands": {
+      "npm run test:insights": "PASS"
+    },
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/aggregates.ts",
+      "src/features/insights-engine/presenter.ts",
+      "src/features/insights-engine/__tests__/run-tests.ts",
+      "app/(tabs)/insights.tsx",
+      ".autoresearch/audits/2026-07-04-codebase-readiness-audit.md",
+      ".autoresearch/current-task.md",
+      ".autoresearch/decision-log.md",
+      ".autoresearch/state.json"
+    ],
+    "decision": "KEEP",
+    "notes": "Moved audited insights presentation copy out of the aggregate layer into a presenter boundary and updated tests to validate raw section signals separately from UI prose."
   }
 ]

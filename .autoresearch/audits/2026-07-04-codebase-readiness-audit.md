@@ -2,6 +2,8 @@
 
 Date: 2026-07-04
 
+Last updated after remediation: 2026-07-04
+
 Scope:
 
 - `src/features/insights-engine`
@@ -10,125 +12,185 @@ Scope:
 
 Outcome:
 
-- `insights-engine`: Not production-ready yet
-- `sms-parser`: Not safe to freeze as production-ready yet
-- `categorizer`: Not production-ready
+- `insights-engine`: Improved, but not production-ready yet
+- `sms-parser`: No longer blocked by the audited dedupe defect; closer to freeze-ready
+- `categorizer`: Improved, but not production-ready yet
+
+## Fix Status Summary
+
+| Fix                                             | Subsystem         | Status   | Notes                                                                                                                                    |
+| ----------------------------------------------- | ----------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Same-account dedupe false-positive              | `sms-parser`      | Complete | Fixed in code and covered by production-safety regressions.                                                                              |
+| Same-account false-positive regression coverage | `sms-parser`      | Complete | Added explicit same-account different-merchant and different-amount tests.                                                               |
+| Naive substring-only categorization             | `categorizer`     | Complete | Replaced with token and phrase-aware matching plus explainable confidence and matched-keyword output.                                    |
+| Broad keyword collisions                        | `categorizer`     | Complete | Low-signal single-keyword auto-matches now fall back to uncategorized, and targeted collision regressions pass.                          |
+| Dedicated categorizer test suite                | `categorizer`     | Complete | Targeted regression suite now exists and passes.                                                                                         |
+| UTC day-key truncation                          | `insights-engine` | Complete | Replaced with local-day key handling in the audited paths.                                                                               |
+| Insights snapshot edge coverage                 | `insights-engine` | Complete | Coverage now includes threshold boundaries, sparse-history suppression, subscription cadence edges, and mixed-category sparse snapshots. |
+| Presentation copy mixed into aggregate layer    | `insights-engine` | Complete | Raw aggregate outputs are now mapped to screen copy through a presenter layer instead of engine prose.                                   |
 
 ## Executive Summary
 
-The codebase has a usable foundation, but only the parser has meaningful automated coverage today. Even there, one high-severity dedupe defect remains in the comparator path, which means the SMS pipeline should not be considered safely frozen for production. The insights engine has improved its deterministic snapshot layer, but it still mixes presentation content into the aggregate layer and has shallow test coverage. The categorizer is the least production-ready subsystem: it is a single substring scorer with no dedicated tests, no confidence surface, and several generic keywords that are likely to cause avoidable misclassification.
+The original audit identified one high-severity parser blocker, one high-severity categorizer weakness, and two medium-severity insights issues. The immediate parser blocker is now fixed. The categorizer is materially safer than before, now has dedicated regression coverage, exposes auditable confidence and matched-keyword output, and no longer auto-classifies purely from low-signal one-keyword matches, but its fixture breadth is still limited. The insights engine fixed its UTC day-key bug, covers the previously open subscription, threshold, sparse-history, and mixed-category edge cases, and now routes presentation copy through a presenter layer instead of embedding prose in the aggregate contract.
 
 ## Findings
 
-### 1. High: `sms-parser` can mark unrelated transactions as duplicates when the same account is used within 5 minutes
+### 1. Closed: `sms-parser` same-account dedupe false-positive
 
-File:
-[engine.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/engine.ts:377)
+Status:
 
-Why it matters:
-
-The comment says the final comparator step should require same account, same amount, same merchant, and close time. The implementation only checks same account after the earlier guards pass.
-
-Evidence:
-
-- Time window guard exists at [engine.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/engine.ts:312)
-- Different reference numbers are rejected at [engine.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/engine.ts:326)
-- Final duplicate decision returns `true` for any same-account pair at [engine.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/engine.ts:377)
-
-Risk:
-
-Two legitimate transactions on the same account within five minutes can collapse into one dedupe group if they lack conflicting reference numbers.
-
-### 2. High: `categorizer` has no dedicated automated tests and relies on naive substring scoring
+- Closed in remediation
 
 Files:
 
-- [categorizer.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categorizer.ts:9)
-- [categories.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categories.ts:32)
-- [categories.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categories.ts:163)
-- [categories.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categories.ts:176)
+- [engine.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/engine.ts)
+- [test-production-safety.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/__tests__/test-production-safety.ts)
 
-Why it matters:
+Original problem:
 
-The categorizer scores categories by `searchText.includes(keyword)` and sums keyword lengths. There are no boundary checks, merchant normalization layers, tie-break rules, or confidence outputs. Generic keywords such as `store`, `market`, `credit`, and `upi` make false positives likely.
+The comparator could group any same-account transactions inside the five-minute window even when merchant or amount semantics differed.
 
-Risk:
+Remediation:
 
-- `market` or `store` can incorrectly bias grocery categorization
-- `credit` can incorrectly bias income categorization
-- `upi` can over-capture transfers even when a stronger merchant-specific expense signal exists
+- Same-account dedupe now also requires aligned amount, transaction type, and normalized merchant.
+- Production-safety regressions were added for:
+  - same account, different merchant
+  - same account, different amount
 
-Coverage gap:
+Validation:
 
-There is no categorizer test module under `src/features/categorizer/`; the directory contains only [categories.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categories.ts:1) and [categorizer.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categorizer.ts:1)
+- `npm test`: PASS
+- `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`: PASS
 
-### 3. Medium: `insights-engine` mixes UI copy and presentation semantics into the aggregate layer
+Residual risk:
 
-File:
-[aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:344)
+- Medium. The parser is much safer now, but freeze-readiness should still be gated by broader end-to-end fixtures, not only unit and production-safety coverage.
 
-Why it matters:
+### 2. Improved: `categorizer` no longer relies on naive substring scoring and now exposes explainable results
 
-The aggregate layer now emits narrative strings like habit titles, details, risk descriptions, and coach tips directly from the engine. This makes the data layer less reusable, harder to localize, and more brittle to copy changes.
+Status:
 
-Examples:
-
-- Habit summaries/details at [aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:349)
-- Risk description at [aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:436)
-- Coach tip generation at [aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:513)
-
-Risk:
-
-Changing product copy or adding localization now requires touching the engine contract instead of a presentation mapper.
-
-### 4. Medium: `insights-engine` uses UTC date truncation in places that can skew local-day behavior
+- Core matching and explainability gap closed in remediation
+- Production-hardening follow-up still open
 
 Files:
 
-- [aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:54)
-- [aggregates.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts:464)
+- [categorizer.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categorizer.ts)
+- [categories.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/categories.ts)
+- [run-tests.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/categorizer/__tests__/run-tests.ts)
 
-Why it matters:
+Original problem:
 
-The engine builds local day/week/month windows, but some day keys are derived with `toISOString().split('T')[0]`, which uses UTC. Around midnight or across time zones, this can create mismatches between bucket assignment and displayed day labels.
+The categorizer used `searchText.includes(keyword)` scoring with no dedicated tests, no token boundaries, and several broad keywords that invited false positives.
 
-Risk:
+Remediation:
 
-Daily trend labels and weekday/weekend observations can drift from the user’s actual local transaction day.
+- Replaced substring-heavy matching with normalized phrase and token-aware scoring.
+- Reduced broad default collisions by removing generic keywords such as `store`, `market`, `credit`, and `upi`.
+- Reduced the weight of weak generic phrases such as `paid to`, `sent to`, and `bank transfer`.
+- Added a low-signal keyword guard so one generic match like `movie` or `bill` no longer auto-classifies by itself.
+- Added explainable categorization output with confidence and matched-keyword reporting.
+- Added a dedicated categorizer regression suite for ambiguous cases.
 
-### 5. Medium: `insights-engine` test coverage is too shallow for production confidence
+Validation:
 
-File:
-[run-tests.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/__tests__/run-tests.ts:38)
+- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`: PASS
 
-Why it matters:
+Remaining gap:
 
-There is only one compact synthetic fixture set. It verifies that the happy path works, but it does not stress:
+- The suite is targeted, but still small relative to the likely production merchant space.
+- There is still no broader fixture bank covering more merchant aliases and payment wording variation.
 
-- time zone boundaries
-- empty-history behavior for new snapshot section fields
-- category tie behavior
-- false-positive subscription candidates
-- unusual-spend threshold edges
+Residual risk:
 
-Risk:
+- Medium. The categorizer is substantially safer and now auditable at the decision level, but not yet strong enough to call production-ready without a larger fixture bank.
 
-The engine can look “green” while still failing on realistic ledger variation.
+### 3. Closed: `insights-engine` no longer mixes presentation copy into the aggregate layer
 
-### 6. Medium: `sms-parser` production-safety tests do not cover the same-account false-positive path
+Status:
+
+- Closed in remediation
 
 Files:
 
-- [test-production-safety.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/__tests__/test-production-safety.ts:57)
-- [test-production-safety.ts](/abs/path/D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/sms-parser/__tests__/test-production-safety.ts:129)
+- [aggregates.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts)
+- [presenter.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/presenter.ts)
+- [insights.tsx](<D:/Documents/StartUp/MicroSaaS/spend-lens/app/(tabs)/insights.tsx>)
 
-Why it matters:
+Original problem:
 
-The existing production-safety suite checks determinism and several bridge/non-bridge scenarios, but it does not include two different same-account transactions within the five-minute window with different merchants or amounts and no references.
+The aggregate layer emitted narrative strings such as habit titles, details, risk descriptions, and coach tips directly from the engine contract. That kept copy, localization, and product-language changes coupled to data-layer changes.
 
-Risk:
+Remediation:
 
-The suite passes while the real false-positive dedupe bug remains undetected.
+- Replaced screen-facing prose in `aggregates.ts` with structured section signals.
+- Added `presenter.ts` to map those raw signals into UI copy for the insights screen.
+- Updated the screen to read presenter output instead of engine-owned narrative strings.
+- Updated insights tests so raw engine signals and presenter-mapped copy are validated separately.
+
+Validation:
+
+- `npm run test:insights`: PASS
+
+Residual risk:
+
+- Low. The aggregate contract is now UI-agnostic in the audited section paths; remaining work is mostly broader contract-depth follow-up rather than copy separation.
+
+### 4. Closed: `insights-engine` UTC date truncation could skew local-day behavior
+
+Status:
+
+- Closed in remediation
+
+Files:
+
+- [aggregates.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/aggregates.ts)
+- [run-tests.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/__tests__/run-tests.ts)
+
+Original problem:
+
+Some day keys used `toISOString().split('T')[0]`, which could drift from the user’s local day near midnight or across time zones.
+
+Remediation:
+
+- Replaced UTC truncation with explicit local-date key generation in the targeted aggregate paths.
+- Added test coverage for the local-day observation path.
+
+Validation:
+
+- `npm run test:insights`: PASS
+
+Residual risk:
+
+- Low for the audited paths. Other future time-sensitive features should keep using the same local-day helper pattern.
+
+### 5. Closed for the audited edge set: `insights-engine` test coverage now covers the previously missing targeted snapshot edges
+
+Status:
+
+- Targeted edge-coverage gap closed in remediation
+- Broader production-readiness follow-up still open
+
+File:
+
+- [run-tests.ts](D:/Documents/StartUp/MicroSaaS/spend-lens/src/features/insights-engine/__tests__/run-tests.ts)
+
+Remediation:
+
+- Added empty-section behavior coverage.
+- Added local-day observation coverage.
+- Added unusual-spend threshold boundary coverage.
+- Added sparse-history unusual-spend suppression coverage.
+- Added subscription cadence false-positive coverage.
+- Added mixed-category sparse snapshot coverage.
+
+Remaining gaps:
+
+- presenter-mapped `sections.*` outputs still rely on a smaller contract suite than a production-ready engine would want
+
+Residual risk:
+
+- Low-to-medium. The audited edge cases and presentation-boundary issue are now closed, but the engine would still benefit from broader contract-style coverage for a stronger production-ready claim.
 
 ## Validation Evidence
 
@@ -136,106 +198,89 @@ Commands run:
 
 - `npm test`
 - `npm run test:insights`
+- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
 - `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`
 
 Observed results:
 
 - SMS parser suite passed with 66 assertions
-- Insights engine suite passed
+- Insights engine suite passed, including threshold, sparse-history, subscription cadence, and mixed-category edge coverage
+- Categorizer regression suite passed, including explainability, ambiguous-phrase coverage, and low-signal collision coverage
 - SMS parser production-safety suite passed
-- No categorizer test suite exists
+
+Notes:
+
+- The standalone `tsx` runs required unsandboxed execution because sandboxed `esbuild` spawn returned `EPERM`.
 
 ## Readiness Assessment
 
 ### Insights Engine
 
-Status: `Not ready`
+Status: `Improved, not ready`
 
 Why:
 
-- Deterministic foundations exist
+- Deterministic snapshot foundations exist
 - Snapshot/store integration exists
-- But presentation coupling and shallow coverage still make it too fragile for production claims
+- The audited UTC day-key bug is fixed
+- The audited edge coverage gaps are now closed
+- Presentation copy is now separated from aggregate signals
+- But broader contract-style coverage can still improve confidence
 
 What would move it to ready:
 
-- Split narrative copy from numeric/event aggregates
-- Add targeted edge-case coverage for time, thresholds, and sparse history
-- Add explicit contract tests for `sections.*`
+- Add focused contract tests around `sections.*` outputs and copy boundaries
+- Add focused contract tests for `sections.*`
 
 ### SMS Parser
 
-Status: `Not ready to freeze`
+Status: `Improved, conditionally closer to ready`
 
 Why:
 
-- Overall coverage is the strongest of the three systems
-- But the same-account dedupe false-positive is a production blocker
+- The original high-severity dedupe blocker is fixed
+- The production-safety suite now covers the previously missing same-account false-positive path
+- Core parser coverage remains the strongest of the three subsystems
 
 What would move it to ready:
 
-- Fix the comparator logic
-- Add regression tests for same-account/non-duplicate pairs
-- Re-run the full parser and production-safety suites
+- Add cross-system golden fixtures through parser -> categorizer -> insights
+- Keep freeze status evidence-based rather than declarative
 
 ### Categorizer
 
-Status: `Not ready`
+Status: `Improved, not ready`
 
 Why:
 
-- No dedicated tests
-- No confidence output
-- Simple substring scoring is too weak for production classification quality
+- Dedicated tests now exist
+- Matching is safer than naive substring scoring
+- Confidence and matched-keyword explanation output now exist
+- Low-signal one-keyword collisions are blocked
+- But fixture breadth is still limited
 
 What would move it to ready:
 
-- Add normalization and token/boundary-aware matching
-- Add fixture-driven categorization tests
-- Add confidence/explanation output so corrections are auditable
+- Expand the fixture bank around ambiguous merchants and payment wording
+- Add correction/auditability support for category decisions
+- Add cross-system fixtures that verify categorizer explanations through downstream flows
 
-## Phased Fix Plan
+## Updated Fix Plan
 
-### Phase 0: Immediate blocker
+### Phase 0: Completed fixes
 
-Target:
+Completed work:
 
-- `sms-parser`
+- Fixed the parser same-account dedupe blocker
+- Added parser regressions for the false-positive path
+- Hardened categorizer matching and added a dedicated test suite
+- Fixed insights local-day key generation and expanded targeted tests
 
-Work:
+Status:
 
-- Fix `areTransactionsDuplicate` so same-account duplicates also require amount, merchant, and type alignment
-- Add regression tests for:
-  - same account, different merchant, same 5-minute window
-  - same account, different amount, same 5-minute window
-  - same account, same merchant, different amount
+- Complete
 
-Exit criteria:
-
-- parser test suite passes
-- production-safety suite passes
-- new regression suite catches the old bug
-
-### Phase 1: Categorizer hardening
-
-Target:
-
-- `categorizer`
-
-Work:
-
-- Replace raw substring scoring with normalized token matching plus phrase priority
-- Reduce or remove generic keywords that cause broad collisions
-- Add confidence score and matched-keyword explanation
-- Add dedicated test fixtures covering ambiguous merchants and UPI/credit/store overlap
-
-Exit criteria:
-
-- dedicated categorizer suite exists
-- ambiguous fixtures behave deterministically
-- correction path can audit why a category was chosen
-
-### Phase 2: Insights contract cleanup
+### Phase 1: Remaining insights contract hardening
 
 Target:
 
@@ -243,16 +288,40 @@ Target:
 
 Work:
 
-- Split raw aggregate outputs from presentation copy
-- Move titles/descriptions/tips into a mapper or screen adapter layer
-- Replace UTC date-key generation with explicit local-day helpers
-- Expand tests to include edge thresholds, sparse data, and timezone-adjacent cases
+- Add focused contract tests for the presenter boundary
+- Expand contract-style coverage around `sections.*` outputs
+- Validate screen-side fallbacks against presenter output
 
 Exit criteria:
 
 - engine exports UI-agnostic primitives
-- section-mapper layer has focused tests
-- local-day logic is deterministic and documented
+- presentation copy changes do not require aggregate-layer edits
+- presenter boundary is covered by focused contract tests
+
+Status:
+
+- Open
+
+### Phase 2: Categorizer production hardening
+
+Target:
+
+- `categorizer`
+
+Work:
+
+- Expand fixture coverage across ambiguous merchant and payment phrasing
+- Validate correction/auditability flows
+- Add cross-system fixtures that preserve explainability expectations
+
+Exit criteria:
+
+- category decisions are explainable
+- broader fixtures behave deterministically
+
+Status:
+
+- Open
 
 ### Phase 3: Cross-system production gate
 
@@ -271,9 +340,13 @@ Exit criteria:
 - one end-to-end fixture pack exists
 - freeze status is evidence-based instead of declarative
 
+Status:
+
+- Open
+
 ## Safe Parallel Sub-Agent Execution Order
 
-This is now enabled in the `.ai-team` workflow docs. Recommended safe order:
+This remains enabled in the `.ai-team` workflow docs. Recommended safe order:
 
 1. Orchestrator records scope and constraints.
 2. Planner defines subsystem boundaries and output format.
@@ -281,7 +354,7 @@ This is now enabled in the `.ai-team` workflow docs. Recommended safe order:
    - Auditor A: `insights-engine`
    - Auditor B: `sms-parser`
    - Auditor C: `categorizer`
-4. Orchestrator merges findings into one prioritized report.
+4. Orchestrator merges findings into one prioritized result.
 5. If remediation is approved, return to sequential execution:
    - Coder
    - Tester
