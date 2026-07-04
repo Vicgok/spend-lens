@@ -55,5 +55,26 @@
     "decision": "KEEP",
     "filesChanged": [],
     "notes": "Audit only. No implementation needed. Runtime dedupe hardening is sufficient for current app behavior."
+  },
+  {
+    "phase": "phase-2-insights-engine-foundation",
+    "status": "KEEP",
+    "sourceOfTruth": "src/features/insights-engine/aggregates.ts",
+    "commands": {
+      "npm run check": "PASS",
+      "npm test": "PASS",
+      "npm run test:insights": "PASS"
+    },
+    "filesChanged": [
+      "src/features/insights-engine/types.ts",
+      "src/features/insights-engine/aggregates.ts",
+      "src/features/insights-engine/formulas.ts",
+      "src/features/insights-engine/__tests__/run-tests.ts",
+      "src/stores/transaction-store.ts",
+      "app/(tabs)/insights.tsx",
+      "package.json"
+    ],
+    "decision": "KEEP",
+    "notes": "Implemented the local insights foundation. Added a reusable insights snapshot layer, conservative candidate detectors, store integration, focused tests, and partial insights-screen consumption of snapshot-backed outputs."
   }
 ]

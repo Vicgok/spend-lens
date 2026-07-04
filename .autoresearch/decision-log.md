@@ -86,7 +86,7 @@ Migration-safe schema addition only. Existing transaction data was preserved.
 Next phase:
 Phase 1C - optional backfill / runtime observability hardening if needed
 
-## Phase 1C — Runtime Observability / Backfill Audit
+## Phase 1C - Runtime Observability / Backfill Audit
 
 Decision: KEEP / NO-OP
 
@@ -101,4 +101,44 @@ Findings:
 - No files changed.
 
 Next phase:
-Phase 2 — Insights Engine Foundation
+Phase 2 - Insights Engine Foundation
+
+## Phase 2 - Insights Engine Foundation
+
+Decision: KEEP
+
+Reason:
+Implemented a deterministic, local-first insights snapshot layer on top of persisted transactions without changing parser or dedupe behavior.
+
+Source of truth:
+src/features/insights-engine/aggregates.ts
+
+Commands verified:
+
+- npm run check: PASS
+- npm test: PASS
+- npm run test:insights: PASS
+
+Behavior changed:
+Yes. The app now computes reusable insight summaries and conservative candidate signals from persisted local transaction data.
+
+Code behavior changed:
+Yes. `transaction-store` now maintains an `insightsSnapshot`, new insight aggregators/detectors exist, and the insights screen consumes snapshot-backed outputs for part of the experience.
+
+Files changed:
+
+- `src/features/insights-engine/types.ts`
+- `src/features/insights-engine/aggregates.ts`
+- `src/features/insights-engine/formulas.ts`
+- `src/features/insights-engine/__tests__/run-tests.ts`
+- `src/stores/transaction-store.ts`
+- `app/(tabs)/insights.tsx`
+- `package.json`
+
+Notes:
+- No schema migration was required.
+- Subscription and unusual-spend outputs remain intentionally conservative and are treated as candidates, not confirmed facts.
+- Some screen-local heuristics still remain in `app/(tabs)/insights.tsx`; the core data foundation is now in place.
+
+Next priority:
+Migrate more of the remaining insights-tab derived UI logic onto the snapshot layer.
