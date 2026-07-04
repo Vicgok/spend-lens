@@ -12,6 +12,31 @@ const WEAK_SINGLE_TOKEN_KEYWORDS = new Set([
   'sent',
   'paid',
 ]);
+const LOW_SIGNAL_SINGLE_KEYWORDS = new Set([
+  'bill',
+  'books',
+  'fresh',
+  'game',
+  'hotel',
+  'interest',
+  'movie',
+  'prime',
+  'reward',
+  'wire',
+]);
+const WEAK_PHRASE_KEYWORDS = new Set([
+  'payment received',
+  'sent to',
+  'paid to',
+  'bank transfer',
+]);
+
+export interface CategorizationResult {
+  categoryId: string;
+  confidence: 'none' | 'low' | 'medium' | 'high';
+  score: number;
+  matchedKeywords: string[];
+}
 
 function normalizeText(value: string | null | undefined): string {
   return (value ?? '')
@@ -30,20 +55,47 @@ function containsPhrase(haystack: string, needle: string): boolean {
   return haystack === needle || haystack.includes(` ${needle} `) || haystack.startsWith(`${needle} `) || haystack.endsWith(` ${needle}`);
 }
 
-function scoreKeywordMatch(searchText: string, tokens: Set<string>, keyword: string): number {
+function getConfidence(score: number, matchedKeywords: string[], runnerUpScore: number): CategorizationResult['confidence'] {
+  if (score <= 0 || matchedKeywords.length === 0) return 'none';
+
+  const margin = score - runnerUpScore;
+  const hasPhraseMatch = matchedKeywords.some((keyword) => tokenize(normalizeText(keyword)).length > 1);
+
+  if (score >= 20 && margin >= 8 && matchedKeywords.length >= 2) return 'high';
+  if (score >= 12 && (margin >= 4 || hasPhraseMatch)) return 'medium';
+  return 'low';
+}
+
+function isLowSignalOnlyMatch(matchedKeywords: string[]): boolean {
+  return matchedKeywords.length === 1 && LOW_SIGNAL_SINGLE_KEYWORDS.has(normalizeText(matchedKeywords[0]));
+}
+
+function scoreKeywordMatch(
+  searchText: string,
+  tokens: Set<string>,
+  keyword: string
+): { score: number; normalizedKeyword: string } {
   const normalizedKeyword = normalizeText(keyword);
-  if (!normalizedKeyword) return 0;
+  if (!normalizedKeyword) return { score: 0, normalizedKeyword };
 
   const keywordTokens = tokenize(normalizedKeyword);
   if (keywordTokens.length > 1) {
-    return containsPhrase(` ${searchText} `, normalizedKeyword) ? normalizedKeyword.length * 4 : 0;
+    if (!containsPhrase(` ${searchText} `, normalizedKeyword)) {
+      return { score: 0, normalizedKeyword };
+    }
+
+    const score = WEAK_PHRASE_KEYWORDS.has(normalizedKeyword)
+      ? Math.max(2, normalizedKeyword.length)
+      : normalizedKeyword.length * 4;
+    return { score, normalizedKeyword };
   }
 
   const [token] = keywordTokens;
-  if (!tokens.has(token)) return 0;
+  if (!tokens.has(token)) return { score: 0, normalizedKeyword };
 
   const baseScore = token.length * 2;
-  return WEAK_SINGLE_TOKEN_KEYWORDS.has(token) ? Math.max(1, Math.floor(baseScore / 3)) : baseScore;
+  const score = WEAK_SINGLE_TOKEN_KEYWORDS.has(token) ? Math.max(1, Math.floor(baseScore / 3)) : baseScore;
+  return { score, normalizedKeyword };
 }
 
 /**
@@ -57,40 +109,89 @@ export function categorizeTransaction(
   type: TransactionType,
   categories: Category[] = DEFAULT_CATEGORIES
 ): string {
+  return categorizeTransactionDetailed(merchant, description, type, categories).categoryId;
+}
+
+export function categorizeTransactionDetailed(
+  merchant: string | null,
+  description: string | null,
+  type: TransactionType,
+  categories: Category[] = DEFAULT_CATEGORIES
+): CategorizationResult {
   const searchText = normalizeText([merchant, description].filter(Boolean).join(' '));
-  if (!searchText) return UNCATEGORIZED;
+  if (!searchText) {
+    return {
+      categoryId: UNCATEGORIZED,
+      confidence: 'none',
+      score: 0,
+      matchedKeywords: [],
+    };
+  }
 
   const tokens = new Set(tokenize(searchText));
   const cats = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
   const applicableCategories = cats.filter((cat) => cat.type === type || cat.type === 'both');
 
-  let bestMatch: { categoryId: string; score: number; matchedKeywordLength: number } = {
+  let bestMatch: { categoryId: string; score: number; matchedKeywordLength: number; matchedKeywords: string[] } = {
     categoryId: UNCATEGORIZED,
     score: 0,
     matchedKeywordLength: 0,
+    matchedKeywords: [],
   };
+  let runnerUpScore = 0;
 
   for (const category of applicableCategories) {
     let score = 0;
     let matchedKeywordLength = 0;
+    const matchedKeywords: string[] = [];
     const keywords = Array.isArray(category.keywords) ? category.keywords : [];
 
     for (const keyword of keywords) {
-      const keywordScore = scoreKeywordMatch(searchText, tokens, keyword);
+      const { score: keywordScore, normalizedKeyword } = scoreKeywordMatch(searchText, tokens, keyword);
       if (keywordScore <= 0) continue;
       score += keywordScore;
-      matchedKeywordLength = Math.max(matchedKeywordLength, normalizeText(keyword).length);
+      matchedKeywordLength = Math.max(matchedKeywordLength, normalizedKeyword.length);
+      matchedKeywords.push(keyword);
     }
 
-    if (
+    const isBetterMatch =
       score > bestMatch.score ||
-      (score === bestMatch.score && matchedKeywordLength > bestMatch.matchedKeywordLength)
+      (score === bestMatch.score && matchedKeywordLength > bestMatch.matchedKeywordLength);
+
+    if (
+      isBetterMatch
     ) {
-      bestMatch = { categoryId: category.id, score, matchedKeywordLength };
+      runnerUpScore = bestMatch.score;
+      bestMatch = { categoryId: category.id, score, matchedKeywordLength, matchedKeywords };
+    } else if (score > runnerUpScore) {
+      runnerUpScore = score;
     }
   }
 
-  return bestMatch.score > 0 ? bestMatch.categoryId : UNCATEGORIZED;
+  if (bestMatch.score <= 0) {
+    return {
+      categoryId: UNCATEGORIZED,
+      confidence: 'none',
+      score: 0,
+      matchedKeywords: [],
+    };
+  }
+
+  if (isLowSignalOnlyMatch(bestMatch.matchedKeywords)) {
+    return {
+      categoryId: UNCATEGORIZED,
+      confidence: 'none',
+      score: 0,
+      matchedKeywords: [],
+    };
+  }
+
+  return {
+    categoryId: bestMatch.categoryId,
+    confidence: getConfidence(bestMatch.score, bestMatch.matchedKeywords, runnerUpScore),
+    score: bestMatch.score,
+    matchedKeywords: bestMatch.matchedKeywords,
+  };
 }
 
 export function getCategoryById(categoryId: string) {
