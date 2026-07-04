@@ -3,14 +3,16 @@ import {
   BuildInsightsSnapshotInput,
   InsightAccountSummaryRow,
   InsightCategoryBreakdownRow,
-  InsightHabitSummary,
+  InsightCoachSignal,
+  InsightHabitSignal,
+  InsightObservationSignal,
   InsightPeriodTotal,
-  InsightRiskSummary,
+  InsightRiskSignal,
   InsightSpendingPatternRow,
   InsightTrend,
   InsightTrendPoint,
   InsightsSnapshot,
-  InsightsScreenSections,
+  InsightsSnapshotSections,
   SubscriptionCandidate,
   UnusualSpendCandidate,
 } from './types';
@@ -284,11 +286,6 @@ export function buildSpendingPatternsSection(
       percentChange = 100;
     }
 
-    let positiveInsight: string | null = null;
-    if (direction === 'down') {
-      positiveInsight = `Excellent discipline! You saved ₹${Math.abs(amountChange).toLocaleString('en-IN')} this month by trimming spends in ${row.categoryName}.`;
-    }
-
     return {
       categoryName: row.categoryName,
       amount: Math.round(row.total),
@@ -297,7 +294,6 @@ export function buildSpendingPatternsSection(
       percentChange,
       direction,
       topMerchants: getTopMerchantsForCategory(currentMonthTransactions, categories, row.categoryName),
-      positiveInsight,
     };
   });
 
@@ -307,7 +303,7 @@ export function buildSpendingPatternsSection(
 export function buildHabitsSection(
   currentMonthExpenses: Transaction[],
   categories: Category[]
-): InsightHabitSummary[] {
+): InsightHabitSignal[] {
   if (currentMonthExpenses.length === 0) {
     return [];
   }
@@ -345,49 +341,28 @@ export function buildHabitsSection(
   const foodPct = totalExpense > 0 ? (foodSpend / totalExpense) * 100 : 0;
   const eveningPct = currentMonthExpenses.length > 0 ? (eveningCount / currentMonthExpenses.length) * 100 : 0;
 
-  const habits: InsightHabitSummary[] = [
-    weekendPct > 35
-      ? {
-          key: 'weekend-balance',
-          title: 'Weekend Concentration',
-          summary: 'Most spending occurs on weekends',
-          detail: 'Your spending is clustered on weekends. A dedicated weekend allowance can reduce lifestyle creep.',
-          tone: 'neutral',
-          icon: 'calendar',
-        }
-      : {
-          key: 'weekend-balance',
-          title: 'Balanced Timeline',
-          summary: 'Weekday spending patterns remain steady and balanced',
-          detail: 'Your weekday and weekend spending are fairly balanced, which supports more predictable monthly cash flow.',
-          tone: 'positive',
-          icon: 'calendar',
-        },
+  const habits: InsightHabitSignal[] = [
+    {
+      key: 'weekend-balance',
+      tone: weekendPct > 35 ? 'neutral' : 'positive',
+      icon: 'calendar',
+      value: roundCurrency(weekendPct),
+      active: weekendPct > 35,
+    },
     {
       key: 'food-share',
-      title: 'Dining & Food Ratio',
-      summary: `Food accounts for ${Math.round(foodPct)}% of expenses`,
-      detail: 'Food and dining are taking a visible share of your recent outgoings. Meal planning or batching orders can reduce drift.',
       tone: foodPct > 35 ? 'neutral' : 'positive',
       icon: 'percent',
+      value: roundCurrency(foodPct),
+      active: foodPct > 35,
     },
-    eveningPct > 40
-      ? {
-          key: 'time-distribution',
-          title: 'Evening Spend Peaks',
-          summary: 'Transactions increase during evenings',
-          detail: 'Your spending peaks later in the day, which can be a signal for convenience or fatigue-driven purchases.',
-          tone: 'neutral',
-          icon: 'clock',
-        }
-      : {
-          key: 'time-distribution',
-          title: 'Even Time Distribution',
-          summary: 'Transactions are evenly distributed throughout the day',
-          detail: 'No strong time-of-day spike is visible in your current-month transaction pattern.',
-          tone: 'positive',
-          icon: 'clock',
-        },
+    {
+      key: 'time-distribution',
+      tone: eveningPct > 40 ? 'neutral' : 'positive',
+      icon: 'clock',
+      value: roundCurrency(eveningPct),
+      active: eveningPct > 40,
+    },
   ];
 
   return habits;
@@ -398,63 +373,55 @@ export function buildRiskSection(
   unusualSpendCandidates: UnusualSpendCandidate[],
   subscriptionCandidates: SubscriptionCandidate[],
   spendingPatterns: InsightSpendingPatternRow[]
-): InsightRiskSummary {
-  const checklist: string[] = [];
+): InsightRiskSignal {
+  const flags: InsightRiskSignal['flags'] = [];
 
   if (unusualSpendCandidates[0]) {
-    checklist.push(`${unusualSpendCandidates[0].categoryName} spending broke its normal baseline`);
+    flags.push('unusual-spend');
   }
 
   if (monthlyTrend.direction === 'up' && monthlyTrend.deltaPercentage >= 15) {
-    checklist.push(`Monthly spending is up ${Math.round(monthlyTrend.deltaPercentage)}% versus last month`);
+    flags.push('monthly-spike');
   }
 
   if (subscriptionCandidates[0]) {
-    checklist.push(`Recurring charge candidate detected at ${subscriptionCandidates[0].merchant}`);
+    flags.push('subscription-candidate');
   }
 
   const risingPattern = spendingPatterns.find((pattern) => pattern.direction === 'up');
-  if (risingPattern && checklist.length < 3) {
-    checklist.push(`${risingPattern.categoryName} is one of your fastest-rising categories this month`);
+  if (risingPattern && flags.length < 3) {
+    flags.push('rising-category');
   }
 
-  let level: InsightRiskSummary['level'] = 'Low';
-  if (checklist.length >= 3 || (unusualSpendCandidates[0]?.multiplier ?? 0) >= 3) {
+  let level: InsightRiskSignal['level'] = 'Low';
+  if (flags.length >= 3 || (unusualSpendCandidates[0]?.multiplier ?? 0) >= 3) {
     level = 'High';
-  } else if (checklist.length > 0) {
+  } else if (flags.length > 0) {
     level = 'Medium';
   }
 
-  if (checklist.length === 0) {
-    checklist.push('I detected no abnormal spending');
-    checklist.push('I found no suspicious spikes');
-    checklist.push('I detected no spending anomalies');
-  }
-
-  while (checklist.length < 3) {
-    checklist.push('I detected no additional risk signals');
+  if (flags.length === 0) {
+    flags.push('no-risk');
   }
 
   return {
     level,
-    description:
-      level === 'Low'
-        ? 'Your recent activity appears consistent with your normal behavior.'
-        : 'I detected patterns that are moving above your typical spending baseline.',
-    checklist: checklist.slice(0, 3),
+    flags: flags.slice(0, 4),
   };
 }
 
 export function buildObservationsSection(
   currentMonthExpenses: Transaction[],
   previousMonthExpenses: Transaction[]
-): string[] {
+): InsightObservationSignal {
   if (currentMonthExpenses.length === 0) {
-    return [
-      'You spend ₹0 less on weekdays',
-      'Cash usage is steady compared to last month',
-      'Average transaction value is ₹0',
-    ];
+    return {
+      weekdayVsWeekendDelta: 0,
+      moreSpendOn: 'weekdays',
+      cashUsageDeltaPct: 0,
+      cashUsageDirection: 'steady',
+      averageTransactionValue: 0,
+    };
   }
 
   let weekdaySum = 0;
@@ -501,41 +468,57 @@ export function buildObservationsSection(
 
   const avgTransactionValue = currentMonthExpenses.length > 0 ? currentMonthTotal / currentMonthExpenses.length : 0;
 
-  return [
-    avgWeekend > avgWeekday
-      ? `You spend ₹${Math.round(avgWeekend - avgWeekday)} less on weekdays`
-      : `You spend ₹${Math.round(avgWeekday - avgWeekend)} less on weekends`,
-    previousCashRatio > currentCashRatio
-      ? `Cash usage is ${Math.round((previousCashRatio - currentCashRatio) * 100)}% lower than last month`
-      : currentCashRatio > previousCashRatio
-      ? `Cash usage is ${Math.round((currentCashRatio - previousCashRatio) * 100)}% higher than last month`
-      : 'Cash usage is steady compared to last month',
-    `Average transaction value is ₹${Math.round(avgTransactionValue)}`,
-  ];
+  return {
+    weekdayVsWeekendDelta: Math.round(Math.abs(avgWeekday - avgWeekend)),
+    moreSpendOn:
+      avgWeekend > avgWeekday ? 'weekends' : avgWeekday > avgWeekend ? 'weekdays' : 'equal',
+    cashUsageDeltaPct: Math.round(Math.abs(currentCashRatio - previousCashRatio) * 100),
+    cashUsageDirection:
+      previousCashRatio > currentCashRatio
+        ? 'lower'
+        : currentCashRatio > previousCashRatio
+        ? 'higher'
+        : 'steady',
+    averageTransactionValue: Math.round(avgTransactionValue),
+  };
 }
 
 export function buildCoachTipSection(
   spendingPatterns: InsightSpendingPatternRow[],
   unusualSpendCandidates: UnusualSpendCandidate[],
   monthlyTrend: InsightTrend
-): string {
+): InsightCoachSignal {
   const topUnusual = unusualSpendCandidates[0];
   if (topUnusual) {
     const recoverableAmount = Math.max(0, Math.round(topUnusual.amount - topUnusual.baselineMedian));
-    return `Bringing your ${topUnusual.categoryName} spend back to its usual range would recover about ₹${recoverableAmount.toLocaleString('en-IN')} on similar purchases.`;
+    return {
+      kind: 'unusual-spend',
+      categoryName: topUnusual.categoryName,
+      amount: recoverableAmount,
+    };
   }
 
   const risingPattern = spendingPatterns.find((pattern) => pattern.direction === 'up');
   if (risingPattern) {
     const savings = Math.round(risingPattern.amount * 0.1);
-    return `Saving just 10% on ${risingPattern.categoryName} this month translates to ₹${savings.toLocaleString('en-IN')} extra saved.`;
+    return {
+      kind: 'rising-category',
+      categoryName: risingPattern.categoryName,
+      amount: savings,
+    };
   }
 
   if (monthlyTrend.direction === 'up' && monthlyTrend.deltaAmount > 0) {
-    return `Matching last month's pace would keep about ₹${Math.round(monthlyTrend.deltaAmount).toLocaleString('en-IN')} in your cushion this month.`;
+    return {
+      kind: 'monthly-trend',
+      amount: Math.round(monthlyTrend.deltaAmount),
+    };
   }
 
-  return 'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get sharper coach guidance.';
+  return {
+    kind: 'steady-habit',
+    amount: 50,
+  };
 }
 
 export function detectUnusualSpendCandidates(
@@ -672,7 +655,7 @@ export function buildInsightsSnapshot(input: BuildInsightsSnapshotInput): Insigh
   const unusualSpendCandidates = detectUnusualSpendCandidates(filterTransactionsInRange(transactions, previousMonthlyStart, monthlyEnd), categories);
   const subscriptionCandidates = detectSubscriptionCandidates(filterTransactionsInRange(transactions, previousMonthlyStart, monthlyEnd));
   const spendingPatterns = buildSpendingPatternsSection(currentMonthTransactions, previousMonthTransactions, categories);
-  const sections: InsightsScreenSections = {
+  const sections: InsightsSnapshotSections = {
     spendingPatterns,
     habits: buildHabitsSection(currentMonthExpenses, categories),
     risk: buildRiskSection(
@@ -682,7 +665,7 @@ export function buildInsightsSnapshot(input: BuildInsightsSnapshotInput): Insigh
       spendingPatterns
     ),
     observations: buildObservationsSection(currentMonthExpenses, previousMonthExpenses),
-    coachTip: buildCoachTipSection(
+    coach: buildCoachTipSection(
       spendingPatterns,
       unusualSpendCandidates,
       buildTrend(periods.monthly.expenseTotal, previousMonth.expenseTotal, 'monthly')

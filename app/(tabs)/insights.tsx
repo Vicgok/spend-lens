@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { generateAllInsights } from '@/features/insights-engine/detector';
 import { calculateSalarySurvivalScore, calculateSalarySurvivalScoreFromSnapshot } from '@/features/insights-engine/formulas';
+import { mapInsightsSnapshotToScreenSections } from '@/features/insights-engine/presenter';
 import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
@@ -523,7 +524,9 @@ export default function InsightsScreen() {
 
   const snapshotUnusualCandidate = insightsSnapshot?.unusualSpendCandidates[0];
   const snapshotSubscriptionCandidate = insightsSnapshot?.subscriptionCandidates[0];
-  const snapshotSections = insightsSnapshot?.sections;
+  const snapshotSections = insightsSnapshot
+    ? mapInsightsSnapshotToScreenSections(insightsSnapshot)
+    : null;
 
   // Survival score status and explanation
   const scoreStatus = useMemo(() => {
@@ -1586,13 +1589,13 @@ export default function InsightsScreen() {
                       Total spend: <Text style={{ fontFamily: typography.fontFamily.bold, color: '#745143' }}>₹{pattern.amount.toLocaleString('en-IN')}</Text> this month.
                     </Text>
 
-                    {isDown && pattern.positiveInsight ? (
+                    {isDown ? (
                       <View style={{ marginTop: 4, gap: 2 }}>
                         <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#3E5A2A' }}>
                           Positive Insight:
                         </Text>
                         <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18 }}>
-                          {pattern.positiveInsight}
+                          Excellent discipline! You saved ₹{Math.abs(pattern.amountChange).toLocaleString('en-IN')} this month by trimming spends in {pattern.categoryName}.
                         </Text>
                       </View>
                     ) : isUp ? (

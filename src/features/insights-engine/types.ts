@@ -79,33 +79,50 @@ export interface InsightSpendingPatternRow {
   percentChange: number;
   direction: InsightPatternDirection;
   topMerchants: string[];
-  positiveInsight: string | null;
 }
 
 export type InsightHabitTone = 'positive' | 'neutral';
 export type InsightHabitIcon = 'calendar' | 'percent' | 'clock';
 
-export interface InsightHabitSummary {
+export interface InsightHabitSignal {
   key: 'weekend-balance' | 'food-share' | 'time-distribution' | 'cash-usage';
-  title: string;
-  summary: string;
-  detail: string;
   tone: InsightHabitTone;
   icon: InsightHabitIcon;
+  value: number;
+  active: boolean;
 }
 
-export interface InsightRiskSummary {
+export interface InsightRiskSignal {
   level: 'Low' | 'Medium' | 'High';
-  description: string;
-  checklist: string[];
+  flags: Array<
+    | 'unusual-spend'
+    | 'monthly-spike'
+    | 'subscription-candidate'
+    | 'rising-category'
+    | 'no-risk'
+  >;
 }
 
-export interface InsightsScreenSections {
+export interface InsightObservationSignal {
+  weekdayVsWeekendDelta: number;
+  moreSpendOn: 'weekdays' | 'weekends' | 'equal';
+  cashUsageDeltaPct: number;
+  cashUsageDirection: 'lower' | 'higher' | 'steady';
+  averageTransactionValue: number;
+}
+
+export interface InsightCoachSignal {
+  kind: 'unusual-spend' | 'rising-category' | 'monthly-trend' | 'steady-habit';
+  categoryName?: string;
+  amount?: number;
+}
+
+export interface InsightsSnapshotSections {
   spendingPatterns: InsightSpendingPatternRow[];
-  habits: InsightHabitSummary[];
-  risk: InsightRiskSummary;
-  observations: string[];
-  coachTip: string;
+  habits: InsightHabitSignal[];
+  risk: InsightRiskSignal;
+  observations: InsightObservationSignal;
+  coach: InsightCoachSignal;
 }
 
 export interface InsightsSnapshot {
@@ -126,7 +143,7 @@ export interface InsightsSnapshot {
   dailyTrendPoints: InsightTrendPoint[];
   unusualSpendCandidates: UnusualSpendCandidate[];
   subscriptionCandidates: SubscriptionCandidate[];
-  sections: InsightsScreenSections;
+  sections: InsightsSnapshotSections;
   sourceSummary: Record<Transaction['source'], number>;
 }
 

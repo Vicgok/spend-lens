@@ -1,6 +1,12 @@
 import assert from 'node:assert';
 import { Account, Category, Transaction } from '@/types';
-import { buildInsightsSnapshot, buildObservationsSection } from '../aggregates';
+import {
+  buildInsightsSnapshot,
+  buildObservationsSection,
+  detectSubscriptionCandidates,
+  detectUnusualSpendCandidates,
+} from '../aggregates';
+import { mapInsightsSnapshotToScreenSections } from '../presenter';
 
 const accounts: Account[] = [
   {
@@ -52,6 +58,7 @@ const snapshot = buildInsightsSnapshot({
   accounts,
   now: new Date('2026-07-12T12:00:00.000Z'),
 });
+const screenSections = mapInsightsSnapshotToScreenSections(snapshot);
 
 assert.equal(snapshot.duplicateSafeTransactionCount, 8);
 assert.equal(snapshot.periods.monthly.expenseTotal, 1091);
@@ -65,10 +72,13 @@ assert.equal(snapshot.subscriptionCandidates[0]?.merchant, 'Netflix');
 assert.equal(snapshot.subscriptionCandidates[0]?.confidence, 'medium');
 assert.equal(snapshot.sections.spendingPatterns.length, 2);
 assert.equal(snapshot.sections.spendingPatterns[0]?.categoryName, 'Food');
-assert.equal(snapshot.sections.habits[0]?.title, 'Balanced Timeline');
+assert.equal(snapshot.sections.habits[0]?.key, 'weekend-balance');
 assert.equal(snapshot.sections.risk.level, 'High');
-assert.equal(snapshot.sections.observations.length, 3);
-assert.match(snapshot.sections.coachTip, /Food|usual range|Saving/);
+assert.equal(snapshot.sections.observations.moreSpendOn, 'weekdays');
+assert.equal(snapshot.sections.coach.kind, 'unusual-spend');
+assert.equal(screenSections.habits[0]?.title, 'Balanced Timeline');
+assert.equal(screenSections.observations.length, 3);
+assert.match(screenSections.coachTip, /Food|usual range|Saving/);
 
 const emptySnapshot = buildInsightsSnapshot({
   transactions: [],
@@ -79,7 +89,8 @@ const emptySnapshot = buildInsightsSnapshot({
 
 assert.equal(emptySnapshot.sections.habits.length, 0);
 assert.equal(emptySnapshot.sections.risk.level, 'Low');
-assert.equal(emptySnapshot.sections.observations[0], 'You spend ₹0 less on weekdays');
+assert.equal(emptySnapshot.sections.observations.averageTransactionValue, 0);
+assert.equal(mapInsightsSnapshotToScreenSections(emptySnapshot).observations[0], 'You spend ₹0 less on weekends');
 
 const localDayObservations = buildObservationsSection(
   [
@@ -123,6 +134,69 @@ const localDayObservations = buildObservationsSection(
   []
 );
 
-assert.equal(localDayObservations[0], 'You spend ₹800 less on weekends');
+assert.equal(localDayObservations.moreSpendOn, 'weekdays');
+assert.equal(localDayObservations.weekdayVsWeekendDelta, 800);
+
+const belowThresholdUnusualCandidates = detectUnusualSpendCandidates(
+  [
+    { id: 'u1', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-01T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-01T10:00:00.000Z', syncedAt: null },
+    { id: 'u2', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-08T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-08T10:00:00.000Z', syncedAt: null },
+    { id: 'u3', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-15T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-15T10:00:00.000Z', syncedAt: null },
+    { id: 'u4', accountId: 'acc-1', type: 'expense', amount: 174, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-22T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-22T10:00:00.000Z', syncedAt: null },
+  ],
+  categories
+);
+assert.equal(belowThresholdUnusualCandidates.length, 0);
+
+const thresholdUnusualCandidates = detectUnusualSpendCandidates(
+  [
+    { id: 'u5', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-01T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-01T10:00:00.000Z', syncedAt: null },
+    { id: 'u6', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-08T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-08T10:00:00.000Z', syncedAt: null },
+    { id: 'u7', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-15T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-15T10:00:00.000Z', syncedAt: null },
+    { id: 'u8', accountId: 'acc-1', type: 'expense', amount: 175, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-22T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-22T10:00:00.000Z', syncedAt: null },
+  ],
+  categories
+);
+assert.equal(thresholdUnusualCandidates.length, 1);
+assert.equal(thresholdUnusualCandidates[0]?.transactionId, 'u8');
+
+const sparseHistoryUnusualCandidates = detectUnusualSpendCandidates(
+  [
+    { id: 'u9', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-01T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-01T10:00:00.000Z', syncedAt: null },
+    { id: 'u10', accountId: 'acc-1', type: 'expense', amount: 100, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-08T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-08T10:00:00.000Z', syncedAt: null },
+    { id: 'u11', accountId: 'acc-1', type: 'expense', amount: 250, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-05-15T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-15T10:00:00.000Z', syncedAt: null },
+  ],
+  categories
+);
+assert.equal(sparseHistoryUnusualCandidates.length, 0);
+
+const insufficientCadenceSubscriptionCandidates = detectSubscriptionCandidates([
+  { id: 's1', accountId: 'acc-2', type: 'expense', amount: 499, categoryId: 'shopping', merchant: 'Netflix', description: null, date: '2026-05-10T08:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-10T08:00:00.000Z', syncedAt: null },
+  { id: 's2', accountId: 'acc-2', type: 'expense', amount: 500, categoryId: 'shopping', merchant: 'Netflix', description: null, date: '2026-05-30T08:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-30T08:00:00.000Z', syncedAt: null },
+  { id: 's3', accountId: 'acc-2', type: 'expense', amount: 501, categoryId: 'shopping', merchant: 'Netflix', description: null, date: '2026-06-19T08:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-06-19T08:00:00.000Z', syncedAt: null },
+]);
+assert.equal(insufficientCadenceSubscriptionCandidates.length, 0);
+
+const twoOccurrenceSubscriptionCandidates = detectSubscriptionCandidates([
+  { id: 's4', accountId: 'acc-2', type: 'expense', amount: 499, categoryId: 'shopping', merchant: 'Spotify', description: null, date: '2026-05-10T08:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-05-10T08:00:00.000Z', syncedAt: null },
+  { id: 's5', accountId: 'acc-2', type: 'expense', amount: 500, categoryId: 'shopping', merchant: 'Spotify', description: null, date: '2026-06-10T08:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-06-10T08:00:00.000Z', syncedAt: null },
+]);
+assert.equal(twoOccurrenceSubscriptionCandidates.length, 1);
+assert.equal(twoOccurrenceSubscriptionCandidates[0]?.confidence, 'medium');
+
+const mixedSparseSnapshot = buildInsightsSnapshot({
+  transactions: [
+    { id: 'm1', accountId: 'acc-1', type: 'expense', amount: 220, categoryId: 'food', merchant: 'Cafe', description: null, date: '2026-07-06T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-07-06T10:00:00.000Z', syncedAt: null },
+    { id: 'm2', accountId: 'acc-2', type: 'expense', amount: 180, categoryId: 'shopping', merchant: 'Store', description: null, date: '2026-07-07T10:00:00.000Z', source: 'manual', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-07-07T10:00:00.000Z', syncedAt: null },
+    { id: 'm3', accountId: 'acc-1', type: 'income', amount: 2000, categoryId: 'income', merchant: 'Employer', description: null, date: '2026-07-01T09:00:00.000Z', source: 'sms', smsHash: null, dedupeGroupId: null, dedupeVersion: null, isRecurring: false, tags: [], createdAt: '2026-07-01T09:00:00.000Z', syncedAt: null },
+  ],
+  categories,
+  accounts,
+  now: new Date('2026-07-12T12:00:00.000Z'),
+});
+assert.equal(mixedSparseSnapshot.categoryBreakdown.length, 2);
+assert.equal(mixedSparseSnapshot.unusualSpendCandidates.length, 0);
+assert.equal(mixedSparseSnapshot.subscriptionCandidates.length, 0);
+assert.equal(mixedSparseSnapshot.sections.spendingPatterns.length, 2);
 
 console.log('insights-engine tests: PASS');
