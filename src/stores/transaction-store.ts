@@ -12,6 +12,8 @@ import {
 import * as db from '../lib/database';
 import { getMonthRange } from '../utils/date';
 import { categorizeTransaction } from '../features/categorizer/categorizer';
+import { buildInsightsSnapshot } from '../features/insights-engine/aggregates';
+import { InsightsSnapshot } from '../features/insights-engine/types';
 
 interface TransactionState {
   // Data
@@ -24,6 +26,7 @@ interface TransactionState {
     transactionCount: number;
   };
   categoryTotals: CategoryTotal[];
+  insightsSnapshot: InsightsSnapshot | null;
   isLoading: boolean;
   currentFilter: TransactionFilter;
 
@@ -47,6 +50,7 @@ interface TransactionState {
     }
   ) => Promise<void>;
   loadMonthlyStats: () => Promise<void>;
+  refreshInsightsSnapshot: () => void;
   setFilter: (filter: TransactionFilter) => void;
   getTotalBalance: () => number;
   
@@ -64,8 +68,20 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   categories: [],
   monthlyTotals: { totalIncome: 0, totalExpense: 0, transactionCount: 0 },
   categoryTotals: [],
+  insightsSnapshot: null,
   isLoading: false,
   currentFilter: {},
+
+  refreshInsightsSnapshot: () => {
+    const { transactions, categories, accounts } = get();
+    set({
+      insightsSnapshot: buildInsightsSnapshot({
+        transactions,
+        categories,
+        accounts,
+      }),
+    });
+  },
 
   loadAccounts: async (forceRefresh = false) => {
     if (!forceRefresh && get().accounts.length > 0) {
@@ -74,6 +90,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
     const accounts = await db.getAccounts();
     set({ accounts });
+    get().refreshInsightsSnapshot();
   },
 
   createAccount: async (input) => {
@@ -102,6 +119,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     const appliedFilter = filter || get().currentFilter;
     const transactions = await db.getTransactions(appliedFilter);
     set({ transactions, isLoading: false, currentFilter: appliedFilter });
+    get().refreshInsightsSnapshot();
   },
 
   addTransaction: async (input) => {
@@ -119,6 +137,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     set((state) => ({
       transactions: [transaction, ...state.transactions],
     }));
+    get().refreshInsightsSnapshot();
 
     // Refresh accounts (balance changed) and stats
     await get().loadAccounts();
@@ -132,6 +151,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     set((state) => ({
       transactions: state.transactions.filter((t) => t.id !== id),
     }));
+    get().refreshInsightsSnapshot();
     await get().loadAccounts();
     await get().loadMonthlyStats();
   },
@@ -154,6 +174,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         t.id === txId ? { ...t, categoryId } : t
       ),
     }));
+    get().refreshInsightsSnapshot();
     await get().loadMonthlyStats();
   },
 
@@ -175,6 +196,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         t.id === id ? { ...t, ...updates } : t
       ),
     }));
+    get().refreshInsightsSnapshot();
     await get().loadAccounts();
     await get().loadMonthlyStats();
   },
@@ -217,6 +239,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   loadCategories: async () => {
     const categories = await db.getCategories();
     set({ categories });
+    get().refreshInsightsSnapshot();
   },
 
   createCategory: async (input) => {
@@ -232,6 +255,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         c.id === id ? { ...c, keywords } : c
       ),
     }));
+    get().refreshInsightsSnapshot();
   },
 
   deleteCategory: async (id) => {
@@ -269,6 +293,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
     if (updatedAny) {
       set({ categories });
+      get().refreshInsightsSnapshot();
     }
   },
 }));

@@ -1,4 +1,5 @@
 import { Transaction } from '../../types';
+import { InsightsSnapshot } from './types';
 
 /**
  * Calculates the predicted month-end balance by analyzing current income,
@@ -87,6 +88,27 @@ export function calculateSalarySurvivalScore(transactions: Transaction[]): numbe
     // under 10% savings maps to 0-49
     // formula: max(0, 50 * (savingsRate + 0.1) / 0.2)
     const normalizedRate = savingsRate + 0.1; // e.g. -10% savings rate is 0, 10% is 0.2
+    return Math.max(0, Math.min(49, Math.round(50 * (normalizedRate / 0.2))));
+  }
+}
+
+export function calculateSalarySurvivalScoreFromSnapshot(snapshot: InsightsSnapshot): number {
+  const income = snapshot.periods.monthly.incomeTotal;
+  const expenses = snapshot.periods.monthly.expenseTotal;
+
+  if (income === 0) {
+    if (expenses === 0) return 100;
+    return Math.max(10, 100 - Math.round(expenses / 500));
+  }
+
+  const savingsRate = (income - expenses) / income;
+
+  if (savingsRate >= 0.3) {
+    return Math.min(100, 80 + Math.round((savingsRate - 0.3) * 28.5));
+  } else if (savingsRate >= 0.1) {
+    return 50 + Math.round((savingsRate - 0.1) * 145);
+  } else {
+    const normalizedRate = savingsRate + 0.1;
     return Math.max(0, Math.min(49, Math.round(50 * (normalizedRate / 0.2))));
   }
 }

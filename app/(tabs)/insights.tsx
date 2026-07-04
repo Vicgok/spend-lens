@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable, Alert, LayoutAnimation, Modal, RefreshControl, Animated } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Pressable, LayoutAnimation, Modal, RefreshControl, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography } from '@/theme';
 import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { generateAllInsights } from '@/features/insights-engine/detector';
-import { calculateSalarySurvivalScore } from '@/features/insights-engine/formulas';
+import { calculateSalarySurvivalScore, calculateSalarySurvivalScoreFromSnapshot } from '@/features/insights-engine/formulas';
 import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
@@ -260,8 +260,10 @@ export default function InsightsScreen() {
 
   const transactions = useTransactionStore((s) => s.transactions);
   const categories = useTransactionStore((s) => s.categories);
+  const insightsSnapshot = useTransactionStore((s) => s.insightsSnapshot);
   const loadTransactions = useTransactionStore((s) => s.loadTransactions);
   const loadCategories = useTransactionStore((s) => s.loadCategories);
+  const loadAccounts = useTransactionStore((s) => s.loadAccounts);
   const getTotalBalance = useTransactionStore((s) => s.getTotalBalance);
 
   // Formulate active transactions list (prioritize dev-friendly temp dataset)
@@ -479,6 +481,7 @@ export default function InsightsScreen() {
         // This ensures the simulated analysis data remains temporary and is cleared on refresh.
         await loadTransactions();
         await loadCategories();
+        await loadAccounts();
       } catch (err) {
         console.error('Scan error:', err);
       }
@@ -499,20 +502,28 @@ export default function InsightsScreen() {
     setTempTransactions(null);
     await loadTransactions();
     await loadCategories();
+    await loadAccounts();
     setRefreshing(false);
   };
 
   useEffect(() => {
     loadTransactions();
     loadCategories();
+    loadAccounts();
   }, []);
 
   const currentBalance = getTotalBalance();
-  const survivalScore = calculateSalarySurvivalScore(activeTransactions);
+  const survivalScore = insightsSnapshot
+    ? calculateSalarySurvivalScoreFromSnapshot(insightsSnapshot)
+    : calculateSalarySurvivalScore(activeTransactions);
 
   const detectedInsights = useMemo(() => {
     return generateAllInsights(activeTransactions, categories, currentBalance);
   }, [activeTransactions, categories, currentBalance]);
+
+  const snapshotUnusualCandidate = insightsSnapshot?.unusualSpendCandidates[0];
+  const snapshotSubscriptionCandidate = insightsSnapshot?.subscriptionCandidates[0];
+  const snapshotSections = insightsSnapshot?.sections;
 
   // Survival score status and explanation
   const scoreStatus = useMemo(() => {
@@ -532,15 +543,19 @@ export default function InsightsScreen() {
     return {
       leaks: leakInsight
         ? { title: 'Possible Money Leak', desc: leakInsight.subtitle }
+        : snapshotSubscriptionCandidate
+        ? { title: 'Subscription Candidate', desc: `${snapshotSubscriptionCandidate.merchant} every ~${Math.round(snapshotSubscriptionCandidate.cadenceDays)} days` }
         : { title: 'No Money Leaks', desc: 'No recurring charges were detected.' },
-      spends: overspendInsight
+      spends: snapshotUnusualCandidate
+        ? { title: 'Unusual Spend Candidate', desc: `${snapshotUnusualCandidate.categoryName} spend was ${snapshotUnusualCandidate.multiplier}x typical.` }
+        : overspendInsight
         ? { title: 'Unusual Spending', desc: overspendInsight.subtitle }
         : { title: 'No Unusual Spending', desc: 'Your spending pattern looks normal.' },
     };
-  }, [detectedInsights]);
+  }, [detectedInsights, snapshotSubscriptionCandidate, snapshotUnusualCandidate]);
 
   // Section 3: Spending Pattern calculation
-  const spendingPatterns = useMemo(() => {
+  const legacySpendingPatterns = useMemo(() => {
     const expenses = activeTransactions.filter((t) => t.type === 'expense');
     if (expenses.length === 0) return [];
 
@@ -659,12 +674,12 @@ export default function InsightsScreen() {
     });
   }, [activeTransactions, categories]);
 
-  const activeCategoryInfo = useMemo(() => {
-    return spendingPatterns[0] || null;
-  }, [spendingPatterns]);
+  const legacyActiveCategoryInfo = useMemo(() => {
+    return legacySpendingPatterns[0] || null;
+  }, [legacySpendingPatterns]);
 
   // Section 4: Money Habits calculation
-  const habits = useMemo(() => {
+  const legacyHabits = useMemo(() => {
     const list: string[] = [];
     const expenses = activeTransactions.filter((t) => t.type === 'expense');
     if (expenses.length === 0) return list;
@@ -751,7 +766,7 @@ export default function InsightsScreen() {
   }, [activeTransactions, categories]);
 
   // Section 5: Spending Risks calculation
-  const risks = useMemo(() => {
+  const legacyRisks = useMemo(() => {
     let riskLevel: 'Low' | 'Medium' | 'High' = 'Low';
     const list: string[] = [];
 
@@ -782,8 +797,8 @@ export default function InsightsScreen() {
         list.push('Large transaction or impulse detected');
       } else if (insight.type === 'weekend_overspend') {
         list.push('Weekend spending is increasing');
-      } else if (insight.type === 'money_leak' && activeCategoryInfo) {
-        list.push(`${activeCategoryInfo.category} expenses are above normal`);
+      } else if (insight.type === 'money_leak' && legacyActiveCategoryInfo) {
+        list.push(`${legacyActiveCategoryInfo.category} expenses are above normal`);
       }
     });
 
@@ -802,10 +817,10 @@ export default function InsightsScreen() {
       level: riskLevel,
       checklist: list.slice(0, 3),
     };
-  }, [detectedInsights, activeCategoryInfo]);
+  }, [detectedInsights, legacyActiveCategoryInfo]);
 
   // Section 7: Smart Observations calculation
-  const observations = useMemo(() => {
+  const legacyObservations = useMemo(() => {
     const list: string[] = [];
     const expenses = activeTransactions.filter((t) => t.type === 'expense');
 
@@ -890,7 +905,7 @@ export default function InsightsScreen() {
   }, [activeTransactions]);
 
   // Section 8: Growth Tips calculation (Personalized/Data-driven, No random facts)
-  const personalizedTip = useMemo(() => {
+  const legacyPersonalizedTip = useMemo(() => {
     if (activeTransactions.length === 0) {
       return 'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get my custom coach advice!';
     }
@@ -939,13 +954,44 @@ export default function InsightsScreen() {
     }
 
     // 3. Category tip
-    if (activeCategoryInfo) {
-      const savings10 = Math.round(activeCategoryInfo.amount * 0.1);
-      return `Saving just 10% on ${activeCategoryInfo.category} this month translates to ₹${savings10.toLocaleString('en-IN')} extra saved.`;
+    if (legacyActiveCategoryInfo) {
+      const savings10 = Math.round(legacyActiveCategoryInfo.amount * 0.1);
+      return `Saving just 10% on ${legacyActiveCategoryInfo.category} this month translates to ₹${savings10.toLocaleString('en-IN')} extra saved.`;
     }
 
     return 'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get my custom coach advice!';
-  }, [activeTransactions, detectedInsights, activeCategoryInfo]);
+  }, [activeTransactions, detectedInsights, legacyActiveCategoryInfo]);
+
+  const spendingPatterns = snapshotSections?.spendingPatterns ?? [];
+  const habits = snapshotSections?.habits ?? [];
+  const risks = snapshotSections?.risk ?? {
+    level: 'Low' as const,
+    description: 'Your recent activity appears consistent with your normal behavior.',
+    checklist: [
+      'I detected no abnormal spending',
+      'I found no suspicious spikes',
+      'I detected no spending anomalies',
+    ],
+  };
+  const observations = snapshotSections?.observations ?? [
+    'You spend ₹0 less on weekdays',
+    'Cash usage is steady compared to last month',
+    'Average transaction value is ₹0',
+  ];
+  const personalizedTip =
+    snapshotSections?.coachTip ??
+    'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get sharper coach guidance.';
+
+  void legacyHabits;
+  void legacyRisks;
+  void legacyObservations;
+  void legacyPersonalizedTip;
+
+  const renderHabitIcon = (icon: 'calendar' | 'percent' | 'clock') => {
+    if (icon === 'calendar') return <CalendarIcon size={12} color="#3E5A2A" />;
+    if (icon === 'percent') return <PercentIcon size={12} color="#3E5A2A" />;
+    return <ClockIcon size={12} color="#3E5A2A" />;
+  };
 
   // Dynamic icon renderer helper for spending categories
   const renderCategoryIcon = (category: string) => {
@@ -1226,11 +1272,11 @@ export default function InsightsScreen() {
                       const statusColor = isUp ? '#B7884E' : isDown ? '#3E5A2A' : '#54554B';
                       
                       return (
-                        <View key={pattern.category} style={{ gap: 2 }}>
+                        <View key={pattern.categoryName} style={{ gap: 2 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            {renderCategoryIcon(pattern.category)}
+                            {renderCategoryIcon(pattern.categoryName)}
                             <Text style={{ fontSize: 15, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }} numberOfLines={1}>
-                              {pattern.category}
+                              {pattern.categoryName}
                             </Text>
                             <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: statusColor }}>
                               {isUp ? `+₹${Math.abs(pattern.amountChange).toLocaleString('en-IN')}` : isDown ? 'Saved' : 'Stable'}
@@ -1278,19 +1324,13 @@ export default function InsightsScreen() {
                 <Text style={styles.sectionTitle}>Money Habits</Text>
                 {habits.length > 0 ? (
                   <View style={[styles.habitList, { flex: 1 }]}>
-                    {habits.map((habit, index) => (
-                      <View key={index} style={styles.habitItem}>
+                    {habits.map((habit) => (
+                      <View key={habit.key} style={styles.habitItem}>
                         <View style={styles.habitIconBox}>
-                          {index === 0 ? (
-                            <CalendarIcon size={12} color="#3E5A2A" />
-                          ) : index === 1 ? (
-                            <PercentIcon size={12} color="#3E5A2A" />
-                          ) : (
-                            <ClockIcon size={12} color="#3E5A2A" />
-                          )}
+                          {renderHabitIcon(habit.icon)}
                         </View>
                         <Text style={styles.habitText} numberOfLines={2}>
-                          {habit}
+                          {habit.summary}
                         </Text>
                       </View>
                     ))}
@@ -1376,9 +1416,7 @@ export default function InsightsScreen() {
                 </View>
               </View>
               <Text style={styles.risksDesc}>
-                {risks.level === 'Low'
-                  ? 'Your recent activity appears consistent with your normal behavior.'
-                  : 'I detected some spending patterns that exceed your typical averages.'}
+                {risks.description}
               </Text>
             </View>
 
@@ -1524,11 +1562,11 @@ export default function InsightsScreen() {
                 const textColor = isUp ? '#C84B31' : isDown ? '#3E5A2A' : '#54554B';
                 
                 return (
-                  <View key={pattern.category} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
+                  <View key={pattern.categoryName} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      {renderCategoryIcon(pattern.category)}
+                      {renderCategoryIcon(pattern.categoryName)}
                       <Text style={{ fontSize: 17, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }}>
-                        {index === 0 ? 'Most Active: ' : 'Second Active: '}{pattern.category}
+                        {index === 0 ? 'Most Active: ' : 'Second Active: '}{pattern.categoryName}
                       </Text>
                     </View>
                     <View style={{
@@ -1595,56 +1633,20 @@ export default function InsightsScreen() {
 
           <ScrollView style={{ width: '100%', marginVertical: 12 }} showsVerticalScrollIndicator={false}>
             <View style={{ gap: 12 }}>
-              {habits.map((habit, index) => {
-                let habitTitle = 'Financial Behavior';
-                let habitDetail = 'I track this baseline trend to watch for unexpected fluctuations in your daily transactional lifestyle.';
-                let isPositive = false;
-                
-                const lowerHabit = habit.toLowerCase();
-                if (lowerHabit.includes('weekend')) {
-                  if (lowerHabit.includes('most spending') || lowerHabit.includes('occurs on weekend')) {
-                    habitTitle = 'Weekend Concentration';
-                    habitDetail = 'I detected a higher concentration of spends on weekends. Try setting a specific weekend allowance to avoid lifestyle creep.';
-                  } else {
-                    habitTitle = 'Balanced Timeline';
-                    habitDetail = 'Your weekday and weekend spends are well-balanced. This consistency helps you stick to your monthly savings goals.';
-                    isPositive = true;
-                  }
-                } else if (lowerHabit.includes('food')) {
-                  habitTitle = 'Dining & Food Ratio';
-                  habitDetail = `Food accounts for a significant portion of your recent outgoings. Meal planning or cooking at home can yield easy savings.`;
-                } else if (lowerHabit.includes('evening')) {
-                  if (lowerHabit.includes('increase during evening')) {
-                    habitTitle = 'Evening Spend Peaks';
-                    habitDetail = 'Your transactions tend to peak in the evening hours. Be mindful of fatigue-induced shopping or late-night impulse orders.';
-                  } else {
-                    habitTitle = 'Even Time-Distribution';
-                    habitDetail = 'Your transactions are evenly distributed. No specific time-of-day concentration detected.';
-                    isPositive = true;
-                  }
-                } else if (lowerHabit.includes('cash') || lowerHabit.includes('atm')) {
-                  habitTitle = 'ATM & Cash Usage';
-                  habitDetail = 'Cash withdrawals are clustered on specific days. Track where physical cash goes, as it often slips by unrecorded.';
-                }
-
+              {habits.map((habit) => {
+                const isPositive = habit.tone === 'positive';
                 const cardBg = isPositive ? '#EEF4E6' : '#FAF9F7';
                 const borderColor = isPositive ? '#A6C88A' : '#E8DDD0';
                 const textColor = isPositive ? '#3E5A2A' : '#54554B';
                 
                 return (
-                  <View key={index} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
+                  <View key={habit.key} style={{ backgroundColor: cardBg, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: borderColor, gap: 6 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <View style={styles.habitIconBox}>
-                        {index === 0 ? (
-                          <CalendarIcon size={12} color="#3E5A2A" />
-                        ) : index === 1 ? (
-                          <PercentIcon size={12} color="#3E5A2A" />
-                        ) : (
-                          <ClockIcon size={12} color="#3E5A2A" />
-                        )}
+                        {renderHabitIcon(habit.icon)}
                       </View>
                       <Text style={{ fontSize: 16, fontFamily: typography.fontFamily.bold, color: '#745143', flex: 1 }}>
-                        {habitTitle}
+                        {habit.title}
                       </Text>
                       <View style={{
                         backgroundColor: isPositive ? '#E1ECC8' : '#EEF4E6',
@@ -1660,11 +1662,11 @@ export default function InsightsScreen() {
                     </View>
 
                     <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.bold, color: '#54554B', marginTop: 2 }}>
-                      "{habit}"
+                      "{habit.summary}"
                     </Text>
 
                     <Text style={{ fontSize: 14, fontFamily: typography.fontFamily.medium, color: '#54554B', lineHeight: 18, marginTop: 2 }}>
-                      {habitDetail}
+                      {habit.detail}
                     </Text>
                   </View>
                 );
