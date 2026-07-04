@@ -1,5 +1,5 @@
 import { Category } from '../../types';
-import { categoryColors } from '../../theme';
+import { categoryColors } from '../../theme/colors';
 
 export const DEFAULT_CATEGORIES: Category[] = [
   {
@@ -29,7 +29,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
     keywords: [
       'bigbasket', 'blinkit', 'zepto', 'dmart', 'grocery', 'supermarket',
       'reliance', 'fresh', 'vegetables', 'fruits', 'provision',
-      'kirana', 'store', 'market', 'organic', 'instamart', 'jiomart',
+      'kirana', 'organic', 'instamart', 'jiomart',
       'walmart', 'costco', 'kroger', 'whole foods', 'trader joe',
     ],
     parentId: null,
@@ -160,7 +160,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
     keywords: [
       'salary', 'credited', 'received', 'refund', 'cashback',
       'interest', 'dividend', 'bonus', 'commission', 'freelance',
-      'payment received', 'credit', 'income', 'payout', 'reward',
+      'payment received', 'income', 'payout', 'reward',
     ],
     parentId: null,
     sortOrder: 9,
@@ -173,7 +173,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
     type: 'both',
     isCustom: false,
     keywords: [
-      'transferred', 'transfer', 'upi', 'neft', 'imps', 'rtgs',
+      'transferred', 'transfer', 'neft', 'imps', 'rtgs',
       'sent to', 'paid to', 'bank transfer', 'wire', 'p2p',
       'zelle', 'venmo', 'cash app',
     ],

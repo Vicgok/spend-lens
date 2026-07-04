@@ -86,6 +86,36 @@ function runTests() {
   const groupsAccount = dedupeTransactions(inputsAccount);
   assert(groupsAccount.length === 2, "Account/account same merchant same amount different accounts do not merge");
 
+  // 3b. Same account different merchant within window does not merge
+  const parsedSameAccountMerchantA = mockParsedTxn({
+    account: { type: 'ACCOUNT', number: '7777', name: 'Bank A' },
+    transaction: { type: 'debit', amount: 500, merchant: 'Swiggy', referenceNo: null }
+  });
+  const parsedSameAccountMerchantB = mockParsedTxn({
+    account: { type: 'ACCOUNT', number: '7777', name: 'Bank A' },
+    transaction: { type: 'debit', amount: 500, merchant: 'Zomato', referenceNo: null }
+  });
+  const groupsSameAccountMerchant = dedupeTransactions([
+    { body: "Rs.500 debited from A/c XX7777 to Swiggy", date: date1, parsed: parsedSameAccountMerchantA },
+    { body: "Rs.500 debited from A/c XX7777 to Zomato", date: "2026-06-21T12:03:00.000Z", parsed: parsedSameAccountMerchantB }
+  ]);
+  assert(groupsSameAccountMerchant.length === 2, "Same-account transactions with different merchants do not merge");
+
+  // 3c. Same account different amount within window does not merge
+  const parsedSameAccountAmountA = mockParsedTxn({
+    account: { type: 'ACCOUNT', number: '8888', name: 'Bank B' },
+    transaction: { type: 'debit', amount: 500, merchant: 'Amazon', referenceNo: null }
+  });
+  const parsedSameAccountAmountB = mockParsedTxn({
+    account: { type: 'ACCOUNT', number: '8888', name: 'Bank B' },
+    transaction: { type: 'debit', amount: 650, merchant: 'Amazon', referenceNo: null }
+  });
+  const groupsSameAccountAmount = dedupeTransactions([
+    { body: "Rs.500 debited from A/c XX8888 to Amazon", date: date1, parsed: parsedSameAccountAmountA },
+    { body: "Rs.650 debited from A/c XX8888 to Amazon", date: "2026-06-21T12:04:00.000Z", parsed: parsedSameAccountAmountB }
+  ]);
+  assert(groupsSameAccountAmount.length === 2, "Same-account transactions with different amounts do not merge");
+
   // 4. Missing-account non-bridge does not overmerge
   const parsedMissingA = mockParsedTxn({
     account: { type: 'ACCOUNT', number: null, name: null },

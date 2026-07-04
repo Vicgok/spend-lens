@@ -375,6 +375,18 @@ export function areTransactionsDuplicate(a: TransactionInput, b: TransactionInpu
 
   // 5. Same account + same amount + same merchant + time within ±5m => duplicate
   if (accA && accB && accA === accB) {
+    const amtA = a.parsed.transaction.amount || 0;
+    const amtB = b.parsed.transaction.amount || 0;
+    if (amtA !== amtB) return false;
+
+    const typeA_tx = a.parsed.transaction.type;
+    const typeB_tx = b.parsed.transaction.type;
+    if (typeA_tx !== typeB_tx) return false;
+
+    const merchA = normalizeDedupeMerchant(a.parsed.transaction.merchant, a.body);
+    const merchB = normalizeDedupeMerchant(b.parsed.transaction.merchant, b.body);
+    if (merchA !== merchB) return false;
+
     return true;
   }
 
