@@ -4,7 +4,7 @@
 
 ### Task
 
-Close the remaining `categorizer` broad keyword collision and `insights-engine` snapshot edge audit items, then update the audit and `.autoresearch` memory.
+Implement Phase 1: remaining insights contract hardening from the audit backlog, then update the audit and orchestration artifacts.
 
 ### Status
 
@@ -12,10 +12,10 @@ Complete
 
 ### Completed
 
-- Added a low-signal keyword guard so generic one-keyword categorizer matches like `movie` and `bill` now fall back to uncategorized.
-- Expanded categorizer regressions for the remaining collision paths and a corroborated entertainment case.
-- Expanded insights tests for unusual-spend threshold boundaries, sparse-history suppression, subscription cadence false positives, and mixed-category sparse snapshots.
-- Updated the audit record and `.autoresearch` memory to reflect the new closure state and remaining open insights boundary risk.
+- Moved the insights screen summary-card contract and default fallback display mapping into `src/features/insights-engine/presenter.ts`.
+- Refactored `app/(tabs)/insights.tsx` to consume presenter-owned contract output instead of direct raw snapshot candidate fallbacks for this surface.
+- Expanded `src/features/insights-engine/__tests__/run-tests.ts` with focused presenter-boundary assertions and default-fallback parity checks.
+- Updated the Phase 1 audit status and `.ai-team` orchestration records to reflect the completed contract hardening work.
 
 ### Next Owner
 
@@ -23,7 +23,7 @@ Orchestrator
 
 ### Next Action
 
-Respond to the user with the implementation summary, validation evidence, updated audit status, and the remaining insights presentation-boundary follow-up.
+Respond to the user with the updated ai-team artifact status and, if requested, proceed to Phase 2 from the audit backlog.
 
 ### Blockers
 

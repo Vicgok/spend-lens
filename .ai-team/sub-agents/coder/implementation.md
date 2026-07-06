@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement the remaining audited fixes for `categorizer` broad keyword collisions and `insights-engine` snapshot edge coverage.
+Implement Phase 1: remaining insights contract hardening.
 
 ## Approved Plan Reference
 
@@ -10,18 +10,17 @@ Implement the remaining audited fixes for `categorizer` broad keyword collisions
 
 ## Changes Made
 
-- Hardened `src/features/categorizer/categorizer.ts` so a result driven only by one low-signal generic keyword now falls back to uncategorized instead of auto-classifying.
-- Extended `src/features/categorizer/__tests__/run-tests.ts` with regressions for low-signal `movie` and `bill` wording plus a corroborated entertainment case that should still classify.
-- Expanded `src/features/insights-engine/__tests__/run-tests.ts` with direct edge coverage for unusual-spend threshold boundaries, sparse-history suppression, subscription cadence false positives, and two-occurrence subscription confidence behavior.
-- No `src/features/insights-engine/aggregates.ts` code change was required in this pass because the targeted audit gaps closed through passing test coverage expansion.
+- Extended `src/features/insights-engine/presenter.ts` so it owns summary-card display mapping and the default screen fallback contract in one place.
+- Refactored `app/(tabs)/insights.tsx` to consume presenter-owned `summaryCards`, `risk`, `observations`, and `coachTip` output instead of rebuilding fallback behavior locally from raw snapshot fields.
+- Expanded `src/features/insights-engine/__tests__/run-tests.ts` with focused contract assertions for summary cards and parity checks between the default display helper and presenter output for empty snapshots.
 
 ## Files Updated
 
-- `src/features/categorizer/categorizer.ts`
-- `src/features/categorizer/__tests__/run-tests.ts`
+- `src/features/insights-engine/presenter.ts`
 - `src/features/insights-engine/__tests__/run-tests.ts`
+- `app/(tabs)/insights.tsx`
 
 ## Notes
 
-- The categorizer hardening stays intentionally narrow so legitimate merchant-led single-keyword matches such as `Airtel` remain classifiable.
-- Tester still needs to execute the targeted categorizer and insights suites and record real results.
+- The change stays scoped to the presenter/display boundary; aggregate snapshot section primitives remain UI-agnostic.
+- Tester still needs to execute the targeted insights suite and typecheck and record real results.

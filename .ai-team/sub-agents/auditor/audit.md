@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement the remaining audited fixes for `categorizer` broad keyword collisions and `insights-engine` snapshot edge coverage, then update audit and `.autoresearch` memory.
+Implement Phase 1: remaining insights contract hardening, then update the audit and orchestration artifacts.
 
 ## Audit Status
 
@@ -10,32 +10,34 @@ Approved
 
 ## Evidence Reviewed
 
-- `src/features/categorizer/categorizer.ts`
-- `src/features/categorizer/__tests__/run-tests.ts`
+- `src/features/insights-engine/presenter.ts`
 - `src/features/insights-engine/__tests__/run-tests.ts`
+- `app/(tabs)/insights.tsx`
 - `.autoresearch/audits/2026-07-04-codebase-readiness-audit.md`
-- `.autoresearch/current-task.md`
-- `.autoresearch/decision-log.md`
-- `.autoresearch/state.json`
-- `.autoresearch/metric-history.json`
-- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
-- `npm run test:insights`
+- `.ai-team/orchestrator/current-task.md`
+- `.ai-team/orchestrator/progress.md`
+- `.ai-team/orchestrator/decisions.md`
+- `.ai-team/orchestrator/execution-status.md`
+- `.ai-team/orchestrator/handoff.md`
+- `npm.cmd run test:insights`
+- `npm.cmd run check`
 
 ## Findings
 
-- The categorizer now blocks low-signal one-keyword auto-classifications and has direct regressions proving the `movie` and `bill` collision paths now fall back to uncategorized.
-- The insights suite now covers the previously open targeted edge cases from the audit: unusual-spend thresholds, sparse-history suppression, subscription cadence false positives, and mixed-category sparse snapshots.
-- The audit record and `.autoresearch` memory were updated to reflect the new evidence without overstating subsystem readiness; the remaining open insights boundary issue is still tracked.
+- The presenter now owns the remaining screen-facing summary-card and fallback display contract, which keeps aggregate-layer outputs UI-agnostic.
+- The insights screen now consumes presenter-owned contract output instead of reading raw snapshot candidate fields for this display surface.
+- The insights suite now contains focused presenter-boundary assertions, including parity checks for empty/default fallback output.
+- The audit record and orchestration artifacts were updated to reflect the new evidence and to close Phase 1 without overstating broader subsystem readiness.
 
 ## Traceability Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Requirements traced to implementation | Passed | Each requested remaining audit item has a direct code or test artifact update. |
-| Implementation traced to tests | Passed | Both targeted suites were executed successfully after the changes. |
-| Audit status matches evidence | Passed | Broad keyword collisions and targeted insights edge coverage were updated to `Complete` based on executed regressions. |
-| `.autoresearch` memory updated consistently | Passed | Current task, decision log, state, metric history, and audit record all reflect the new closure state. |
+| Requirements traced to implementation | Passed | Each Phase 1 contract-hardening requirement has a direct presenter, screen, or test artifact update. |
+| Implementation traced to tests | Passed | The targeted insights suite and typecheck both executed successfully after the changes. |
+| Audit status matches evidence | Passed | Phase 1 was updated to `Complete` based on direct implementation and executed validation. |
+| Orchestration artifacts updated consistently | Passed | Current task, progress, decision log, execution status, and handoff all reflect the new closure state. |
 
 ## Decision
 
-Approved. The remaining requested audit items are closed with direct implementation and validation evidence, while the still-open presentation-boundary risk remains accurately documented.
+Approved. Phase 1 is closed with direct implementation and validation evidence, and the presenter boundary is now the explicit contract surface for the remaining insights screen behavior.

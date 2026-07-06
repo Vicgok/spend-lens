@@ -6,7 +6,10 @@ import {
   detectSubscriptionCandidates,
   detectUnusualSpendCandidates,
 } from '../aggregates';
-import { mapInsightsSnapshotToScreenSections } from '../presenter';
+import {
+  buildDefaultInsightsScreenSectionsDisplay,
+  mapInsightsSnapshotToScreenSections,
+} from '../presenter';
 
 const accounts: Account[] = [
   {
@@ -79,6 +82,10 @@ assert.equal(snapshot.sections.coach.kind, 'unusual-spend');
 assert.equal(screenSections.habits[0]?.title, 'Balanced Timeline');
 assert.equal(screenSections.observations.length, 3);
 assert.match(screenSections.coachTip, /Food|usual range|Saving/);
+assert.equal(screenSections.summaryCards.leaks.title, 'Subscription Candidate');
+assert.match(screenSections.summaryCards.leaks.description, /Netflix|every/);
+assert.equal(screenSections.summaryCards.spends.title, 'Unusual Spend Candidate');
+assert.match(screenSections.summaryCards.spends.description, /Food|typical/);
 
 const emptySnapshot = buildInsightsSnapshot({
   transactions: [],
@@ -90,6 +97,14 @@ const emptySnapshot = buildInsightsSnapshot({
 assert.equal(emptySnapshot.sections.habits.length, 0);
 assert.equal(emptySnapshot.sections.risk.level, 'Low');
 assert.equal(emptySnapshot.sections.observations.averageTransactionValue, 0);
+const emptyScreenSections = mapInsightsSnapshotToScreenSections(emptySnapshot);
+const defaultScreenSections = buildDefaultInsightsScreenSectionsDisplay();
+assert.equal(emptyScreenSections.summaryCards.leaks.title, 'No Money Leaks');
+assert.equal(emptyScreenSections.summaryCards.spends.title, 'No Unusual Spending');
+assert.deepEqual(defaultScreenSections.summaryCards, emptyScreenSections.summaryCards);
+assert.deepEqual(defaultScreenSections.risk, emptyScreenSections.risk);
+assert.deepEqual(defaultScreenSections.observations, emptyScreenSections.observations);
+assert.equal(defaultScreenSections.coachTip, emptyScreenSections.coachTip);
 assert.equal(mapInsightsSnapshotToScreenSections(emptySnapshot).observations[0], 'You spend ₹0 less on weekends');
 
 const localDayObservations = buildObservationsSection(

@@ -23,7 +23,16 @@ export interface InsightRiskDisplay {
   checklist: string[];
 }
 
+export interface InsightSummaryCardDisplay {
+  title: string;
+  description: string;
+}
+
 export interface InsightsScreenSectionsDisplay {
+  summaryCards: {
+    leaks: InsightSummaryCardDisplay;
+    spends: InsightSummaryCardDisplay;
+  };
   spendingPatterns: InsightSpendingPatternRow[];
   habits: InsightHabitDisplay[];
   risk: InsightRiskDisplay;
@@ -153,8 +162,71 @@ function formatCoachTipDisplay(coach: InsightCoachSignal): string {
   }
 }
 
+function formatSummaryCards(snapshot: InsightsSnapshot): InsightsScreenSectionsDisplay['summaryCards'] {
+  const subscriptionCandidate = snapshot.subscriptionCandidates[0];
+  const unusualSpendCandidate = snapshot.unusualSpendCandidates[0];
+
+  return {
+    leaks: subscriptionCandidate
+      ? {
+          title: 'Subscription Candidate',
+          description: `${subscriptionCandidate.merchant} every ~${Math.round(subscriptionCandidate.cadenceDays)} days`,
+        }
+      : {
+          title: 'No Money Leaks',
+          description: 'No recurring charges were detected.',
+        },
+    spends: unusualSpendCandidate
+      ? {
+          title: 'Unusual Spend Candidate',
+          description: `${unusualSpendCandidate.categoryName} spend was ${unusualSpendCandidate.multiplier}x typical.`,
+        }
+      : {
+          title: 'No Unusual Spending',
+          description: 'Your spending pattern looks normal.',
+        },
+  };
+}
+
+export function buildDefaultInsightsScreenSectionsDisplay(): InsightsScreenSectionsDisplay {
+  return {
+    summaryCards: {
+      leaks: {
+        title: 'No Money Leaks',
+        description: 'No recurring charges were detected.',
+      },
+      spends: {
+        title: 'No Unusual Spending',
+        description: 'Your spending pattern looks normal.',
+      },
+    },
+    spendingPatterns: [],
+    habits: [],
+    risk: {
+      level: 'Low',
+      description: 'Your recent activity appears consistent with your normal behavior.',
+      checklist: [
+        'I detected no abnormal spending',
+        'I found no suspicious spikes',
+        'I detected no spending anomalies',
+      ],
+    },
+    observations: formatObservationDisplay({
+      weekdayVsWeekendDelta: 0,
+      moreSpendOn: 'weekdays',
+      cashUsageDeltaPct: 0,
+      cashUsageDirection: 'steady',
+      averageTransactionValue: 0,
+    }),
+    coachTip: formatCoachTipDisplay({
+      kind: 'steady-habit',
+    }),
+  };
+}
+
 export function mapInsightsSnapshotToScreenSections(snapshot: InsightsSnapshot): InsightsScreenSectionsDisplay {
   return {
+    summaryCards: formatSummaryCards(snapshot),
     spendingPatterns: snapshot.sections.spendingPatterns,
     habits: snapshot.sections.habits.map(formatHabitDisplay),
     risk: formatRiskDisplay(snapshot.sections.risk, snapshot),

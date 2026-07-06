@@ -28,11 +28,15 @@
 | 2026-07-04 | Close remaining categorizer collision and insights edge audit items | Test | Complete | `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts` and `npm run test:insights` both passed. |
 | 2026-07-04 | Close remaining categorizer collision and insights edge audit items | Audit | Complete | Audit updated broad keyword collisions and targeted insights edge coverage to complete with evidence. |
 | 2026-07-04 | Close remaining categorizer collision and insights edge audit items | Review | Complete | Reviewer approved the implementation, validation, and memory updates. |
+| 2026-07-07 | Phase 1: Remaining insights contract hardening | Code | Complete | Moved summary-card and fallback display mapping into the presenter and refactored the insights screen to consume the presenter contract. |
+| 2026-07-07 | Phase 1: Remaining insights contract hardening | Test | Complete | `npm.cmd run test:insights` and `npm.cmd run check` both passed. |
+| 2026-07-07 | Phase 1: Remaining insights contract hardening | Audit | Complete | Audit status updated to complete with direct evidence for presenter ownership, screen contract usage, and focused boundary tests. |
+| 2026-07-07 | Phase 1: Remaining insights contract hardening | Review | Complete | Final contract surface now sits at the presenter boundary without screen-side raw snapshot fallback logic. |
 
 ## Current State
 
-The latest completed task closed the remaining requested categorizer collision and insights edge audit items, then updated the audit and `.autoresearch` memory.
+The latest completed task closed Phase 1 of the audit backlog by hardening the remaining insights presenter contract and updating the audit plus orchestration records.
 
 ## Next Step
 
-Next worthwhile follow-up: split insights presentation copy out of the aggregate layer and add stronger contract-style `sections.*` coverage if the team still wants the engine itself to be treated as production-ready.
+Next worthwhile follow-up: start Phase 2 from the audit backlog and harden `categorizer` production coverage around ambiguous merchant and payment phrasing.

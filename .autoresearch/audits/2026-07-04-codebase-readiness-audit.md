@@ -300,7 +300,12 @@ Exit criteria:
 
 Status:
 
-- Open
+- Complete
+- Evidence:
+  - Presenter now owns screen summary-card and fallback display mapping in `src/features/insights-engine/presenter.ts`
+  - Insights screen consumes presenter-owned contract output instead of raw snapshot candidate fallbacks in `app/(tabs)/insights.tsx`
+  - Focused presenter-boundary assertions were added in `src/features/insights-engine/__tests__/run-tests.ts`
+  - Validation passed on 2026-07-07 via `npm.cmd run test:insights` and `npm.cmd run check`
 
 ### Phase 2: Categorizer production hardening
 

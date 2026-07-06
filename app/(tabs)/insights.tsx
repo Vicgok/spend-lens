@@ -6,7 +6,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { generateAllInsights } from '@/features/insights-engine/detector';
 import { calculateSalarySurvivalScore, calculateSalarySurvivalScoreFromSnapshot } from '@/features/insights-engine/formulas';
-import { mapInsightsSnapshotToScreenSections } from '@/features/insights-engine/presenter';
+import {
+  buildDefaultInsightsScreenSectionsDisplay,
+  mapInsightsSnapshotToScreenSections,
+} from '@/features/insights-engine/presenter';
 import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
@@ -522,11 +525,9 @@ export default function InsightsScreen() {
     return generateAllInsights(activeTransactions, categories, currentBalance);
   }, [activeTransactions, categories, currentBalance]);
 
-  const snapshotUnusualCandidate = insightsSnapshot?.unusualSpendCandidates[0];
-  const snapshotSubscriptionCandidate = insightsSnapshot?.subscriptionCandidates[0];
   const snapshotSections = insightsSnapshot
     ? mapInsightsSnapshotToScreenSections(insightsSnapshot)
-    : null;
+    : buildDefaultInsightsScreenSectionsDisplay();
 
   // Survival score status and explanation
   const scoreStatus = useMemo(() => {
@@ -535,27 +536,6 @@ export default function InsightsScreen() {
     if (survivalScore >= 50) return { label: 'Watch Closely', text: 'Discretionary spending is rising, check your recent transaction spikes.' };
     return { label: 'Needs Attention', text: 'High expenditure rate detected. Consider slowing down non-essential spend immediately.' };
   }, [survivalScore]);
-
-  // Section 2: What We Found mini cards mapping
-  const foundInsights = useMemo(() => {
-    const leakInsight = detectedInsights.find((i) => i.type === 'money_leak');
-    const overspendInsight = detectedInsights.find(
-      (i) => i.type === 'weekend_overspend' || i.type === 'impulse_spending' || i.type === 'shopping_increase'
-    );
-
-    return {
-      leaks: leakInsight
-        ? { title: 'Possible Money Leak', desc: leakInsight.subtitle }
-        : snapshotSubscriptionCandidate
-        ? { title: 'Subscription Candidate', desc: `${snapshotSubscriptionCandidate.merchant} every ~${Math.round(snapshotSubscriptionCandidate.cadenceDays)} days` }
-        : { title: 'No Money Leaks', desc: 'No recurring charges were detected.' },
-      spends: snapshotUnusualCandidate
-        ? { title: 'Unusual Spend Candidate', desc: `${snapshotUnusualCandidate.categoryName} spend was ${snapshotUnusualCandidate.multiplier}x typical.` }
-        : overspendInsight
-        ? { title: 'Unusual Spending', desc: overspendInsight.subtitle }
-        : { title: 'No Unusual Spending', desc: 'Your spending pattern looks normal.' },
-    };
-  }, [detectedInsights, snapshotSubscriptionCandidate, snapshotUnusualCandidate]);
 
   // Section 3: Spending Pattern calculation
   const legacySpendingPatterns = useMemo(() => {
@@ -965,26 +945,12 @@ export default function InsightsScreen() {
     return 'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get my custom coach advice!';
   }, [activeTransactions, detectedInsights, legacyActiveCategoryInfo]);
 
-  const spendingPatterns = snapshotSections?.spendingPatterns ?? [];
-  const habits = snapshotSections?.habits ?? [];
-  const risks = snapshotSections?.risk ?? {
-    level: 'Low' as const,
-    description: 'Your recent activity appears consistent with your normal behavior.',
-    checklist: [
-      'I detected no abnormal spending',
-      'I found no suspicious spikes',
-      'I detected no spending anomalies',
-    ],
-  };
-  const observations = snapshotSections?.observations ?? [
-    'You spend ₹0 less on weekdays',
-    'Cash usage is steady compared to last month',
-    'Average transaction value is ₹0',
-  ];
-  const personalizedTip =
-    snapshotSections?.coachTip ??
-    'Saving ₹50 daily becomes ₹18,250 yearly. Keep logging transactions to get sharper coach guidance.';
-
+  const foundInsights = snapshotSections.summaryCards;
+  const spendingPatterns = snapshotSections.spendingPatterns;
+  const habits = snapshotSections.habits;
+  const risks = snapshotSections.risk;
+  const observations = snapshotSections.observations;
+  const personalizedTip = snapshotSections.coachTip;
   void legacyHabits;
   void legacyRisks;
   void legacyObservations;
@@ -1233,7 +1199,7 @@ export default function InsightsScreen() {
                   {foundInsights.leaks.title}
                 </Text>
                 <Text style={styles.miniCardDesc} numberOfLines={2}>
-                  {foundInsights.leaks.desc}
+                  {foundInsights.leaks.description}
                 </Text>
               </View>
             </View>
@@ -1247,7 +1213,7 @@ export default function InsightsScreen() {
                   {foundInsights.spends.title}
                 </Text>
                 <Text style={styles.miniCardDesc} numberOfLines={2}>
-                  {foundInsights.spends.desc}
+                  {foundInsights.spends.description}
                 </Text>
               </View>
             </View>

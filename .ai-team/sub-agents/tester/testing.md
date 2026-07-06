@@ -2,27 +2,26 @@
 
 ## Task
 
-Implement the remaining audited fixes for `categorizer` broad keyword collisions and `insights-engine` snapshot edge coverage.
+Implement Phase 1: remaining insights contract hardening.
 
 ## Acceptance Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Categorizer regression suite passes | Passed | `src/features/categorizer/__tests__/run-tests.ts` passed with the new low-signal keyword collision cases and corroborated entertainment case. |
-| Insights snapshot suite passes | Passed | `npm run test:insights` passed with the new unusual-spend and subscription edge coverage assertions. |
+| Insights contract suite passes | Passed | `src/features/insights-engine/__tests__/run-tests.ts` passed with the new presenter-boundary and default-fallback contract assertions. |
+| TypeScript check passes | Passed | `npm.cmd run check` passed after the presenter contract and screen wiring changes. |
 
 ## Commands Run
 
-- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
-- `npm run test:insights`
+- `npm.cmd run test:insights`
+- `npm.cmd run check`
 
 ## Evidence for Audit
 
-- Low-signal generic one-keyword matches such as `movie` and `bill` now fall back to uncategorized in the categorizer suite.
-- Corroborated entertainment evidence still classifies correctly when a strong merchant signal like `Netflix` is present.
-- Insights tests now cover unusual-spend threshold boundaries, sparse-history suppression, subscription cadence rejection, and two-occurrence subscription confidence behavior.
-- The categorizer standalone `tsx` run required unsandboxed execution because sandboxed `esbuild` spawn returned `EPERM`.
+- Presenter-owned summary-card display output is covered directly in the insights suite.
+- Empty-snapshot fallback display output is validated against the presenter's default contract helper.
+- The insights screen compiles against the presenter-owned contract after removing its direct raw snapshot fallback reads for this surface.
 
 ## Result
 
-Passed targeted validation across the remaining categorizer and insights audit items.
+Passed targeted validation across the Phase 1 insights contract hardening changes.
