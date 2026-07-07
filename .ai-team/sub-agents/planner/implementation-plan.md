@@ -2,38 +2,35 @@
 
 ## Task
 
-Implement Phase 2: categorizer production hardening through the `ai-team:implement` workflow, then update the audit and orchestration status artifacts.
+Audit parser, categorizer, and insights against `docs/release-audit-checklist.md`, run the checklist in parallel where safe, and mark eligible subsystems frozen for the Production 1 release.
 
 ## Requirements Summary
 
-Close the remaining categorizer production-readiness gap by broadening fixture coverage around ambiguous merchant and payment phrasing, hardening correction learning so noisy merchant strings normalize into stable keywords, and preserving explainability across those paths.
+This is an audit-first release decision. The work is to execute the checklist-backed evidence set, synthesize the results for each subsystem, and only mark a subsystem frozen if the checklist criteria are satisfied on the current change set.
 
 ## Impacted Files
 
-- `src/features/categorizer/categorizer.ts`
-- `src/features/categorizer/__tests__/run-tests.ts`
-- `src/stores/transaction-store.ts`
 - `.autoresearch/audits/2026-07-04-codebase-readiness-audit.md`
 - `.ai-team/orchestrator/*.md`
 - `.ai-team/sub-agents/*/*.md`
 
 ## Plan
 
-1. Keep the code change scoped to the categorizer path and transaction correction learning rather than expanding into unrelated parser or insights work.
-2. In the Coder stage, add a canonical learned-keyword normalizer to strip common payment noise from corrected merchant text before keyword persistence, and reuse it in the transaction store learning flow.
-3. Expand the categorizer regression suite into a production-style fixture bank covering ambiguous merchant aliases, transfer wording, recharge phrasing, entertainment collisions, and learned-keyword explainability.
-4. In Tester, run the dedicated categorizer suite and a repo typecheck to validate both the pure categorizer path and store integration compile cleanly.
-5. In Auditor and Reviewer, verify that the new evidence is enough to mark Phase 2 complete without overstating broader cross-system freeze readiness.
+1. Use Planner-owned read-only analysis to confirm the checklist commands and the exact freeze decision rules from `docs/release-audit-checklist.md`.
+2. In the audit execution phase, run the independent checklist commands in parallel where outputs do not conflict:
+   `npm test`, parser production-safety, categorizer, insights, production-gate, and typecheck.
+3. Synthesize the command evidence against the checklist rules for:
+   `sms-parser`, `categorizer`, `insights-engine`, and the cross-system Production 1 release gate.
+4. Update the audit record and orchestration artifacts only after the executed results are known.
+5. If any checklist command fails, stop the freeze decision, route into remediation, and do not mark the affected subsystem frozen.
 
 ## Acceptance Criteria
 
-- Categorizer output remains deterministic and explainable through confidence plus matched-keyword reporting.
-- Broader ambiguous phrasing fixtures pass without regressing prior low-signal safeguards.
-- Correction learning stores normalized merchant keywords instead of noisy payment boilerplate.
-- Audit and orchestration artifacts are updated with evidence-backed status changes.
-- Real test execution is recorded for the changed areas.
+- The checklist command set is executed with real results.
+- Frozen status is granted only where the checklist rules are satisfied.
+- Audit and orchestration artifacts record the exact evidence for the Production 1 decision.
 
 ## Risks
 
-- Medium risk: over-normalizing corrected merchant text could erase meaningful aliases; trimming should target obvious payment boilerplate and reference noise only.
-- Medium risk: broader fixtures can expose current keyword taxonomy gaps; the change should prefer deterministic uncategorized fallbacks over aggressive new broad keywords.
+- High risk: marking a subsystem frozen from partial evidence would undermine the release gate; every claimed frozen subsystem must trace to the exact checklist commands.
+- Low risk: parallel command execution is safe here because the commands are read-only validation tasks and do not edit shared files.

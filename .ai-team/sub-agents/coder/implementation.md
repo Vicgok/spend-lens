@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 2: categorizer production hardening.
+Implement Phase 3: cross-system production gate.
 
 ## Approved Plan Reference
 
@@ -10,17 +10,17 @@ Implement Phase 2: categorizer production hardening.
 
 ## Changes Made
 
-- Added `normalizeLearnedKeyword` in `src/features/categorizer/categorizer.ts` so corrected merchant text is canonicalized before persistence by stripping common payment boilerplate and reference-like tokens.
-- Updated `src/stores/transaction-store.ts` to reuse that canonical normalizer when learning category keywords and when removing keyword conflicts across categories, which keeps user corrections deterministic even when the raw merchant text is noisy.
-- Rebuilt `src/features/categorizer/__tests__/run-tests.ts` into a broader production-style fixture bank covering ambiguous merchant and payment phrasing, prior low-signal collision paths, and a learned-keyword correction flow that preserves explainable matched-keyword output.
+- Added `src/features/production-gate/__tests__/run-tests.ts`, a golden fixture harness that parses raw SMS samples, deduplicates them, categorizes the surviving transactions, and builds an insights snapshot from the final rows.
+- Added `npm run test:production-gate` in `package.json` so the new gate has a stable executable command for release audits.
+- Added `docs/release-audit-checklist.md` to define the required command set and minimum pass criteria before claiming parser, categorizer, insights, or cross-system freeze readiness.
 
 ## Files Updated
 
-- `src/features/categorizer/categorizer.ts`
-- `src/stores/transaction-store.ts`
-- `src/features/categorizer/__tests__/run-tests.ts`
+- `src/features/production-gate/__tests__/run-tests.ts`
+- `package.json`
+- `docs/release-audit-checklist.md`
 
 ## Notes
 
-- The change stays scoped to categorizer behavior and correction learning rather than broadening into parser or insights logic.
-- Tester needs to record the dedicated categorizer suite and repo typecheck results as the validation evidence for Phase 2.
+- The implementation adds a thin cross-system harness instead of changing parser, categorizer, or insights logic directly.
+- Tester needs to record the new production-gate command plus the checklist-backed validation commands as the Phase 3 evidence set.
