@@ -2,7 +2,7 @@
 
 Date: 2026-07-04
 
-Last updated after remediation: 2026-07-07
+Last updated after remediation: 2026-07-07 (Production 1 freeze audit)
 
 Scope:
 
@@ -12,9 +12,9 @@ Scope:
 
 Outcome:
 
-- `insights-engine`: Improved, but not production-ready yet
-- `sms-parser`: No longer blocked by the audited dedupe defect; closer to freeze-ready
-- `categorizer`: Improved, but not production-ready yet
+- `insights-engine`: Frozen for Production 1 on the validated 2026-07-07 checklist run
+- `sms-parser`: Frozen for Production 1 on the validated 2026-07-07 checklist run
+- `categorizer`: Frozen for Production 1 on the validated 2026-07-07 checklist run
 
 ## Fix Status Summary
 
@@ -31,7 +31,7 @@ Outcome:
 
 ## Executive Summary
 
-The original audit identified one high-severity parser blocker, one high-severity categorizer weakness, and two medium-severity insights issues. The immediate parser blocker is now fixed. The categorizer is materially safer than before, now has dedicated regression coverage, exposes auditable confidence and matched-keyword output, and no longer auto-classifies purely from low-signal one-keyword matches, but its fixture breadth is still limited. The insights engine fixed its UTC day-key bug, covers the previously open subscription, threshold, sparse-history, and mixed-category edge cases, and now routes presentation copy through a presenter layer instead of embedding prose in the aggregate contract.
+The original audit identified one high-severity parser blocker, one high-severity categorizer weakness, and two medium-severity insights issues. The immediate parser blocker is fixed, the categorizer is materially safer and more explainable than before, and the insights engine closed its audited contract and date-handling gaps. Phase 3 now adds a concrete cross-system production gate: one golden fixture pack exercises parser -> categorizer -> insights together, and a release audit checklist defines the command set that must pass before any subsystem is described as frozen.
 
 ## Findings
 
@@ -197,6 +197,7 @@ Commands run:
 - `npm run test:insights`
 - `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
 - `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`
+- `npm run test:production-gate`
 - `npm.cmd run check`
 
 Observed results:
@@ -205,17 +206,24 @@ Observed results:
 - Insights engine suite passed, including threshold, sparse-history, subscription cadence, and mixed-category edge coverage
 - Categorizer regression suite passed with 20 assertions, including explainability, broader ambiguous-merchant/payment phrasing coverage, low-signal collision coverage, and learned-correction normalization coverage
 - SMS parser production-safety suite passed
+- Cross-system production-gate suite passed, including dedupe collapse, categorizer explainability, and insights subscription/period assertions from one golden fixture pack
 - Repo typecheck passed after the categorizer and transaction-store learning changes
 
 Notes:
 
 - The standalone `tsx` runs required unsandboxed execution because sandboxed `esbuild` spawn returned `EPERM`.
 
+Production 1 freeze decision:
+
+- All checklist commands passed on the same validated 2026-07-07 change set.
+- The cross-system production-gate fixture pack preserved dedupe, categorizer explainability, and insights subscription/period expectations.
+- Under `docs/release-audit-checklist.md`, this is sufficient to mark `sms-parser`, `categorizer`, `insights-engine`, and the cross-system Production 1 release gate as frozen for this release candidate.
+
 ## Readiness Assessment
 
 ### Insights Engine
 
-Status: `Improved, closer to ready`
+Status: `Frozen for Production 1`
 
 Why:
 
@@ -226,14 +234,21 @@ Why:
 - Presentation copy is now separated from aggregate signals
 - But broader contract-style coverage can still improve confidence
 
-What would move it to ready:
+Why frozen:
 
-- Add focused contract tests around `sections.*` outputs and copy boundaries
-- Add focused contract tests for `sections.*`
+- `npm run test:insights` passed
+- `npm run test:production-gate` passed
+- `npm run check` passed
+- The checklist criteria for Production 1 were satisfied on this change set
+
+What would unfreeze it:
+
+- Any future change that causes the insights suite, production-gate suite, or typecheck to fail
+- Any future presenter-surface expansion that lands without re-running the checklist
 
 ### SMS Parser
 
-Status: `Improved, conditionally closer to ready`
+Status: `Frozen for Production 1`
 
 Why:
 
@@ -241,14 +256,22 @@ Why:
 - The production-safety suite now covers the previously missing same-account false-positive path
 - Core parser coverage remains the strongest of the three subsystems
 
-What would move it to ready:
+Why frozen:
 
-- Add cross-system golden fixtures through parser -> categorizer -> insights
-- Keep freeze status evidence-based rather than declarative
+- `npm test` passed
+- `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts` passed
+- `npm run test:production-gate` passed
+- `npm run check` passed
+- The checklist criteria for Production 1 were satisfied on this change set
+
+What would unfreeze it:
+
+- Any future change that causes the parser suite, production-safety suite, production-gate suite, or typecheck to fail
+- Any future SMS class addition that lands without extending and re-running the checklist-backed fixture coverage
 
 ### Categorizer
 
-Status: `Improved, not ready`
+Status: `Frozen for Production 1`
 
 Why:
 
@@ -259,10 +282,17 @@ Why:
 - Correction learning now normalizes noisy merchant text into stable persisted keywords
 - The production-style fixture bank now covers broader merchant and payment wording variation
 
-What would move it to ready:
+Why frozen:
 
-- Add cross-system fixtures that verify categorizer explanations through downstream flows
-- Keep freeze status coupled to the Phase 3 release-audit gate rather than isolated subsystem claims
+- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts` passed
+- `npm run test:production-gate` passed
+- `npm run check` passed
+- The checklist criteria for Production 1 were satisfied on this change set
+
+What would unfreeze it:
+
+- Any future change that causes the categorizer suite, production-gate suite, or typecheck to fail
+- Any future merchant/payment class addition that lands without extending and re-running the fixture pack
 
 ## Updated Fix Plan
 
@@ -351,7 +381,12 @@ Exit criteria:
 
 Status:
 
-- Open
+- Complete
+- Evidence:
+  - `src/features/production-gate/__tests__/run-tests.ts` now provides one golden fixture pack that travels through parser -> dedupe -> categorizer -> insights
+  - `docs/release-audit-checklist.md` now defines the required commands and minimum pass criteria before describing a subsystem as frozen
+  - `package.json` now exposes `npm run test:production-gate` as the stable release-gate command
+  - Validation passed on 2026-07-07 via `npm.cmd run test:production-gate`, `npm.cmd test`, `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`, `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`, `npm.cmd run test:insights`, and `npm.cmd run check`
 
 ## Safe Parallel Sub-Agent Execution Order
 

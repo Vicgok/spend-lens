@@ -56,6 +56,7 @@
     "test:research": "tsx research-loop/test-suite/run.ts",
     "test": "tsx src/features/sms-parser/__tests__/run-tests.ts",
     "test:insights": "tsx src/features/insights-engine/__tests__/run-tests.ts",
+    "test:production-gate": "tsx src/features/production-gate/__tests__/run-tests.ts",
     "check": "tsc --noEmit",
     "lint": "tsc --project tsconfig.lint.json --noEmit",
     "gadd": "node scripts/git-add-clean.js",
