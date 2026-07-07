@@ -2,26 +2,26 @@
 
 ## Task
 
-Implement Phase 1: remaining insights contract hardening.
+Implement Phase 2: categorizer production hardening.
 
 ## Acceptance Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Insights contract suite passes | Passed | `src/features/insights-engine/__tests__/run-tests.ts` passed with the new presenter-boundary and default-fallback contract assertions. |
-| TypeScript check passes | Passed | `npm.cmd run check` passed after the presenter contract and screen wiring changes. |
+| Categorizer production fixture suite passes | Passed | `src/features/categorizer/__tests__/run-tests.ts` passed with the expanded ambiguous-merchant, payment-phrasing, and learned-correction explainability coverage. |
+| TypeScript check passes | Passed | `npm.cmd run check` passed after the categorizer and transaction-store learning changes. |
 
 ## Commands Run
 
-- `npm.cmd run test:insights`
+- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
 - `npm.cmd run check`
 
 ## Evidence for Audit
 
-- Presenter-owned summary-card display output is covered directly in the insights suite.
-- Empty-snapshot fallback display output is validated against the presenter's default contract helper.
-- The insights screen compiles against the presenter-owned contract after removing its direct raw snapshot fallback reads for this surface.
+- The categorizer suite now covers broader production-style fixture inputs instead of only a handful of isolated keyword checks.
+- Learned correction normalization is validated directly through `normalizeLearnedKeyword` assertions and a post-correction categorization regression that preserves matched-keyword explainability.
+- The transaction store integration compiles cleanly after switching correction learning to the shared canonical normalizer.
 
 ## Result
 
-Passed targeted validation across the Phase 1 insights contract hardening changes.
+Passed targeted validation across the Phase 2 categorizer production-hardening changes.

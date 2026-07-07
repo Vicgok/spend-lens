@@ -2,7 +2,7 @@
 
 Date: 2026-07-04
 
-Last updated after remediation: 2026-07-04
+Last updated after remediation: 2026-07-07
 
 Scope:
 
@@ -71,7 +71,7 @@ Residual risk:
 Status:
 
 - Core matching and explainability gap closed in remediation
-- Production-hardening follow-up still open
+- Production-hardening follow-up closed on 2026-07-07
 
 Files:
 
@@ -91,19 +91,16 @@ Remediation:
 - Added a low-signal keyword guard so one generic match like `movie` or `bill` no longer auto-classifies by itself.
 - Added explainable categorization output with confidence and matched-keyword reporting.
 - Added a dedicated categorizer regression suite for ambiguous cases.
+- Added canonical learned-keyword normalization so corrected merchant text drops common payment boilerplate and reference-like noise before persistence.
+- Expanded the categorizer suite into a broader production-style fixture bank covering ambiguous merchant aliases, recharge wording, transfer wording, entertainment collisions, and learned-correction explainability.
 
 Validation:
 
 - `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`: PASS
 
-Remaining gap:
-
-- The suite is targeted, but still small relative to the likely production merchant space.
-- There is still no broader fixture bank covering more merchant aliases and payment wording variation.
-
 Residual risk:
 
-- Medium. The categorizer is substantially safer and now auditable at the decision level, but not yet strong enough to call production-ready without a larger fixture bank.
+- Low-to-medium. The categorizer now has broader ambiguous-merchant coverage and a more stable correction-learning path, but full subsystem freeze should still wait for the cross-system golden fixtures tracked in Phase 3.
 
 ### 3. Closed: `insights-engine` no longer mixes presentation copy into the aggregate layer
 
@@ -200,13 +197,15 @@ Commands run:
 - `npm run test:insights`
 - `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
 - `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`
+- `npm.cmd run check`
 
 Observed results:
 
 - SMS parser suite passed with 66 assertions
 - Insights engine suite passed, including threshold, sparse-history, subscription cadence, and mixed-category edge coverage
-- Categorizer regression suite passed, including explainability, ambiguous-phrase coverage, and low-signal collision coverage
+- Categorizer regression suite passed with 20 assertions, including explainability, broader ambiguous-merchant/payment phrasing coverage, low-signal collision coverage, and learned-correction normalization coverage
 - SMS parser production-safety suite passed
+- Repo typecheck passed after the categorizer and transaction-store learning changes
 
 Notes:
 
@@ -216,7 +215,7 @@ Notes:
 
 ### Insights Engine
 
-Status: `Improved, not ready`
+Status: `Improved, closer to ready`
 
 Why:
 
@@ -257,13 +256,13 @@ Why:
 - Matching is safer than naive substring scoring
 - Confidence and matched-keyword explanation output now exist
 - Low-signal one-keyword collisions are blocked
-- But fixture breadth is still limited
+- Correction learning now normalizes noisy merchant text into stable persisted keywords
+- The production-style fixture bank now covers broader merchant and payment wording variation
 
 What would move it to ready:
 
-- Expand the fixture bank around ambiguous merchants and payment wording
-- Add correction/auditability support for category decisions
 - Add cross-system fixtures that verify categorizer explanations through downstream flows
+- Keep freeze status coupled to the Phase 3 release-audit gate rather than isolated subsystem claims
 
 ## Updated Fix Plan
 
@@ -326,7 +325,12 @@ Exit criteria:
 
 Status:
 
-- Open
+- Complete
+- Evidence:
+  - `src/features/categorizer/__tests__/run-tests.ts` now exercises a broader production-style fixture bank for ambiguous merchant and payment wording
+  - `src/features/categorizer/categorizer.ts` now exports `normalizeLearnedKeyword` to canonicalize corrected merchant text before keyword persistence
+  - `src/stores/transaction-store.ts` now applies that shared canonical normalization when learning or removing category keywords from user corrections
+  - Validation passed on 2026-07-07 via `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts` and `npm.cmd run check`
 
 ### Phase 3: Cross-system production gate
 

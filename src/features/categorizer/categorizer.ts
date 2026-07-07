@@ -30,6 +30,27 @@ const WEAK_PHRASE_KEYWORDS = new Set([
   'paid to',
   'bank transfer',
 ]);
+const LEARNED_KEYWORD_NOISE_TOKENS = new Set([
+  'account',
+  'banking',
+  'for',
+  'from',
+  'id',
+  'imps',
+  'neft',
+  'paid',
+  'payment',
+  'ref',
+  'reference',
+  'rtgs',
+  'sent',
+  'through',
+  'to',
+  'txn',
+  'txnid',
+  'upi',
+  'via',
+]);
 
 export interface CategorizationResult {
   categoryId: string;
@@ -48,6 +69,10 @@ function normalizeText(value: string | null | undefined): string {
 
 function tokenize(value: string): string[] {
   return value.split(' ').filter(Boolean);
+}
+
+function isReferenceLikeToken(token: string): boolean {
+  return /\d/.test(token) || /^[a-z]*\d+[a-z\d]*$/i.test(token);
 }
 
 function containsPhrase(haystack: string, needle: string): boolean {
@@ -192,6 +217,21 @@ export function categorizeTransactionDetailed(
     score: bestMatch.score,
     matchedKeywords: bestMatch.matchedKeywords,
   };
+}
+
+export function normalizeLearnedKeyword(rawMerchant: string | null | undefined): string {
+  const normalized = normalizeText(rawMerchant);
+  if (!normalized) return '';
+
+  let tokens = tokenize(normalized).filter((token) => !isReferenceLikeToken(token));
+  while (tokens.length > 0 && LEARNED_KEYWORD_NOISE_TOKENS.has(tokens[0])) {
+    tokens = tokens.slice(1);
+  }
+  while (tokens.length > 0 && LEARNED_KEYWORD_NOISE_TOKENS.has(tokens[tokens.length - 1])) {
+    tokens = tokens.slice(0, -1);
+  }
+
+  return tokens.join(' ');
 }
 
 export function getCategoryById(categoryId: string) {

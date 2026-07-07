@@ -4,7 +4,7 @@
 
 ### Task
 
-Implement Phase 1: remaining insights contract hardening from the audit backlog, then update the audit and orchestration artifacts.
+Implement Phase 2: categorizer production hardening from the audit backlog, then update the audit and orchestration artifacts.
 
 ### Status
 
@@ -12,10 +12,10 @@ Complete
 
 ### Completed
 
-- Moved the insights screen summary-card contract and default fallback display mapping into `src/features/insights-engine/presenter.ts`.
-- Refactored `app/(tabs)/insights.tsx` to consume presenter-owned contract output instead of direct raw snapshot candidate fallbacks for this surface.
-- Expanded `src/features/insights-engine/__tests__/run-tests.ts` with focused presenter-boundary assertions and default-fallback parity checks.
-- Updated the Phase 1 audit status and `.ai-team` orchestration records to reflect the completed contract hardening work.
+- Added canonical learned-keyword normalization in `src/features/categorizer/categorizer.ts` so noisy corrected merchant text is reduced to durable merchant aliases before persistence.
+- Updated `src/stores/transaction-store.ts` to use that shared normalization for both keyword learning and cross-category conflict removal.
+- Expanded `src/features/categorizer/__tests__/run-tests.ts` into a broader production-style fixture bank that covers ambiguous merchant and payment phrasing, low-signal fallback protection, and learned-correction explainability.
+- Updated the Phase 2 audit status and `.ai-team` orchestration records to reflect the completed categorizer hardening work.
 
 ### Next Owner
 
@@ -23,7 +23,7 @@ Orchestrator
 
 ### Next Action
 
-Respond to the user with the updated ai-team artifact status and, if requested, proceed to Phase 2 from the audit backlog.
+Respond to the user with the updated Phase 2 status and, if requested, proceed to Phase 3 from the audit backlog.
 
 ### Blockers
 

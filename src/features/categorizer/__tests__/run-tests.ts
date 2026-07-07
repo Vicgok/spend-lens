@@ -1,89 +1,213 @@
 import assert from 'node:assert';
-import { categorizeTransaction, categorizeTransactionDetailed } from '../categorizer';
+import {
+  categorizeTransaction,
+  categorizeTransactionDetailed,
+  normalizeLearnedKeyword,
+} from '../categorizer';
+import { DEFAULT_CATEGORIES } from '../categories';
+
+type Fixture = {
+  merchant: string | null;
+  description: string | null;
+  type: 'expense' | 'income';
+  expectedCategoryId: string;
+  expectedConfidence?: 'none' | 'low' | 'medium' | 'high';
+  includesKeywords?: string[];
+  excludesKeywords?: string[];
+};
+
+const productionFixtures: Fixture[] = [
+  {
+    merchant: 'Reliance Digital',
+    description: 'electronics store purchase',
+    type: 'expense',
+    expectedCategoryId: 'cat_shopping',
+  },
+  {
+    merchant: 'Swiggy',
+    description: 'upi payment to swiggy order',
+    type: 'expense',
+    expectedCategoryId: 'cat_food',
+    expectedConfidence: 'medium',
+    includesKeywords: ['swiggy'],
+  },
+  {
+    merchant: 'Employer',
+    description: 'salary credited for july',
+    type: 'income',
+    expectedCategoryId: 'cat_income',
+    expectedConfidence: 'medium',
+    includesKeywords: ['salary', 'credited'],
+  },
+  {
+    merchant: 'HDFC Bank',
+    description: 'credit card bill payment',
+    type: 'income',
+    expectedCategoryId: 'cat_uncategorized',
+    expectedConfidence: 'none',
+  },
+  {
+    merchant: 'Axis Bank',
+    description: 'imps transfer sent to savings account',
+    type: 'expense',
+    expectedCategoryId: 'cat_transfer',
+    expectedConfidence: 'high',
+    includesKeywords: ['transfer', 'imps', 'sent to'],
+  },
+  {
+    merchant: 'Airtel',
+    description: 'paid to airtel for mobile recharge',
+    type: 'expense',
+    expectedCategoryId: 'cat_bills',
+    includesKeywords: ['airtel', 'mobile', 'recharge'],
+    excludesKeywords: ['paid to'],
+  },
+  {
+    merchant: 'Unknown Merchant',
+    description: 'movie night payment',
+    type: 'expense',
+    expectedCategoryId: 'cat_uncategorized',
+    expectedConfidence: 'none',
+  },
+  {
+    merchant: 'Unknown Merchant',
+    description: 'monthly bill payment',
+    type: 'expense',
+    expectedCategoryId: 'cat_uncategorized',
+    expectedConfidence: 'none',
+  },
+  {
+    merchant: 'Netflix',
+    description: 'movie night streaming',
+    type: 'expense',
+    expectedCategoryId: 'cat_entertainment',
+    includesKeywords: ['netflix'],
+  },
+  {
+    merchant: 'Blinkit',
+    description: 'upi payment to blinkit groceries',
+    type: 'expense',
+    expectedCategoryId: 'cat_groceries',
+    expectedConfidence: 'medium',
+    includesKeywords: ['blinkit'],
+  },
+  {
+    merchant: 'BookMyShow',
+    description: 'upi paid to bookmyshow movie tickets',
+    type: 'expense',
+    expectedCategoryId: 'cat_entertainment',
+    expectedConfidence: 'high',
+    includesKeywords: ['bookmyshow'],
+    excludesKeywords: ['paid to'],
+  },
+  {
+    merchant: 'IRCTC',
+    description: 'upi payment to irctc train booking',
+    type: 'expense',
+    expectedCategoryId: 'cat_transport',
+    expectedConfidence: 'high',
+    includesKeywords: ['irctc', 'train'],
+  },
+  {
+    merchant: 'Zepto Cafe',
+    description: 'snacks ordered on zepto cafe',
+    type: 'expense',
+    expectedCategoryId: 'cat_groceries',
+    expectedConfidence: 'low',
+    includesKeywords: ['zepto'],
+  },
+  {
+    merchant: 'CRED',
+    description: 'credit card bill paid via cred',
+    type: 'expense',
+    expectedCategoryId: 'cat_uncategorized',
+    expectedConfidence: 'none',
+  },
+  {
+    merchant: 'State Bank of India',
+    description: 'interest credited to account',
+    type: 'income',
+    expectedCategoryId: 'cat_income',
+    expectedConfidence: 'high',
+    includesKeywords: ['interest', 'credited'],
+  },
+];
+
+for (const fixture of productionFixtures) {
+  assert.equal(
+    categorizeTransaction(fixture.merchant, fixture.description, fixture.type),
+    fixture.expectedCategoryId,
+    `${fixture.merchant ?? 'null'} should categorize as ${fixture.expectedCategoryId}`
+  );
+
+  const detailed = categorizeTransactionDetailed(fixture.merchant, fixture.description, fixture.type);
+  assert.equal(
+    detailed.categoryId,
+    fixture.expectedCategoryId,
+    `detailed category mismatch for ${fixture.merchant ?? 'null'}`
+  );
+
+  if (fixture.expectedConfidence) {
+    assert.equal(
+      detailed.confidence,
+      fixture.expectedConfidence,
+      `confidence mismatch for ${fixture.merchant ?? 'null'}`
+    );
+  }
+
+  for (const keyword of fixture.includesKeywords ?? []) {
+    assert.ok(
+      detailed.matchedKeywords.includes(keyword),
+      `expected keyword "${keyword}" for ${fixture.merchant ?? 'null'}`
+    );
+  }
+
+  for (const keyword of fixture.excludesKeywords ?? []) {
+    assert.ok(
+      !detailed.matchedKeywords.includes(keyword),
+      `unexpected keyword "${keyword}" for ${fixture.merchant ?? 'null'}`
+    );
+  }
+}
 
 assert.equal(
-  categorizeTransaction('Reliance Digital', 'electronics store purchase', 'expense'),
-  'cat_shopping'
+  normalizeLearnedKeyword('UPI payment to Theobroma 923114'),
+  'theobroma'
 );
-
 assert.equal(
-  categorizeTransaction('Swiggy', 'upi payment to swiggy order', 'expense'),
-  'cat_food'
+  normalizeLearnedKeyword('paid to netflix via upi ref 881199'),
+  'netflix'
 );
-
 assert.equal(
-  categorizeTransaction('Employer', 'salary credited for july', 'income'),
-  'cat_income'
+  normalizeLearnedKeyword('Airtel'),
+  'airtel'
 );
 
-assert.equal(
-  categorizeTransaction('HDFC Bank', 'credit card bill payment', 'income'),
-  'cat_uncategorized'
-);
+const correctionCategories = DEFAULT_CATEGORIES.map((category) => ({
+  ...category,
+  keywords: [...category.keywords],
+}));
 
-assert.equal(
-  categorizeTransaction('Axis Bank', 'imps transfer sent to savings account', 'expense'),
-  'cat_transfer'
-);
+const foodCategory = correctionCategories.find((category) => category.id === 'cat_food');
+assert.ok(foodCategory);
+foodCategory.keywords.push(normalizeLearnedKeyword('UPI payment to Theobroma 923114'));
 
-assert.equal(
-  categorizeTransaction('Airtel', 'paid to airtel for mobile recharge', 'expense'),
-  'cat_bills'
+const learnedCorrectionResult = categorizeTransactionDetailed(
+  'UPI payment to Theobroma 923114',
+  'brunch order via upi',
+  'expense',
+  correctionCategories
 );
+assert.equal(learnedCorrectionResult.categoryId, 'cat_food');
+assert.equal(learnedCorrectionResult.confidence, 'medium');
+assert.deepEqual(learnedCorrectionResult.matchedKeywords, ['theobroma']);
 
-const transferResult = categorizeTransactionDetailed(
-  'Axis Bank',
-  'imps transfer sent to savings account',
+const uncategorizedBeforeLearning = categorizeTransactionDetailed(
+  'Theobroma',
+  'brunch order via upi',
   'expense'
 );
-assert.equal(transferResult.categoryId, 'cat_transfer');
-assert.equal(transferResult.confidence, 'high');
-assert.deepEqual(transferResult.matchedKeywords, ['transfer', 'imps', 'sent to']);
+assert.equal(uncategorizedBeforeLearning.categoryId, 'cat_uncategorized');
+assert.equal(uncategorizedBeforeLearning.confidence, 'none');
 
-const ambiguousBillsResult = categorizeTransactionDetailed(
-  'Airtel',
-  'paid to airtel for mobile recharge',
-  'expense'
-);
-assert.equal(ambiguousBillsResult.categoryId, 'cat_bills');
-assert.ok(ambiguousBillsResult.score > 0);
-assert.ok(ambiguousBillsResult.matchedKeywords.includes('airtel'));
-assert.ok(!ambiguousBillsResult.matchedKeywords.includes('paid to'));
-
-const uncategorizedResult = categorizeTransactionDetailed(
-  'HDFC Bank',
-  'credit card bill payment',
-  'income'
-);
-assert.equal(uncategorizedResult.categoryId, 'cat_uncategorized');
-assert.equal(uncategorizedResult.confidence, 'none');
-assert.deepEqual(uncategorizedResult.matchedKeywords, []);
-
-assert.equal(
-  categorizeTransaction('Unknown Merchant', 'movie night payment', 'expense'),
-  'cat_uncategorized'
-);
-
-assert.equal(
-  categorizeTransaction('Unknown Merchant', 'monthly bill payment', 'expense'),
-  'cat_uncategorized'
-);
-
-const lowSignalResult = categorizeTransactionDetailed(
-  'Unknown Merchant',
-  'movie night payment',
-  'expense'
-);
-assert.equal(lowSignalResult.categoryId, 'cat_uncategorized');
-assert.equal(lowSignalResult.confidence, 'none');
-assert.deepEqual(lowSignalResult.matchedKeywords, []);
-
-const corroboratedEntertainmentResult = categorizeTransactionDetailed(
-  'Netflix',
-  'movie night streaming',
-  'expense'
-);
-assert.equal(corroboratedEntertainmentResult.categoryId, 'cat_entertainment');
-assert.ok(corroboratedEntertainmentResult.matchedKeywords.includes('netflix'));
-
-console.log('categorizer tests: PASS');
+console.log(`categorizer tests: PASS (${productionFixtures.length + 5} assertions)`);

@@ -32,11 +32,16 @@
 | 2026-07-07 | Phase 1: Remaining insights contract hardening | Test | Complete | `npm.cmd run test:insights` and `npm.cmd run check` both passed. |
 | 2026-07-07 | Phase 1: Remaining insights contract hardening | Audit | Complete | Audit status updated to complete with direct evidence for presenter ownership, screen contract usage, and focused boundary tests. |
 | 2026-07-07 | Phase 1: Remaining insights contract hardening | Review | Complete | Final contract surface now sits at the presenter boundary without screen-side raw snapshot fallback logic. |
+| 2026-07-07 | Phase 2: Categorizer production hardening | Plan | Complete | Scoped broader ambiguous-merchant fixtures, correction-learning normalization, and explainability-preserving validation. |
+| 2026-07-07 | Phase 2: Categorizer production hardening | Code | Complete | Added canonical learned-keyword normalization, reused it in transaction-store correction learning, and expanded the categorizer fixture bank. |
+| 2026-07-07 | Phase 2: Categorizer production hardening | Test | Complete | `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts` and `npm.cmd run check` both passed. |
+| 2026-07-07 | Phase 2: Categorizer production hardening | Audit | Complete | Audit confirmed broader fixture coverage, correction-learning normalization, and explainability evidence are sufficient to close Phase 2. |
+| 2026-07-07 | Phase 2: Categorizer production hardening | Review | Complete | Reviewer approved the scoped categorizer hardening changes and kept Phase 3 open as the remaining production gate. |
 
 ## Current State
 
-The latest completed task closed Phase 1 of the audit backlog by hardening the remaining insights presenter contract and updating the audit plus orchestration records.
+The latest completed task closed Phase 2 of the audit backlog by hardening categorizer production coverage and correction learning, then updating the audit plus orchestration records.
 
 ## Next Step
 
-Next worthwhile follow-up: start Phase 2 from the audit backlog and harden `categorizer` production coverage around ambiguous merchant and payment phrasing.
+Next worthwhile follow-up: start Phase 3 from the audit backlog and add cross-system golden fixtures plus a release audit checklist across parser, categorizer, and insights.

@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 1: remaining insights contract hardening, then update the audit and orchestration artifacts.
+Implement Phase 2: categorizer production hardening, then update the audit and orchestration artifacts.
 
 ## Review Status
 
@@ -11,11 +11,11 @@ Approved
 ## Findings
 
 - No blocking issues were found in the delivered fix set.
-- The insights change is narrowly scoped and defensible: the presenter now owns the remaining screen contract surface without forcing aggregate-layer copy edits.
-- The new tests directly cover summary-card and default-fallback contract behavior and are supported by a passing typecheck.
-- The audit and `.ai-team` updates track the new closure state consistently across the handoff and orchestration records.
-- The requested sub-agent flow stayed within the documented safe order: planning-time read-only analysis, then sequential code, test, audit, and review.
+- The categorizer change is narrowly scoped and defensible: the new learned-keyword normalization strengthens correction learning without weakening the uncategorized fallback policy.
+- The expanded categorizer suite directly covers the ambiguous merchant and payment phrasing backlog called out in the audit, and the passing typecheck supports the transaction-store integration change.
+- The audit and `.ai-team` updates reflect Phase 2 completion while keeping Phase 3 explicitly open as the remaining cross-system production gate.
+- The requested sub-agent flow stayed within the documented safe order: planning, sequential code, test, audit, and review.
 
 ## Decision
 
-Approved. Phase 1 is implemented, validated, and reflected in the audit and orchestration artifacts.
+Approved. Phase 2 is implemented, validated, and reflected in the audit and orchestration artifacts.

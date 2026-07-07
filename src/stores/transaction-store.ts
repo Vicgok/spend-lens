@@ -11,7 +11,7 @@ import {
 } from '../types';
 import * as db from '../lib/database';
 import { getMonthRange } from '../utils/date';
-import { categorizeTransaction } from '../features/categorizer/categorizer';
+import { categorizeTransaction, normalizeLearnedKeyword } from '../features/categorizer/categorizer';
 import { buildInsightsSnapshot } from '../features/insights-engine/aggregates';
 import { InsightsSnapshot } from '../features/insights-engine/types';
 
@@ -268,7 +268,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
   learnCategoryKeyword: async (categoryId, rawMerchant) => {
     if (!rawMerchant) return;
-    const keyword = rawMerchant.trim().toLowerCase().replace(/\s+/g, ' ');
+    const keyword = normalizeLearnedKeyword(rawMerchant);
     if (keyword.length < 2) return;
 
     const categories = [...get().categories];
@@ -276,8 +276,11 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
     // Remove keyword from other categories to avoid matching conflicts
     for (const cat of categories) {
-      if (cat.id !== categoryId && cat.keywords.includes(keyword)) {
-        cat.keywords = cat.keywords.filter((kw) => kw !== keyword);
+      if (
+        cat.id !== categoryId &&
+        cat.keywords.some((kw) => normalizeLearnedKeyword(kw) === keyword)
+      ) {
+        cat.keywords = cat.keywords.filter((kw) => normalizeLearnedKeyword(kw) !== keyword);
         await db.updateCategoryKeywords(cat.id, cat.keywords);
         updatedAny = true;
       }
@@ -285,7 +288,10 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
 
     // Add keyword to corrected category
     const targetCat = categories.find((cat) => cat.id === categoryId);
-    if (targetCat && !targetCat.keywords.includes(keyword)) {
+    if (
+      targetCat &&
+      !targetCat.keywords.some((kw) => normalizeLearnedKeyword(kw) === keyword)
+    ) {
       targetCat.keywords = [...targetCat.keywords, keyword];
       await db.updateCategoryKeywords(targetCat.id, targetCat.keywords);
       updatedAny = true;
