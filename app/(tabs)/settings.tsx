@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabHeader, ReadingNotebookMascot, LeafCluster, CornerPlant, BaseModal } from '@/components/ui';
@@ -7,6 +7,7 @@ import { ROUTES } from '@/navigation/routes';
 import { typography, spacing, tokens } from '@/theme';
 import { APP_VERSION } from '@/lib/constants';
 import { useTransactionStore } from '@/stores/transaction-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { formatCurrency } from '@/utils/currency';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path, Circle, Rect, Ellipse } from 'react-native-svg';
@@ -166,9 +167,17 @@ export default function SettingsScreen() {
   const transactions = useTransactionStore((s) => s.transactions);
   const getTotalBalance = useTransactionStore((s) => s.getTotalBalance);
   const loadAccounts = useTransactionStore((s) => s.loadAccounts);
+  const dashboardName = useSettingsStore((s) => s.dashboardName);
+  const profileName = useSettingsStore((s) => s.profileName);
+  const profileEmail = useSettingsStore((s) => s.profileEmail);
+  const updateProfile = useSettingsStore((s) => s.updateProfile);
 
   const totalBalance = getTotalBalance();
   const transactionCount = transactions.length;
+  const [isEditProfileVisible, setIsEditProfileVisible] = useState(false);
+  const [draftDashboardName, setDraftDashboardName] = useState('');
+  const [draftProfileName, setDraftProfileName] = useState('');
+  const [draftProfileEmail, setDraftProfileEmail] = useState('');
 
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean;
@@ -190,16 +199,26 @@ export default function SettingsScreen() {
     });
   };
 
+  useEffect(() => {
+    setDraftDashboardName(dashboardName);
+    setDraftProfileName(profileName);
+    setDraftProfileEmail(profileEmail);
+  }, [dashboardName, profileEmail, profileName]);
+
   const handleEditProfilePress = () => {
-    setModalConfig({
-      visible: true,
-      title: 'Edit Profile',
-      message: 'This feature will allow updating your local dashboard name, avatar, and default settings in a future update.',
-      primaryAction: {
-        label: 'OK',
-        onPress: () => setModalConfig(prev => ({ ...prev, visible: false }))
-      }
+    setDraftDashboardName(dashboardName);
+    setDraftProfileName(profileName);
+    setDraftProfileEmail(profileEmail);
+    setIsEditProfileVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    await updateProfile({
+      dashboardName: draftDashboardName.trim() || 'SpendLens',
+      profileName: draftProfileName.trim() || 'Local Sandbox Profile',
+      profileEmail: draftProfileEmail.trim(),
     });
+    setIsEditProfileVisible(false);
   };
 
   const handleNotificationsPress = () => {
@@ -342,8 +361,10 @@ export default function SettingsScreen() {
               </Svg>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>Local Sandbox Profile</Text>
-              <Text style={styles.profileSub}>{transactionCount} transactions tracked</Text>
+              <Text style={styles.profileName}>{profileName}</Text>
+              <Text style={styles.profileSub}>
+                {profileEmail.trim() ? profileEmail : `${transactionCount} transactions tracked`}
+              </Text>
             </View>
           </View>
           
@@ -351,7 +372,7 @@ export default function SettingsScreen() {
           
           <View style={styles.profileBottomRow}>
             <View>
-              <Text style={styles.balanceLabel}>NET WORTH</Text>
+              <Text style={styles.balanceLabel}>{dashboardName.toUpperCase()}</Text>
               <Text style={styles.balanceText}>{formatCurrency(totalBalance)}</Text>
             </View>
             <Pressable
@@ -493,6 +514,56 @@ export default function SettingsScreen() {
       <View style={styles.bottomDecorRight} pointerEvents="none">
         <CornerPlant width={80} height={60} />
       </View>
+
+      <BaseModal
+        visible={isEditProfileVisible}
+        onClose={() => setIsEditProfileVisible(false)}
+        variant="dialog"
+        title="Edit Profile"
+        primaryAction={{
+          label: 'Save',
+          onPress: handleSaveProfile,
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onPress: () => setIsEditProfileVisible(false),
+        }}
+      >
+        <View style={styles.profileForm}>
+          <View style={styles.profileField}>
+            <Text style={styles.profileFieldLabel}>Dashboard name</Text>
+            <TextInput
+              value={draftDashboardName}
+              onChangeText={setDraftDashboardName}
+              placeholder="SpendLens"
+              placeholderTextColor={SETTINGS_COLORS.secondary}
+              style={styles.profileInput}
+            />
+          </View>
+          <View style={styles.profileField}>
+            <Text style={styles.profileFieldLabel}>Profile name</Text>
+            <TextInput
+              value={draftProfileName}
+              onChangeText={setDraftProfileName}
+              placeholder="Local Sandbox Profile"
+              placeholderTextColor={SETTINGS_COLORS.secondary}
+              style={styles.profileInput}
+            />
+          </View>
+          <View style={styles.profileField}>
+            <Text style={styles.profileFieldLabel}>Email</Text>
+            <TextInput
+              value={draftProfileEmail}
+              onChangeText={setDraftProfileEmail}
+              placeholder="name@example.com"
+              placeholderTextColor={SETTINGS_COLORS.secondary}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={styles.profileInput}
+            />
+          </View>
+        </View>
+      </BaseModal>
 
       <BaseModal
         visible={modalConfig.visible}
@@ -671,6 +742,30 @@ const styles = StyleSheet.create({
   profileEditBtnText: {
     fontSize: 13,
     fontFamily: typography.fontFamily.bold,
+    color: SETTINGS_COLORS.primary,
+  },
+  profileForm: {
+    gap: 14,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  profileField: {
+    gap: 6,
+  },
+  profileFieldLabel: {
+    fontSize: 13,
+    fontFamily: typography.fontFamily.bold,
+    color: SETTINGS_COLORS.primary,
+  },
+  profileInput: {
+    borderWidth: 1,
+    borderColor: SETTINGS_COLORS.border,
+    backgroundColor: '#FAF9F7',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontFamily: typography.fontFamily.medium,
     color: SETTINGS_COLORS.primary,
   },
   statusBadge: {

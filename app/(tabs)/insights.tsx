@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { generateAllInsights } from '@/features/insights-engine/detector';
 import { calculateSalarySurvivalScore, calculateSalarySurvivalScoreFromSnapshot } from '@/features/insights-engine/formulas';
+import { formatCurrency } from '@/utils/currency';
 import {
   buildDefaultInsightsScreenSectionsDisplay,
   mapInsightsSnapshotToScreenSections,
@@ -14,7 +15,7 @@ import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
 // Illustrations & Mascots
-import { TabHeader, ReadingNotebookMascot, CornerPlant, BaseModal } from '@/components/ui';
+import { TabHeader, ReadingNotebookMascot, CornerPlant, BaseModal, AreaTrendChart } from '@/components/ui';
 
 const SCAN_STEPS = [
   { message: 'INITIALIZING SMS OBSERVATORY SERVICE...', progress: 0.1 },
@@ -24,6 +25,8 @@ const SCAN_STEPS = [
   { message: 'RUNNING BEHAVIORAL DETECTORS (IMPULSE, LEAKS, SUBSCRIPTIONS)...', progress: 0.9 },
   { message: 'INVESTIGATION COMPLETE. UPDATING BOARD IN REAL-TIME.', progress: 1.0 },
 ];
+
+const EXPENSE_TREND_DAYS = 14;
 
 // Reusable SVG Icons (No Emojis allowed by Rules)
 const ShieldIcon = React.memo(({ size = 18, color = '#3E5A2A' }: { size?: number; color?: string }) => (
@@ -146,6 +149,22 @@ const CheckCircleIcon = React.memo(({ size = 16, color = '#3E5A2A' }: { size?: n
   </Svg>
 ));
 
+function getLocalDateKey(dateInput: string | Date): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatShortDay(date: Date): string {
+  return date.toLocaleDateString('en-IN', { weekday: 'short' });
+}
+
+function formatShortMonthDay(date: Date): string {
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
 export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
 
@@ -163,6 +182,7 @@ export default function InsightsScreen() {
   const [showHealthTooltip, setShowHealthTooltip] = useState(false);
   const [showRisksTooltip, setShowRisksTooltip] = useState(false);
   const [showScanCompleteModal, setShowScanCompleteModal] = useState(false);
+  const [selectedExpenseTrendKey, setSelectedExpenseTrendKey] = useState<string | null>(null);
 
   // Animated values for pressable cards & tooltips
   const patternScale = useRef(new Animated.Value(1)).current;
@@ -536,6 +556,110 @@ export default function InsightsScreen() {
     if (survivalScore >= 50) return { label: 'Watch Closely', text: 'Discretionary spending is rising, check your recent transaction spikes.' };
     return { label: 'Needs Attention', text: 'High expenditure rate detected. Consider slowing down non-essential spend immediately.' };
   }, [survivalScore]);
+
+  const expenseTrend = useMemo(() => {
+    const expenses = activeTransactions.filter((transaction) => transaction.type === 'expense');
+    const totalsByDay = new Map<string, number>();
+
+    expenses.forEach((transaction) => {
+      const key = getLocalDateKey(transaction.date);
+      totalsByDay.set(key, (totalsByDay.get(key) || 0) + transaction.amount);
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const points = Array.from({ length: EXPENSE_TREND_DAYS }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (EXPENSE_TREND_DAYS - 1 - index));
+      const key = getLocalDateKey(date);
+      return {
+        key,
+        date,
+        amount: Math.round(totalsByDay.get(key) || 0),
+        shortDay: formatShortDay(date),
+        shortDate: formatShortMonthDay(date),
+      };
+    });
+
+    const maxAmount = Math.max(...points.map((point) => point.amount), 0);
+    const totalAmount = points.reduce((sum, point) => sum + point.amount, 0);
+    const activeDays = points.filter((point) => point.amount > 0).length;
+    const averageAmount = activeDays > 0 ? Math.round(totalAmount / activeDays) : 0;
+    const chartHeight = 214;
+    const chartWidth = 320;
+    const leftPadding = 12;
+    const rightPadding = 12;
+    const topPadding = 18;
+    const bottomPadding = 24;
+    const usableWidth = chartWidth - leftPadding - rightPadding;
+    const usableHeight = chartHeight - topPadding - bottomPadding;
+
+    const plottedPoints = points.map((point, index) => {
+      const x = leftPadding + (usableWidth * index) / Math.max(points.length - 1, 1);
+      const normalized = maxAmount > 0 ? point.amount / maxAmount : 0;
+      const y = topPadding + usableHeight - normalized * usableHeight;
+      return {
+        ...point,
+        x,
+        y,
+      };
+    });
+
+    const linePath = plottedPoints
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ');
+    const areaPath = plottedPoints.length
+      ? `${linePath} L ${plottedPoints[plottedPoints.length - 1].x} ${chartHeight - bottomPadding} L ${plottedPoints[0].x} ${chartHeight - bottomPadding} Z`
+      : '';
+    const peakPoint = plottedPoints.reduce<(typeof plottedPoints)[number] | null>((peak, point) => {
+      if (!peak || point.amount > peak.amount) {
+        return point;
+      }
+      return peak;
+    }, null);
+    const latestPoint = plottedPoints[plottedPoints.length - 1] || null;
+    const nonZeroLatestPoint = [...plottedPoints].reverse().find((point) => point.amount > 0) || latestPoint;
+
+    return {
+      points: plottedPoints,
+      maxAmount,
+      totalAmount,
+      activeDays,
+      averageAmount,
+      peakPoint,
+      latestPoint,
+      defaultPoint: nonZeroLatestPoint,
+      chartHeight,
+      chartWidth,
+      bottomPadding,
+      linePath,
+      areaPath,
+    };
+  }, [activeTransactions]);
+
+  useEffect(() => {
+    const availableKeys = new Set(expenseTrend.points.map((point) => point.key));
+    if (!selectedExpenseTrendKey || !availableKeys.has(selectedExpenseTrendKey)) {
+      setSelectedExpenseTrendKey(expenseTrend.defaultPoint?.key || null);
+    }
+  }, [expenseTrend, selectedExpenseTrendKey]);
+
+  const selectedExpenseTrendPoint = useMemo(() => {
+    return (
+      expenseTrend.points.find((point) => point.key === selectedExpenseTrendKey) ||
+      expenseTrend.defaultPoint ||
+      null
+    );
+  }, [expenseTrend, selectedExpenseTrendKey]);
+
+  const expenseTrendChartData = useMemo(() => {
+    return expenseTrend.points.map((point) => ({
+      key: point.key,
+      label: point.shortDay,
+      value: point.amount,
+    }));
+  }, [expenseTrend]);
 
   // Section 3: Spending Pattern calculation
   const legacySpendingPatterns = useMemo(() => {
@@ -984,26 +1108,22 @@ export default function InsightsScreen() {
   const strokeDashoffset = circumference * (1 - survivalScore / 100);
 
   return (
-    <>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
       <ScrollView
-      style={styles.container}
-      contentContainerStyle={[
-        styles.contentContainer,
-        { paddingTop: insets.top + 16 },
-      ]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#745143"
-          colors={['#3E5A2A']}
-        />
-      }
-    >
-      {/* Reusable Header */}
-      <TabHeader
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#745143"
+            colors={['#3E5A2A']}
+          />
+        }
+      >
+        {/* Reusable Header */}
+        <TabHeader
         variant="tactile"
         microHeader="FINANCIAL INTELLIGENCE"
         title="Your Money Story"
@@ -1219,8 +1339,123 @@ export default function InsightsScreen() {
             </View>
           </View>
 
-          {/* SECTIONS 3 & 4: Spending Pattern & Money Habits (Split Card Row) */}
-          <View style={styles.splitRow}>
+          {/* SECTION 3: Expense Trend */}
+          <Pressable
+            onPressIn={handlePatternPressIn}
+            onPressOut={handlePatternPressOut}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setShowPatternModal(true);
+            }}
+          >
+            <Animated.View style={[styles.expenseTrendCard, { transform: [{ scale: patternScale }] }]}>
+              <View style={styles.expenseTrendHeader}>
+                <View style={styles.expenseTrendHeaderCopy}>
+                  <Text style={styles.sectionTitle}>Expense Trend</Text>
+                  <Text style={styles.expenseTrendSubtext}>Last {EXPENSE_TREND_DAYS} days of outgoing money.</Text>
+                </View>
+                <View style={styles.expenseTrendPill}>
+                  <Text style={styles.expenseTrendPillText}>Track daily</Text>
+                </View>
+              </View>
+
+              <View style={styles.expenseTrendMetricsRow}>
+                <View style={styles.expenseMetricCard}>
+                  <Text style={styles.expenseMetricLabel}>Selected</Text>
+                  <Text style={styles.expenseMetricValue}>
+                    {selectedExpenseTrendPoint ? formatCurrency(selectedExpenseTrendPoint.amount) : formatCurrency(0)}
+                  </Text>
+                  <Text style={styles.expenseMetricFootnote}>
+                    {selectedExpenseTrendPoint ? `${selectedExpenseTrendPoint.shortDay}, ${selectedExpenseTrendPoint.shortDate}` : 'No day selected'}
+                  </Text>
+                </View>
+                <View style={styles.expenseMetricCard}>
+                  <Text style={styles.expenseMetricLabel}>Peak day</Text>
+                  <Text style={styles.expenseMetricValue}>
+                    {formatCurrency(expenseTrend.peakPoint?.amount || 0)}
+                  </Text>
+                  <Text style={styles.expenseMetricFootnote}>
+                    {expenseTrend.peakPoint ? expenseTrend.peakPoint.shortDate : 'No expense activity'}
+                  </Text>
+                </View>
+                <View style={styles.expenseMetricCard}>
+                  <Text style={styles.expenseMetricLabel}>Active days</Text>
+                  <Text style={styles.expenseMetricValue}>{expenseTrend.activeDays}</Text>
+                  <Text style={styles.expenseMetricFootnote}>
+                    Avg {formatCurrency(expenseTrend.averageAmount)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.expenseTrendChartShell}>
+                <Text style={styles.expenseTrendAxisTop}>{formatCurrency(expenseTrend.maxAmount)}</Text>
+                <AreaTrendChart
+                  data={expenseTrendChartData}
+                  height={expenseTrend.chartHeight}
+                  selectedKey={selectedExpenseTrendKey}
+                  onSelectKey={setSelectedExpenseTrendKey}
+                />
+              </View>
+
+              <View style={styles.expenseTrendFooter}>
+                <Text style={styles.expenseTrendFooterText}>
+                  {selectedExpenseTrendPoint && expenseTrend.latestPoint && selectedExpenseTrendPoint.key !== expenseTrend.latestPoint.key
+                    ? `Comparing ${selectedExpenseTrendPoint.shortDate} against your recent flow.`
+                    : 'Tap any day to inspect the exact outgoing amount.'}
+                </Text>
+                <View style={styles.expenseTrendFooterCta}>
+                  <Text style={styles.expenseTrendFooterCtaText}>Open breakdown</Text>
+                  <Svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#B7884E" strokeWidth={2.5}>
+                    <Path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                </View>
+              </View>
+            </Animated.View>
+          </Pressable>
+
+          {/* SECTION 4: Money Habits */}
+          <Pressable
+            onPressIn={handleHabitsPressIn}
+            onPressOut={handleHabitsPressOut}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setShowHabitsModal(true);
+            }}
+          >
+            <Animated.View style={[styles.habitsCard, { transform: [{ scale: habitsScale }] }]}>
+              <Text style={styles.sectionTitle}>Money Habits</Text>
+              {habits.length > 0 ? (
+                <View style={[styles.habitList, { flex: 1 }]}>
+                  {habits.map((habit) => (
+                    <View key={habit.key} style={styles.habitItem}>
+                      <View style={styles.habitIconBox}>
+                        {renderHabitIcon(habit.icon)}
+                      </View>
+                      <Text style={styles.habitText} numberOfLines={2}>
+                        {habit.summary}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 'auto', gap: 4, zIndex: 1 }}>
+                    <Text style={{ fontSize: 11, fontFamily: typography.fontFamily.bold, color: '#3E5A2A' }}>
+                      Tap to analyze habits
+                    </Text>
+                    <Svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3E5A2A" strokeWidth={2.5}>
+                      <Path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  </View>
+                </View>
+              ) : (
+                <Text style={[styles.descriptionText, { marginTop: 24 }]}>I need more logged logs to reveal habits.</Text>
+              )}
+              <View style={styles.splitCardDecor} pointerEvents="none">
+                <CornerPlant width={45} height={35} />
+              </View>
+            </Animated.View>
+          </Pressable>
+
+          {/* Legacy split layout removed in favor of a larger full-width chart card */}
+          <View style={{ display: 'none' }}>
             {/* SECTION 3: Spending Pattern */}
             <Pressable
               onPressIn={handlePatternPressIn}
@@ -1671,8 +1906,8 @@ export default function InsightsScreen() {
         I populated observations and leak patterns on your board.
       </Text>
     </BaseModal>
-  </>
-);
+    </View>
+  );
 }
 
 // Inline style hack object for typing issues on React Native Svg styles
@@ -1912,14 +2147,170 @@ const styles = StyleSheet.create({
     color: '#54554B',
   },
 
-  // Sections 3 & 4: Spending Pattern & Habits
-  splitRow: {
-    flexDirection: 'row',
-    gap: 12,
+  // Section 3: Expense Trend
+  expenseTrendCard: {
+    backgroundColor: '#FFF8EE',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E8DDD0',
+    padding: 20,
     marginBottom: 16,
+    position: 'relative',
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  expenseTrendHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 14,
+  },
+  expenseTrendHeaderCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  expenseTrendSubtext: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: typography.fontFamily.medium,
+    color: '#54554B',
+  },
+  expenseTrendPill: {
+    backgroundColor: '#EEF4E6',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  expenseTrendPillText: {
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
+    color: '#3E5A2A',
+  },
+  expenseTrendMetricsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  expenseMetricCard: {
+    flex: 1,
+    backgroundColor: '#FAF9F7',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E8DDD0',
+    padding: 12,
+    gap: 2,
+  },
+  expenseMetricLabel: {
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
+    color: '#54554B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  expenseMetricValue: {
+    fontSize: 18,
+    fontFamily: typography.fontFamily.bold,
+    color: '#745143',
+  },
+  expenseMetricFootnote: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: typography.fontFamily.medium,
+    color: '#54554B',
+  },
+  expenseTrendChartShell: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E8DDD0',
+    backgroundColor: '#FAF9F7',
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingHorizontal: 10,
+    marginBottom: 14,
+    position: 'relative',
+  },
+  expenseTrendAxisTop: {
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
+    color: '#54554B',
+    marginBottom: 4,
+    marginLeft: 2,
+  },
+  expenseTrendHitRow: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    top: 30,
+    bottom: 28,
+    flexDirection: 'row',
+  },
+  expenseTrendHitTarget: {
+    flex: 1,
+  },
+  expenseTrendAxisLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: -2,
+  },
+  expenseTrendAxisLabelWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  expenseTrendAxisLabel: {
+    fontSize: 11,
+    fontFamily: typography.fontFamily.medium,
+    color: '#8A8379',
+  },
+  expenseTrendAxisLabelActive: {
+    color: '#745143',
+    fontFamily: typography.fontFamily.bold,
+  },
+  expenseTrendFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  expenseTrendFooterText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: typography.fontFamily.medium,
+    color: '#54554B',
+  },
+  expenseTrendFooterCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  expenseTrendFooterCtaText: {
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
+    color: '#B7884E',
+  },
+
+  // Section 4: Habits
+  habitsCard: {
+    backgroundColor: '#FFF8EE',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E8DDD0',
+    padding: 20,
+    paddingBottom: 18,
+    minHeight: 190,
+    marginBottom: 16,
+    position: 'relative',
+    shadowColor: '#745143',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   splitCard: {
-    flex: 1,
     backgroundColor: '#FFF8EE',
     borderRadius: 24,
     borderWidth: 1,
@@ -1940,49 +2331,6 @@ const styles = StyleSheet.create({
     bottom: 2,
     opacity: 0.45,
   },
-  patternCategoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-  },
-  patternCatLabel: {
-    fontSize: 13,
-    fontFamily: typography.fontFamily.bold,
-    color: '#54554B',
-  },
-  patternCatName: {
-    fontSize: 17,
-    fontFamily: typography.fontFamily.bold,
-    color: '#745143',
-  },
-  patternAmount: {
-    fontSize: 19,
-    fontFamily: typography.fontFamily.bold,
-    color: '#3E5A2A',
-  },
-  patternChangeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EEF4E6',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 10,
-  },
-  patternChangeText: {
-    color: '#B7884E',
-    fontSize: 12,
-    fontFamily: typography.fontFamily.bold,
-  },
-  splitCardMascot: {
-    position: 'absolute',
-    right: 4,
-    bottom: 4,
-  },
-
-  // Section 4: Habits
   habitList: {
     marginTop: 8,
     gap: 8,
@@ -2310,3 +2658,5 @@ const styles = StyleSheet.create({
     color: '#54554B',
   },
 });
+
+

@@ -1,8 +1,12 @@
 // Core UI Components
 export { default as TabHeader } from './TabHeader';
+export { default as AreaTrendChart } from './AreaTrendChart';
+export type { AreaTrendChartDatum } from './AreaTrendChart';
+export { default as StackedWeeklyBarChart } from './StackedWeeklyBarChart';
+export type { StackedWeeklyBarChartDatum } from './StackedWeeklyBarChart';
 export { default as AddFinancialSourceSheet } from './AddFinancialSourceSheet';
 export { BankLogo, AccountIcon, BANK_BRAND_COLORS } from './BankLogo';
-export { TransactionSkeleton, SkeletonPlaceholder } from './Skeleton';
+export { TransactionSkeleton, HistorySkeleton, SkeletonPlaceholder } from './Skeleton';
 export * from './OnboardingIcons';
 
 // Shared modal primitives

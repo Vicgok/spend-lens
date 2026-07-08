@@ -4,7 +4,7 @@
 
 ### Task
 
-Audit parser, categorizer, and insights against `docs/release-audit-checklist.md`, run the checklist in parallel where safe, and mark eligible subsystems frozen for the Production 1 release.
+Redesign the History chart with a premium vertical bar chart using `react-native-chart-kit` as the base and `react-native-svg` for custom rounded target and stacked bar rendering.
 
 ### Status
 
@@ -12,18 +12,18 @@ Complete
 
 ### Completed
 
-- Ran the full release checklist command set in parallel where safe: parser, parser production-safety, categorizer, insights, production-gate, and typecheck.
-- Confirmed all required commands passed on the same validated 2026-07-07 change set.
-- Updated the audit record to mark `sms-parser`, `categorizer`, `insights-engine`, and the cross-system Production 1 gate frozen for this release.
-- Updated the `.ai-team` orchestration records to reflect the Production 1 freeze decision.
+- Installed `react-native-chart-kit`, `@chart-kit/pro`, and `react-native-svg` with `--legacy-peer-deps` after `@chart-kit/pro` reported a React peer-version conflict.
+- Rebuilt `StackedWeeklyBarChart` to use `react-native-chart-kit/v2` as the chart base with custom SVG `Rect` rendering for the target bar and stacked foreground fills.
+- Updated the History screen integration to pass the new `value` and `target` shape into the redesigned shared chart.
+- Verified the redesign with `npm run check`.
 
 ### Next Owner
 
-Orchestrator
+User
 
 ### Next Action
 
-Respond to the user with the Production 1 freeze status and instruct future release candidates to re-run `docs/release-audit-checklist.md`.
+Perform runtime visual QA on device or simulator and decide whether the hidden legacy SVG block in `transactions.tsx` should be removed in a dedicated cleanup pass.
 
 ### Blockers
 

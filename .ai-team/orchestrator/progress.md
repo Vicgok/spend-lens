@@ -45,11 +45,28 @@
 | 2026-07-07 | Production 1 freeze audit for parser, categorizer, and insights | Plan | Complete | Scoped the release-checklist audit flow and safe parallel validation order. |
 | 2026-07-07 | Production 1 freeze audit for parser, categorizer, and insights | Audit | Complete | All required checklist commands passed in one audit run, supporting frozen status for each subsystem and the cross-system gate. |
 | 2026-07-07 | Production 1 freeze audit for parser, categorizer, and insights | Review | Complete | Reviewer approved the Production 1 frozen status based on the executed checklist evidence. |
+| 2026-07-08 | Roll back unshipped chart-memory updates in `.ai-team` | Audit | Complete | Verified the live codebase still uses the bespoke SVG History-tab chart and the shared UI barrel does not expose `VerticalBarChart`. |
+| 2026-07-08 | Roll back unshipped chart-memory updates in `.ai-team` | Review | Complete | Removed unsupported chart-integration claims and restored memory to the actual repository baseline. |
+| 2026-07-08 | History UI charts section UX refresh | Plan | Complete | Scoped a clearer, easier-to-tap History chart with persistent selected details, simpler controls, and better sparse-data handling; paused before code pending approval. |
+| 2026-07-08 | History UI charts section UX refresh | Code | Complete | Added `StackedWeeklyBarChart` and replaced the History chart experience with persistent details, chip selection, and lighter controls. |
+| 2026-07-08 | History UI charts section UX refresh | Test | Complete | `npm run check` passed after integrating the shared stacked chart and updated History card UI. |
+| 2026-07-08 | History UI charts section UX refresh | Audit | Complete | Audit confirmed the delivered chart matches the approved UX direction and that the executed validation evidence is accurate. |
+| 2026-07-08 | History UI charts section UX refresh | Review | Complete | Reviewer approved the revised chart hierarchy, touch interaction, and scoped implementation. |
+| 2026-07-08 | Premium chart-kit redesign for History chart | Plan | Complete | Scoped a redesign around `react-native-chart-kit` axes/grid with custom SVG pill bars, visible axes, and the existing History integration. |
+| 2026-07-08 | Premium chart-kit redesign for History chart | Code | Complete | Installed chart-kit dependencies, rebuilt `StackedWeeklyBarChart` on top of chart-kit v2 plus SVG custom bars, and updated `transactions.tsx` to the new data shape. |
+| 2026-07-08 | Premium chart-kit redesign for History chart | Test | Complete | `npm run check` passed after the dependency install and component redesign. |
+| 2026-07-08 | Premium chart-kit redesign for History chart | Audit | Complete | Audit confirmed the delivered component uses chart-kit as the base, keeps visible axes, and matches the requested custom bar treatment. |
+| 2026-07-08 | Premium chart-kit redesign for History chart | Review | Complete | Reviewer approved the scoped redesign and noted runtime visual QA as the remaining follow-up. |
+| 2026-07-09 | Insights area chart tap interaction and theme alignment | Plan | Complete | Scoped a shared chart-kit-based area chart swap, tap selection wiring, and app-theme styling while preserving the existing expense-trend card behavior. |
+| 2026-07-09 | Insights area chart tap interaction and theme alignment | Code | Complete | Added `AreaTrendChart`, exported it from the shared UI barrel, and replaced the bespoke Insights SVG chart with themed chart-kit area rendering plus tap-driven selection. |
+| 2026-07-09 | Insights area chart tap interaction and theme alignment | Test | Complete | `npm run check` passed after the shared area chart integration and selection wiring. |
+| 2026-07-09 | Insights area chart tap interaction and theme alignment | Audit | Complete | Audit confirmed the new shared chart uses chart-kit v2, keeps the existing selected-point flow, and applies app-theme colors instead of isolated chart styling. |
+| 2026-07-09 | Insights area chart tap interaction and theme alignment | Review | Complete | Reviewer approved the scoped Insights chart migration and tap interaction behavior. |
 
 ## Current State
 
-The latest completed task executed the Production 1 freeze audit and marked `sms-parser`, `categorizer`, `insights-engine`, and the cross-system gate frozen on the validated checklist run.
+The latest completed task migrated the Insights expense-trend chart onto a shared `react-native-chart-kit` v2 area chart with app-theme styling and direct tap selection, while preserving the existing card content and passing `npm run check`.
 
 ## Next Step
 
-Next worthwhile follow-up: treat any post-freeze code change as a new release candidate and re-run `docs/release-audit-checklist.md` before preserving the frozen label.
+Optional follow-up: visually verify both History and Insights charts on device and remove any now-dead legacy Insights chart math if the screen behavior is fully confirmed.

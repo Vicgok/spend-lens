@@ -42,14 +42,25 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
 interface SettingsState {
   currency: string;
   themeMode: ThemeMode;
+  dashboardName: string;
+  profileName: string;
+  profileEmail: string;
   setCurrency: (currency: string) => Promise<void>;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
+  updateProfile: (profile: {
+    dashboardName: string;
+    profileName: string;
+    profileEmail: string;
+  }) => Promise<void>;
   loadSettings: () => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   currency: 'INR',
   themeMode: 'dark',
+  dashboardName: 'SpendLens',
+  profileName: 'Local Sandbox Profile',
+  profileEmail: '',
 
   setCurrency: async (currency) => {
     await AsyncStorage.setItem(STORAGE_KEYS.DEFAULT_CURRENCY, currency);
@@ -61,12 +72,41 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     set({ themeMode: mode });
   },
 
+  updateProfile: async (profile) => {
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.SETTINGS,
+      JSON.stringify(profile)
+    );
+    set(profile);
+  },
+
   loadSettings: async () => {
     const currency = await AsyncStorage.getItem(STORAGE_KEYS.DEFAULT_CURRENCY);
     const themeMode = await AsyncStorage.getItem(STORAGE_KEYS.THEME_MODE);
+    const storedProfile = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
+    let profile = {
+      dashboardName: 'SpendLens',
+      profileName: 'Local Sandbox Profile',
+      profileEmail: '',
+    };
+
+    if (storedProfile) {
+      try {
+        const parsed = JSON.parse(storedProfile);
+        profile = {
+          dashboardName: parsed.dashboardName || profile.dashboardName,
+          profileName: parsed.profileName || profile.profileName,
+          profileEmail: parsed.profileEmail || profile.profileEmail,
+        };
+      } catch {
+        // Ignore invalid stored profile payload and fall back to defaults.
+      }
+    }
+
     set({
       currency: currency || 'INR',
       themeMode: (themeMode as ThemeMode) || 'dark',
+      ...profile,
     });
   },
 }));

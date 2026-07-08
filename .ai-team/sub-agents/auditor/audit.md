@@ -2,7 +2,7 @@
 
 ## Task
 
-Audit parser, categorizer, and insights against `docs/release-audit-checklist.md`, run the checklist in parallel where safe, and mark eligible subsystems frozen for the Production 1 release.
+Fix the History tab loading skeleton so it stays aligned with the real expense, income, and savings UI when switching tabs.
 
 ## Audit Status
 
@@ -10,38 +10,31 @@ Approved
 
 ## Evidence Reviewed
 
-- `docs/release-audit-checklist.md`
-- `.autoresearch/audits/2026-07-04-codebase-readiness-audit.md`
 - `.ai-team/orchestrator/current-task.md`
-- `.ai-team/orchestrator/progress.md`
-- `.ai-team/orchestrator/decisions.md`
-- `.ai-team/orchestrator/execution-status.md`
-- `.ai-team/orchestrator/handoff.md`
-- `npm.cmd test`
-- `.\node_modules\.bin\tsx.cmd src\features\sms-parser\__tests__\test-production-safety.ts`
-- `.\node_modules\.bin\tsx.cmd src\features\categorizer\__tests__\run-tests.ts`
-- `npm.cmd run test:insights`
-- `npm.cmd run test:production-gate`
-- `npm.cmd run check`
+- `.ai-team/sub-agents/planner/implementation-plan.md`
+- `.ai-team/sub-agents/coder/implementation.md`
+- `.ai-team/sub-agents/tester/testing.md`
+- `src/components/ui/Skeleton.tsx`
+- `src/components/ui/index.tsx`
+- `app/(tabs)/transactions.tsx`
+- `npm run check`
 
 ## Findings
 
-- The full release checklist command set passed on the same validated change set.
-- The commands were executed in parallel where safe, matching the requested sub-agent style while staying inside the documented read-only parallelism rules.
-- `sms-parser` satisfies the checklist freeze rule because parser unit tests, parser production-safety tests, the production-gate suite, and typecheck all passed together.
-- `categorizer` satisfies the checklist freeze rule because categorizer tests, the production-gate suite, and typecheck all passed together.
-- `insights-engine` satisfies the checklist freeze rule because insights tests, the production-gate suite, and typecheck all passed together.
-- Cross-system Production 1 readiness satisfies the checklist freeze rule because every required command passed in one audit run.
+- The History screen no longer uses the generic transaction-only loading placeholder during empty loading states.
+- The new `HistorySkeleton` follows the live screen hierarchy closely enough to preserve alignment across the snapshot card, trend card, and list area.
+- Scope stayed limited to the shared skeleton component, its barrel export, and the History screen loading fallback.
+- `npm run check` passed after the change.
 
 ## Traceability Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| Checklist executed completely | Passed | All six required commands from `docs/release-audit-checklist.md` were run with real results. |
-| Frozen status matches checklist rules | Passed | Each subsystem freeze claim maps directly to the command set required by the checklist. |
-| Production gate preserved downstream expectations | Passed | The production-gate fixture pack still preserved dedupe, categorizer explainability, and insights expectations. |
-| Orchestration artifacts updated consistently | Passed | Current task, progress, execution status, handoff, and review records reflect the Production 1 decision. |
+| Requirements traced to implementation | Passed | The new skeleton directly reflects the requested alignment with the History tab’s actual card structure. |
+| Implementation traced to tests | Passed | Tester recorded the successful typecheck after the skeleton swap. |
+| Risks or gaps recorded | Passed | Future History layout changes may require the skeleton to be kept in sync. |
+| Unsupported claims removed | Passed | Artifacts describe the actual scoped skeleton change and validation performed. |
 
 ## Decision
 
-Approved. `sms-parser`, `categorizer`, `insights-engine`, and the cross-system Production 1 gate can be marked frozen on the validated 2026-07-07 checklist run.
+Approved. The History loading-state alignment fix is evidence-backed and appropriately scoped.

@@ -23,11 +23,12 @@ import { formatTime } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { Transaction, TransactionType } from '@/types';
 import {
-  TransactionSkeleton,
+  HistorySkeleton,
   TabHeader,
   ReadingNotebookMascot,
   CornerPlant,
   BaseModal,
+  StackedWeeklyBarChart,
 } from '@/components/ui';
 
 // Theme Constants
@@ -244,7 +245,6 @@ export default function TransactionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<ChartMode>('day');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
-
   // Redesign local states
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
@@ -262,6 +262,64 @@ export default function TransactionsScreen() {
   const maxAmount = useMemo(() => {
     return Math.max(...timelineData.map((d) => Math.max(d.actual, d.budget)), 1000);
   }, [timelineData]);
+
+  const selectedTimelinePoint = useMemo(() => {
+    if (timelineData.length === 0) {
+      return null;
+    }
+
+    if (selectedDayIndex !== null && timelineData[selectedDayIndex]) {
+      return timelineData[selectedDayIndex];
+    }
+
+    return timelineData[timelineData.length - 1];
+  }, [timelineData, selectedDayIndex]);
+
+  const chartData = useMemo(() => {
+    return timelineData.map((point) => {
+      return {
+        label: point.label,
+        value: point.actual,
+        target: point.budget,
+      };
+    });
+  }, [timelineData]);
+
+  const chartSummary = useMemo(() => {
+    if (!selectedTimelinePoint) {
+      return {
+        amount: formatCurrency(0),
+        budget: formatCurrency(0),
+        deltaLabel: 'No activity',
+        categoryLabel: 'Add transactions to populate this period.',
+        statusTone: COLOR_SECONDARY_TEXT,
+      };
+    }
+
+    const delta = selectedTimelinePoint.actual - selectedTimelinePoint.budget;
+    const isOverTarget = delta > 0;
+
+    return {
+      amount: formatCurrency(selectedTimelinePoint.actual),
+      budget: formatCurrency(selectedTimelinePoint.budget),
+      deltaLabel:
+        selectedTimelinePoint.actual === 0
+          ? 'No activity'
+          : isOverTarget
+            ? `${formatCurrency(delta)} above target`
+            : `${formatCurrency(Math.abs(delta))} below target`,
+      categoryLabel:
+        selectedTimelinePoint.categories.length > 0
+          ? selectedTimelinePoint.categories.join(', ')
+          : 'No activity recorded',
+      statusTone:
+        selectedTimelinePoint.actual === 0
+          ? COLOR_SECONDARY_TEXT
+          : isOverTarget
+            ? COLOR_EXPENSE
+            : COLOR_FOREST_GREEN,
+    };
+  }, [selectedTimelinePoint]);
 
   // Initial and reactive data fetching
   const fetchStats = useCallback(async () => {
@@ -297,7 +355,6 @@ export default function TransactionsScreen() {
 
   const handleTabChange = (tab: TransactionType) => {
     setActiveTab(tab);
-    setSelectedDayIndex(null);
   };
 
   const handleSearch = (query: string) => {
@@ -535,7 +592,7 @@ export default function TransactionsScreen() {
       {/* Grouped Chronological List */}
       {isLoading && transactions.length === 0 ? (
         <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
-          <TransactionSkeleton />
+          <HistorySkeleton />
         </View>
       ) : (
         <SectionList
@@ -589,9 +646,14 @@ export default function TransactionsScreen() {
               {/* Spending Trend (Reduced Chart Height Card) */}
               <View style={styles.chartCard}>
                 <View style={styles.chartHeader}>
-                  <Text style={styles.cardTitle}>
-                    {activeTab.toUpperCase()} TREND
-                  </Text>
+                  <View style={styles.chartHeaderCopy}>
+                    <Text style={styles.cardTitle}>
+                      {activeTab.toUpperCase()} TREND
+                    </Text>
+                    <Text style={styles.chartSubtitle}>
+                      Tap a day to inspect the amount against its target.
+                    </Text>
+                  </View>
                   <View style={styles.chartModeSelector}>
                     {(['day', 'week', 'month', 'year'] as ChartMode[]).map((mode) => {
                       const isSelected = chartMode === mode;
@@ -600,7 +662,6 @@ export default function TransactionsScreen() {
                           key={mode}
                           onPress={() => {
                             setChartMode(mode);
-                            setSelectedDayIndex(null);
                           }}
                           style={[
                             styles.chartModeButton,
@@ -624,155 +685,24 @@ export default function TransactionsScreen() {
                   </View>
                 </View>
 
-                {/* Svg Analytics Chart */}
                 <View style={styles.chartWrapperContainer}>
-                  <Svg width="100%" height={150} viewBox="0 0 320 150">
-                    {/* Dashed Grid Lines */}
-                    {[20, 55, 90, 125].map((yVal, idx) => (
-                      <Line
-                        key={idx}
-                        x1={25}
-                        y1={yVal}
-                        x2={295}
-                        y2={yVal}
-                        stroke={COLOR_GRID}
-                        strokeDasharray="3 3"
-                        strokeWidth={1}
-                      />
-                    ))}
+                  <StackedWeeklyBarChart
+                    data={chartData}
+                    selectedIndex={selectedDayIndex}
+                    onSelectIndex={setSelectedDayIndex}
+                  />
+                </View>
 
-                    {/* Columns (Budget vs Actual) */}
-                    {timelineData.map((d, idx) => {
-                      const N = timelineData.length;
-                      const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                      const yActual = 125 - (d.actual / maxAmount) * 105;
-                      const yBudget = 125 - (d.budget / maxAmount) * 105;
-                      const isSelected = selectedDayIndex === idx;
-
-                      const activeColor = activeTab === 'expense'
-                        ? COLOR_EXPENSE
-                        : activeTab === 'income'
-                          ? COLOR_FOREST_GREEN
-                          : COLOR_SAVINGS;
-
-                      return (
-                        <G key={idx}>
-                          {/* Background Budget Column */}
-                          <Rect
-                            x={x - 6}
-                            y={yBudget}
-                            width={12}
-                            height={125 - yBudget}
-                            fill={activeColor}
-                            fillOpacity={0.08}
-                            rx={3}
-                            ry={3}
-                          />
-
-                          {/* Foreground Actual Column */}
-                          <Rect
-                            x={x - (isSelected ? 5 : 3)}
-                            y={yActual}
-                            width={isSelected ? 10 : 6}
-                            height={125 - yActual}
-                            fill={activeColor}
-                            rx={2}
-                            ry={2}
-                          />
-
-                          {/* Axis Text Label */}
-                          <SvgText
-                            x={x}
-                            y={142}
-                            fill={COLOR_SECONDARY_TEXT}
-                            fontSize={9}
-                            fontFamily={typography.fontFamily.medium}
-                            textAnchor="middle"
-                          >
-                            {d.label}
-                          </SvgText>
-                        </G>
-                      );
-                    })}
-
-                    {/* Transparent Interactive Rect Overlays */}
-                    {timelineData.map((_, idx) => {
-                      const N = timelineData.length;
-                      const x = 30 + idx * (260 / (N > 1 ? N - 1 : 1));
-                      return (
-                        <Rect
-                          key={idx}
-                          x={x - 22}
-                          y={10}
-                          width={44}
-                          height={125}
-                          fill="transparent"
-                          onPress={() => {
-                            setSelectedDayIndex(selectedDayIndex === idx ? null : idx);
-                          }}
-                        />
-                      );
-                    })}
-
-                    {/* Tooltip */}
-                    {selectedDayIndex !== null && (() => {
-                      const N = timelineData.length;
-                      const d = timelineData[selectedDayIndex];
-                      const x = 30 + selectedDayIndex * (260 / (N > 1 ? N - 1 : 1));
-                      const yActual = 125 - (d.actual / maxAmount) * 105;
-
-                      let tooltipX = x - 65;
-                      if (tooltipX < 10) tooltipX = 10;
-                      if (tooltipX > 180) tooltipX = 180;
-
-                      let tooltipY = yActual - 56;
-                      if (tooltipY < 15) tooltipY = yActual + 15;
-
-                      return (
-                        <G pointerEvents="none">
-                          <Rect
-                            x={tooltipX}
-                            y={tooltipY}
-                            width={130}
-                            height={48}
-                            fill={COLOR_SURFACE}
-                            stroke={COLOR_BORDER}
-                            strokeWidth="1"
-                            rx={8}
-                            ry={8}
-                          />
-                          <SvgText
-                            x={tooltipX + 8}
-                            y={tooltipY + 14}
-                            fill={COLOR_PRIMARY_TEXT}
-                            fontSize={9}
-                            fontWeight="bold"
-                            fontFamily={typography.fontFamily.bold}
-                          >
-                            {d.fullLabel}
-                          </SvgText>
-                          <SvgText
-                            x={tooltipX + 8}
-                            y={tooltipY + 27}
-                            fill={COLOR_PRIMARY_TEXT}
-                            fontSize={8.5}
-                            fontFamily={typography.fontFamily.medium}
-                          >
-                            Amt: ₹{Math.round(d.actual)} (Limit: ₹{d.budget})
-                          </SvgText>
-                          <SvgText
-                            x={tooltipX + 8}
-                            y={tooltipY + 38}
-                            fill={COLOR_SECONDARY_TEXT}
-                            fontSize={7}
-                            fontFamily={typography.fontFamily.regular}
-                          >
-                            {d.categories.length > 0 ? d.categories.join(', ') : 'No activity'}
-                          </SvgText>
-                        </G>
-                      );
-                    })()}
-                  </Svg>
+                <View style={styles.chartDetailCard}>
+                  <Text style={styles.chartDetailTitle}>
+                    {selectedTimelinePoint ? selectedTimelinePoint.fullLabel : 'No activity yet'}
+                  </Text>
+                  <Text style={styles.chartDetailText}>
+                    {chartSummary.categoryLabel}
+                  </Text>
+                  <Text style={[styles.chartDetailStatus, { color: chartSummary.statusTone }]}>
+                    {chartSummary.deltaLabel}
+                  </Text>
                 </View>
                 <View style={styles.cornerPlantDecoration} pointerEvents="none">
                   <CornerPlant />
@@ -1148,7 +1078,6 @@ const styles = StyleSheet.create({
     ...shadows.tactileRaisedCard,
     padding: spacing.base,
     marginBottom: spacing.base,
-    height: 240,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -1201,32 +1130,71 @@ const styles = StyleSheet.create({
 
   // Chart layout
   chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: spacing.sm,
     marginBottom: spacing.md,
+  },
+  chartHeaderCopy: {
+    gap: spacing.xs,
+  },
+  chartSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: typography.fontFamily.medium,
+    color: COLOR_SECONDARY_TEXT,
+    marginTop: -spacing.xs,
   },
   chartModeSelector: {
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: COLOR_BORDER,
-    borderRadius: borderRadius.md,
-    padding: 2,
+    borderRadius: borderRadius.lg,
+    padding: 3,
     backgroundColor: COLOR_SURFACE,
+    alignSelf: 'flex-start',
   },
   chartModeButton: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 10,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 1,
+    borderRadius: 12,
   },
   chartModeLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: typography.fontFamily.semibold,
     letterSpacing: 0.5,
   },
   chartWrapperContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginBottom: spacing.base,
+  },
+  chartWrapperLegacyHidden: {
+    display: 'none',
+  },
+  chartDetailCard: {
+    backgroundColor: '#F8F4EE',
+    borderWidth: 1,
+    borderColor: COLOR_BORDER,
+    borderRadius: borderRadius.xl,
+    padding: spacing.base,
+    paddingRight: spacing.xl,
+  },
+  chartDetailTitle: {
+    fontSize: 14,
+    fontFamily: typography.fontFamily.bold,
+    color: COLOR_PRIMARY_TEXT,
+    marginBottom: 4,
+  },
+  chartDetailText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: typography.fontFamily.medium,
+    color: COLOR_SECONDARY_TEXT,
+    marginBottom: 6,
+  },
+  chartDetailStatus: {
+    fontSize: 12,
+    fontFamily: typography.fontFamily.bold,
   },
 
   // Empty state
@@ -1312,3 +1280,4 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.medium,
   },
 });
+

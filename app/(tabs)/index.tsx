@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography, tokens, shadows, spacing, borderRadius, hexToRgba } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { formatCurrency } from '@/utils/currency';
 import { syncSMSFromDevice, checkSMSPermission, requestSMSPermission } from '@/features/sms-parser/sms-reader';
 import SpendLensSmsModule from '../../modules/spendlens-sms-module';
@@ -138,6 +139,7 @@ export default function DashboardScreen() {
     loadMonthlyStats,
     loadCategories,
   } = useTransactionStore();
+  const dashboardName = useSettingsStore((s) => s.dashboardName);
 
   const loadData = useCallback(async () => {
     logger.info('[TABS_INIT]');
@@ -383,7 +385,7 @@ export default function DashboardScreen() {
       >
         <TabHeader
           microHeader="FINANCIAL NOTEBOOK"
-          title="SpendLens"
+          title={dashboardName}
           titleSuffix={<Text style={styles.versionText}> v1.0.2</Text>}
           variant="tactile"
           subtitle={
