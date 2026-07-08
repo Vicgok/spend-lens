@@ -57,7 +57,7 @@ interface SettingsState {
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   currency: 'INR',
-  themeMode: 'dark',
+  themeMode: 'light',
   dashboardName: 'SpendLens',
   profileName: 'Local Sandbox Profile',
   profileEmail: '',
@@ -105,7 +105,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
     set({
       currency: currency || 'INR',
-      themeMode: (themeMode as ThemeMode) || 'dark',
+      themeMode: (themeMode as ThemeMode) || 'light',
       ...profile,
     });
   },

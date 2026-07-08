@@ -2,7 +2,7 @@
 
 ## Task
 
-Fix the History tab loading skeleton so it stays aligned with the real expense, income, and savings UI when switching tabs.
+Implement Phase 2 only from the MVP readiness audit: unify the app shell and semantic theme layer around the tactile light design already used across the main tabs.
 
 ## Approved Plan Reference
 
@@ -10,19 +10,17 @@ Fix the History tab loading skeleton so it stays aligned with the real expense, 
 
 ## Changes Made
 
-- Added `HistorySkeleton` in `src/components/ui/Skeleton.tsx` to mirror the actual History screen structure:
-  a monthly snapshot card,
-  a trend card with chart-mode pills and chart bars,
-  transaction-row placeholders.
-- Exported `HistorySkeleton` from `src/components/ui/index.tsx`.
-- Replaced the History screen loading fallback in `app/(tabs)/transactions.tsx` to use `HistorySkeleton` instead of `TransactionSkeleton`.
+- Updated `src/theme/colors.ts` so `colors.light` now exposes tactile-aligned backgrounds, surfaces, card treatments, borders, muted text, and shell styling.
+- Updated `src/stores/settings-store.ts` so the default and hydration fallback theme mode is `light`.
+- Simplified `app/_layout.tsx` so the main app shell background comes from the provider theme instead of separate tactile route overrides, while preserving the onboarding and categories special cases.
+- Aligned the transaction detail route transition background with `theme.background` so detail presentation follows the active semantic theme.
 
 ## Files Updated
 
-- `src/components/ui/Skeleton.tsx`
-- `src/components/ui/index.tsx`
-- `app/(tabs)/transactions.tsx`
+- `src/theme/colors.ts`
+- `src/stores/settings-store.ts`
+- `app/_layout.tsx`
 
 ## Notes
 
-- The fix intentionally keeps the skeleton approximate rather than pixel-identical, but it now follows the same card hierarchy and spacing rhythm as the real History UI.
+- This implementation intentionally stayed within Phase 2 and did not attempt the broader component extraction and screen-boundary cleanup deferred to later audit phases.

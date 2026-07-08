@@ -24,7 +24,6 @@ import {
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
 import { logger } from '@/lib/logger';
-import { tokens } from '@/theme';
 import {
   TransitionStack,
   detailTransition,
@@ -46,26 +45,8 @@ function getRouteBackground(pathname: string, fallbackBackground: string, onboar
     return onboardingBackground;
   }
 
-  if (
-    pathname.startsWith('/categories')
-  ) {
+  if (pathname.startsWith('/categories')) {
     return '#E1D7C2';
-  }
-
-  if (
-    pathname.includes('/insights')
-  ) {
-    return tokens.colors.background;
-  }
-
-  if (
-    pathname === '/' ||
-    pathname === '/(tabs)' ||
-    pathname.startsWith('/transactions') ||
-    pathname.startsWith('/add-transaction') ||
-    pathname.startsWith('/transaction/')
-  ) {
-    return tokens.colors.tactileBackground;
   }
 
   return fallbackBackground;
@@ -132,7 +113,7 @@ function RootNavigator() {
 
   const transactionDetailScreenOptions: TransitionOptions = {
     ...detailTransition,
-    contentStyle: { backgroundColor: '#F6F3EC' },
+    contentStyle: { backgroundColor: theme.background },
   };
 
   return (

@@ -2,33 +2,34 @@
 
 ## Task
 
-Fix the History tab loading skeleton so it stays aligned with the real expense, income, and savings UI when switching tabs.
+Implement Phase 2 only from the MVP readiness audit: unify the app shell and semantic theme layer around the tactile light design already used across the main tabs.
 
 ## Requirements Summary
 
-The History screen should not fall back to a generic row-only loading placeholder when the actual UI contains a snapshot card, a trend card, and then grouped transactions. The loading shape should mirror that hierarchy closely enough to prevent layout jumps during tab switches.
+Phase 2 should address the highest-value design-system inconsistency next: the provider theme, default settings state, and app-shell backgrounds disagree about what the primary light theme is. The fix should make the provider's semantic light palette match the tactile UI already used in production screens and should remove unnecessary shell overrides for the main tabs.
 
 ## Impacted Files
 
-- `src/components/ui/Skeleton.tsx`
-- `src/components/ui/index.tsx`
-- `app/(tabs)/transactions.tsx`
+- `src/theme/colors.ts`
+- `src/stores/settings-store.ts`
+- `app/_layout.tsx`
 - `.ai-team/orchestrator/*.md`
 - `.ai-team/sub-agents/*.md`
 
 ## Plan
 
-1. Inspect the History loading path and compare the current skeleton hierarchy against the live History screen structure.
-2. Add a dedicated `HistorySkeleton` that mirrors the snapshot card, trend card, and transaction rows.
-3. Replace the History screen’s loading fallback to use the new skeleton instead of the generic transaction-only placeholder.
-4. Run `npm run check`, then record the result through the `.ai-team` artifacts.
+1. Align `colors.light` with the tactile app surfaces, borders, and text roles already used throughout the tabs.
+2. Change the settings-store default and hydration fallback theme mode to `light`.
+3. Remove route-level app-shell background overrides for the main tactile tabs so the provider theme is the source of truth.
+4. Run `npm run check` and record the result in `.ai-team`.
 
 ## Acceptance Criteria
 
-- History loading uses a dedicated skeleton aligned to the live screen hierarchy.
-- The skeleton remains stable across expense, income, and savings tab switches.
-- The screen compiles after the loading-state update.
+- The semantic light theme matches the tactile design language closely enough for shared shell usage.
+- Fresh settings hydration defaults to light mode.
+- Main tab route backgrounds come from the provider theme instead of tactile hardcodes.
+- The screen compiles cleanly after the Phase 2 changes.
 
 ## Risks
 
-- Overfitting the skeleton too tightly to current spacing could make future History layout changes require matching skeleton adjustments.
+- Some screens still use direct `tokens.colors` or local hardcodes, so this phase should stop at provider/app-shell unification instead of attempting a full component migration.

@@ -28,6 +28,8 @@ interface TransactionState {
   categoryTotals: CategoryTotal[];
   insightsSnapshot: InsightsSnapshot | null;
   isLoading: boolean;
+  isRefreshingTransactions: boolean;
+  hasLoadedTransactions: boolean;
   currentFilter: TransactionFilter;
 
   // Actions
@@ -62,6 +64,8 @@ interface TransactionState {
   learnCategoryKeyword: (categoryId: string, rawMerchant: string) => Promise<void>;
 }
 
+let transactionLoadRequestId = 0;
+
 export const useTransactionStore = create<TransactionState>((set, get) => ({
   transactions: [],
   accounts: [],
@@ -70,6 +74,8 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   categoryTotals: [],
   insightsSnapshot: null,
   isLoading: false,
+  isRefreshingTransactions: false,
+  hasLoadedTransactions: false,
   currentFilter: {},
 
   refreshInsightsSnapshot: () => {
@@ -115,11 +121,38 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   },
 
   loadTransactions: async (filter) => {
-    set({ isLoading: true });
     const appliedFilter = filter || get().currentFilter;
-    const transactions = await db.getTransactions(appliedFilter);
-    set({ transactions, isLoading: false, currentFilter: appliedFilter });
-    get().refreshInsightsSnapshot();
+    const requestId = ++transactionLoadRequestId;
+    const isInitialLoad = !get().hasLoadedTransactions;
+
+    set({
+      isLoading: isInitialLoad,
+      isRefreshingTransactions: !isInitialLoad,
+    });
+
+    try {
+      const transactions = await db.getTransactions(appliedFilter);
+
+      if (requestId !== transactionLoadRequestId) {
+        return;
+      }
+
+      set({
+        transactions,
+        currentFilter: appliedFilter,
+        isLoading: false,
+        isRefreshingTransactions: false,
+        hasLoadedTransactions: true,
+      });
+      get().refreshInsightsSnapshot();
+    } finally {
+      if (requestId === transactionLoadRequestId) {
+        set({
+          isLoading: false,
+          isRefreshingTransactions: false,
+        });
+      }
+    }
   },
 
   addTransaction: async (input) => {

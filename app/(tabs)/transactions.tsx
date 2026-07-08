@@ -253,7 +253,16 @@ export default function TransactionsScreen() {
   const [monthlyStats, setMonthlyStats] = useState({ totalIncome: 0, totalExpense: 0, netSavings: 0 });
 
   // Store bindings
-  const { transactions, loadTransactions, setFilter, isLoading, categories, loadCategories } = useTransactionStore();
+  const {
+    transactions,
+    loadTransactions,
+    setFilter,
+    isLoading,
+    isRefreshingTransactions,
+    hasLoadedTransactions,
+    categories,
+    loadCategories,
+  } = useTransactionStore();
 
   const timelineData = useMemo(() => {
     return getTimelineAnalyticsData(transactions, chartMode, selectedMonth);
@@ -590,24 +599,25 @@ export default function TransactionsScreen() {
       </View>
 
       {/* Grouped Chronological List */}
-      {isLoading && transactions.length === 0 ? (
+      {isLoading && !hasLoadedTransactions ? (
         <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
           <HistorySkeleton />
         </View>
       ) : (
-        <SectionList
-          sections={sections}
-          renderItem={renderTransaction}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderText}>
-                {title.toUpperCase()}
-              </Text>
-              <View style={styles.sectionDivider} />
-            </View>
-          )}
-          ListHeaderComponent={
-            <View>
+        <View style={isRefreshingTransactions ? { opacity: 0.86 } : undefined}>
+          <SectionList
+            sections={sections}
+            renderItem={renderTransaction}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionHeaderText}>
+                  {title.toUpperCase()}
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+            )}
+            ListHeaderComponent={
+              <View>
               {/* Monthly Snapshot Card */}
               <View style={styles.card}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -708,15 +718,15 @@ export default function TransactionsScreen() {
                   <CornerPlant />
                 </View>
               </View>
-            </View>
-          }
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLOR_PRIMARY_TEXT} />
-          }
-          ListEmptyComponent={
-            <View style={styles.empty}>
+              </View>
+            }
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLOR_PRIMARY_TEXT} />
+            }
+            ListEmptyComponent={
+              <View style={styles.empty}>
               <ReadingNotebookMascot />
               <Text style={styles.emptyText}>
                 No transactions yet.
@@ -727,10 +737,10 @@ export default function TransactionsScreen() {
               <View style={styles.cornerPlantDecoration} pointerEvents="none">
                 <CornerPlant />
               </View>
-            </View>
-          }
-          ListFooterComponent={
-            <View style={{ paddingBottom: 140 }}>
+              </View>
+            }
+            ListFooterComponent={
+              <View style={{ paddingBottom: 140 }}>
               {/* Financial Observation Card */}
               {transactions.length > 0 && (
                 <View style={styles.card}>
@@ -750,9 +760,10 @@ export default function TransactionsScreen() {
                   </View>
                 </View>
               )}
-            </View>
-          }
-        />
+              </View>
+            }
+          />
+        </View>
       )}
 
       {/* Month Picker Modal */}

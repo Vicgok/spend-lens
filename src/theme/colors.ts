@@ -78,18 +78,18 @@ export const colors = {
   },
   light: {
     onboarding,
-    background: '#F5F3EE', // Warm neutral background
-    surface: '#FDFCF8', // Tactile paper card background
-    surfaceElevated: '#FDFCF8',
-    card: '#FDFCF8',
-    cardHover: '#F6F5F0',
-    border: '#1F1F1F', // Thin dark carbon border
-    borderLight: '#E5E3DE',
+    background: '#F6F3EC', // Tactile app-shell background
+    surface: '#FFF8EE', // Primary tactile card surface
+    surfaceElevated: '#FFFDF8',
+    card: '#FFFDF8',
+    cardHover: '#F8F4EC',
+    border: '#E6E1D8',
+    borderLight: '#EFE8DE',
 
-    text: '#1B1B1B', // Dark carbon text
-    textSecondary: '#666666',
-    textMuted: '#999999',
-    textInverse: '#F5F3EE',
+    text: '#745143',
+    textSecondary: '#54554B',
+    textMuted: '#8E8A82',
+    textInverse: '#FFF8EE',
 
     leafStroke: '#9B966A',
     ground: '#DCCFBB',
@@ -102,20 +102,20 @@ export const colors = {
 
     ...palette,
 
-    tabBar: '#FDFCF8',
-    tabBarBorder: '#1F1F1F',
+    tabBar: '#FFFDF8',
+    tabBarBorder: '#E6E1D8',
     tabBarActive: palette.primary,
-    tabBarInactive: '#999999',
+    tabBarInactive: '#8E8A82',
 
     gradientPrimary: ['#A0C42C', '#B8D943'] as readonly [string, string],
     gradientSecondary: ['#2E7D32', '#4CAF50'] as readonly [string, string],
     gradientCross: ['#A0C42C', '#2E7D32'] as readonly [string, string],
     gradientIncome: ['#2E7D32', '#4CAF50'] as readonly [string, string],
     gradientExpense: ['#C84B31', '#E57373'] as readonly [string, string],
-    gradientDark: ['#FDFCF8', '#F5F3EE'] as readonly [string, string],
+    gradientDark: ['#FFFDF8', '#F6F3EC'] as readonly [string, string],
 
-    glass: 'rgba(253, 252, 248, 0.9)',
-    glassBorder: 'rgba(31, 31, 31, 0.2)',
+    glass: 'rgba(255, 248, 238, 0.9)',
+    glassBorder: 'rgba(230, 225, 216, 0.9)',
   },
 };
 

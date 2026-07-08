@@ -2,7 +2,7 @@
 
 ## Task
 
-Fix the History tab loading skeleton so it stays aligned with the real expense, income, and savings UI when switching tabs.
+Implement Phase 1 only from the MVP readiness audit: stabilize transaction loading and loading-state correctness for filter-driven History flows.
 
 ## Review Status
 
@@ -10,21 +10,20 @@ Approved
 
 ## Findings
 
-- The History tab now uses a loading skeleton shaped like the actual screen instead of a generic transaction-row placeholder.
-- The implementation is pragmatic: it adds one dedicated shared skeleton component and swaps the History loading fallback to it without changing the data flow.
-- Scope remained controlled to the loading-state presentation layer.
+- The implementation directly addresses the most important user-facing correctness issue from the audit without broadening scope.
+- The store change is pragmatic and production-relevant: latest-request wins is the right baseline for rapid filter interactions.
+- The History loading behavior now better matches user expectations by reserving the full skeleton for initial load only.
 
 ## Quality Checklist
 
 | Area | Result | Notes |
 | --- | --- | --- |
-| Architecture | Passed | The History-specific loading treatment is isolated in a reusable shared skeleton component. |
-| Security | Passed | Changes are UI-layer only. |
-| Performance | Passed | The new skeleton remains lightweight and static aside from the existing shimmer animation. |
-| Maintainability | Passed | The loading state is clearer and better aligned with the live UI hierarchy. |
-| Tests | Passed | `npm run check` passed after the implementation. |
-| Audit | Passed | Auditor confirmed the change matches the intended loading-alignment fix. |
+| Architecture | Passed | Request sequencing sits in the store where it belongs, not as ad hoc screen logic. |
+| Performance | Passed | The app avoids needless blocking-state resets on post-hydration filter changes. |
+| Maintainability | Passed | The new store flags create a clearer loading model for future screens. |
+| Tests | Passed | `npm run check` passed after implementation. |
+| Audit | Passed | Auditor confirmed the change matches the intended Phase 1 scope. |
 
 ## Decision
 
-Approved. Ship the History skeleton alignment fix.
+Approved. Ship Phase 1 and re-evaluate before moving to Phase 2.
