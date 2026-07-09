@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.spendlens.tracker",
-      "versionCode": 2000001,
+      "versionCode": 9,
       "backgroundColor": "#0D1117",
       "permissions": [
         "android.permission.READ_SMS",
