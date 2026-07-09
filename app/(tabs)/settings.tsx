@@ -4,23 +4,17 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabHeader, ReadingNotebookMascot, LeafCluster, CornerPlant, BaseModal } from '@/components/ui';
 import { ROUTES } from '@/navigation/routes';
-import { typography, spacing, tokens } from '@/theme';
+import { typography, spacing, tactileTheme, tokens } from '@/theme';
 import { APP_VERSION } from '@/lib/constants';
+import { clearAllData } from '@/lib/database';
+import { logger } from '@/lib/logger';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { formatCurrency } from '@/utils/currency';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path, Circle, Rect, Ellipse } from 'react-native-svg';
 
-const SETTINGS_COLORS = {
-  background: '#E1D7C2',
-  surface: '#FFF8EE',
-  primary: '#745143',
-  secondary: '#54554B',
-  green: '#3E5A2A',
-  lightGreen: '#EEF4E6',
-  border: '#E8DDD0',
-};
+const SETTINGS_COLORS = tactileTheme;
 
 const ChevronRight = React.memo(({ color }: { color: string }) => (
   <Svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -140,7 +134,7 @@ const SettingsRow = React.memo(({ icon, title, subtitle, value, onPress, showChe
       style={({ pressed }) => [
         styles.row,
         isLast && { borderBottomWidth: 0 },
-        pressed && onPress ? { backgroundColor: 'rgba(116, 81, 67, 0.04)' } : null
+        pressed && onPress ? { backgroundColor: SETTINGS_COLORS.pressedNeutral } : null
       ]}
       disabled={!onPress}
     >
@@ -258,9 +252,8 @@ export default function SettingsScreen() {
         label: 'Clear',
         onPress: async () => {
           setModalConfig(prev => ({ ...prev, visible: false }));
-          const dbModule = require('@/lib/database');
           try {
-            await dbModule.clearAllData();
+            await clearAllData();
             await useTransactionStore.getState().loadAccounts();
             await useTransactionStore.getState().loadTransactions();
             await useTransactionStore.getState().loadMonthlyStats();
@@ -274,7 +267,9 @@ export default function SettingsScreen() {
               }
             });
           } catch (e) {
-            console.error(e);
+            logger.error('Failed to clear all app data', {
+              error: e instanceof Error ? e.message : String(e),
+            });
           }
         }
       }

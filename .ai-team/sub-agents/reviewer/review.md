@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
+Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
 
 ## Review Status
 
@@ -10,20 +10,20 @@ Approved
 
 ## Findings
 
-- The implementation reduces the most obvious monolithic pressure in the two target screens by moving reusable derivation and simulation logic behind feature seams.
-- The file ownership was clean: History helpers and Insights helpers were extracted into separate directories without conflicting edits.
+- The implementation closes the most obvious operational shortcuts with a pragmatic scope: stronger IDs, static imports, centralized runtime logging in the database layer, and dev-only simulation gating.
+- The changes are production-relevant without being invasive; they tighten release posture while preserving the existing validated domain behavior.
 - Validation is proportionate for this slice: typecheck passed and the production-gate suite still passes after the refactor.
 
 ## Quality Checklist
 
 | Area | Result | Notes |
 | --- | --- | --- |
-| Architecture | Passed | Core History and Insights derivations now live outside the screen files in dedicated feature modules. |
-| Performance | Passed | The refactor keeps behavior stable and does not add extra data-fetch passes beyond the existing screen flow. |
-| Maintainability | Passed | The new seams make future targeted unit testing and presentational extraction easier. |
+| Architecture | Passed | The database and settings runtime paths now use stronger and more conventional production-safe primitives. |
+| Performance | Passed | The changes do not add meaningful runtime overhead beyond standard UUID generation and existing logger calls. |
+| Maintainability | Passed | Static imports and centralized logger usage reduce hidden behavior and make the runtime paths easier to reason about. |
 | Tests | Passed | `npm run check` and `npm run test:production-gate` both passed after implementation. |
-| Audit | Passed | Auditor confirmed the change matches the intended Phase 3 scope. |
+| Audit | Passed | Auditor confirmed the change matches the intended Phase 5 scope. |
 
 ## Decision
 
-Approved. Ship this Phase 3 decomposition slice and treat the remaining dead legacy Insights math as optional cleanup rather than a blocker.
+Approved. Ship this Phase 5 hardening slice and treat the remaining broader `console.*` cleanup elsewhere as optional follow-up rather than a blocker for this wave.

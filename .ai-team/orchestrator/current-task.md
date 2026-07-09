@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
+Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
 
 ## Status
 
@@ -10,20 +10,20 @@ Complete
 
 ## Requirements
 
-- Keep the implementation scoped to Phase 3 screen decomposition only.
-- Extract non-UI derived logic from `app/(tabs)/transactions.tsx` into dedicated feature helpers.
-- Extract non-UI derived logic and scan-simulation/controller behavior from `app/(tabs)/insights.tsx` into dedicated feature helpers or hooks.
-- Preserve the current rendered contract and tactile visual behavior for both screens.
-- Use explicit file partitioning so the History and Insights decomposition lanes do not edit the same source files in parallel.
+- Keep the implementation scoped to Phase 5 production hardening only.
+- Replace the `Math.random()`-based database ID generation with a stronger UUID source already present in dependencies.
+- Remove the runtime `require()` shortcut from the Settings clear-data path.
+- Replace direct database-layer `console.*` logging with the centralized logger.
+- Constrain the Insights screen simulation trigger so it is not exposed in the primary production user flow.
 - Keep `.ai-team/orchestrator/execution-status.md` accurate so the active role is visible during execution.
 
 ## Acceptance Criteria
 
-- `transactions.tsx` no longer owns its core timeline/grouping/observation derivation inline.
-- `insights.tsx` no longer owns its mock scan dataset generation and primary derived analytics inline.
-- New helper seams live outside the screen modules and are reusable/testable by structure.
-- The workspace compiles cleanly after the change.
+- Database IDs use a stronger UUID implementation.
+- Settings uses a static import for clear-data behavior instead of a runtime `require()`.
+- The touched runtime paths compile cleanly and still pass the production-gate fixture pack.
+- The development-only Insights simulation is no longer presented as a normal production interaction.
 
 ## Reviewer Feedback
 
-Approved. The Phase 3 slice moved reusable History and Insights logic behind dedicated feature seams without widening scope, and the current validation set stayed green.
+Approved. The Phase 5 slice replaced the weakest runtime shortcuts with stronger production-facing behavior while keeping the validation set green.

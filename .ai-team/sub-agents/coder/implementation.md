@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
+Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
 
 ## Approved Plan Reference
 
@@ -10,21 +10,18 @@ Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the Hi
 
 ## Changes Made
 
-- Added `src/features/history/presenter.ts` to own History timeline chart derivation, chart-summary formatting, chronological section grouping, month option generation, and observation text.
-- Refactored `app/(tabs)/transactions.tsx` to consume the new History presenter helpers instead of keeping those derivations inline.
-- Added `src/features/insights-screen/presenter.ts` to own active-transaction selection, survival-score derivation, snapshot/display wiring, and expense-trend preparation.
-- Added `src/features/insights-screen/simulation.ts` to own the mock scan orchestration and temporary mock-transaction generation used by the Insights tab.
-- Refactored `app/(tabs)/insights.tsx` to consume the new Insights presenter and simulation helpers while preserving the existing visual flow and scan modal behavior.
+- Updated `src/lib/database.ts` to use the existing `uuid` dependency for ID generation instead of the local `Math.random()` UUID-like helper.
+- Routed database migration, log-write, and bank-detection error reporting through `src/lib/logger.ts` instead of direct `console.*` calls.
+- Replaced the Settings clear-data runtime `require()` with a static import of `clearAllData` and routed the failure path through the centralized logger.
+- Constrained the Insights simulation trigger so the notebook-mascot simulation affordance only works in development mode and no longer advertises simulation in the production empty-state message.
 
 ## Files Updated
 
-- `src/features/history/presenter.ts`
-- `src/features/insights-screen/presenter.ts`
-- `src/features/insights-screen/simulation.ts`
-- `app/(tabs)/transactions.tsx`
+- `src/lib/database.ts`
+- `app/(tabs)/settings.tsx`
 - `app/(tabs)/insights.tsx`
 
 ## Notes
 
-- This implementation stayed within the Phase 3 decomposition slice and did not widen into theme migration, production-hardening, or visual redesign work.
-- The Insights screen still contains some older inline legacy calculations that are no longer part of the rendered contract; they are a follow-up cleanup candidate rather than a blocker for this slice.
+- This implementation stayed within the Phase 5 hardening slice and did not attempt a full app-wide logging cleanup.
+- The development simulation code still exists for internal use, but the primary production UI flow no longer invites end users to simulate transactions.

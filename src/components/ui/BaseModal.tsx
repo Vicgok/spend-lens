@@ -42,11 +42,11 @@ import {
   Platform,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { tokens } from '@/theme';
+import { tactileTheme, tokens } from '@/theme';
 
 const { colors, radii, shadow } = tokens;
 
-const BACKDROP = 'rgba(15, 12, 10, 0.72)';
+const BACKDROP = tactileTheme.overlayStrong;
 const SHEET_RADIUS = 24;
 const DIALOG_PADDING = 24;
 const ACTION_HEIGHT = 50;

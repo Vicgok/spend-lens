@@ -1,5 +1,6 @@
 export { colors, categoryColors, sheetColors, hexToRgba } from './colors';
 export type { ThemeMode, ThemeColors } from './colors';
+export { tactileTheme, buildAlphaColor } from './tactile';
 export { typography, sheetType } from './types';
 export { spacing, borderRadius, iconSizes, sheetRadii, sheetSpacing } from './spacings';
 export { shadows, sheetShadow } from './shadow';

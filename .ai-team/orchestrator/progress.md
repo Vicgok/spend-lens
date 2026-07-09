@@ -67,11 +67,21 @@
 | 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Test | Complete | `npm run check` and `npm run test:production-gate` both passed after the refactor. |
 | 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Audit | Complete | Audit confirmed the extraction seams reduce screen ownership without expanding into later-phase hardening work. |
 | 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Review | Complete | Reviewer approved the scoped decomposition and noted optional legacy Insights cleanup as a non-blocking follow-up. |
+| 2026-07-09 | Phase 4: Design-system consolidation | Plan | Complete | Scoped a narrow consolidation pass around duplicated tactile palettes and shared shell constants instead of a broader component rewrite. |
+| 2026-07-09 | Phase 4: Design-system consolidation | Code | Complete | Added a shared tactile theme module and migrated settings, shared UI shell constants, and the History initials palette to it. |
+| 2026-07-09 | Phase 4: Design-system consolidation | Test | Complete | `npm run check` and `npm run test:production-gate` both passed after the refactor. |
+| 2026-07-09 | Phase 4: Design-system consolidation | Audit | Complete | Audit confirmed repeated tactile palette owners in the touched files now resolve from one shared source without changing the current UI contract. |
+| 2026-07-09 | Phase 4: Design-system consolidation | Review | Complete | Reviewer approved the scoped palette consolidation and left broader inline literal cleanup as optional follow-up. |
+| 2026-07-09 | Phase 5: Production hardening | Plan | Complete | Scoped a narrow runtime-hardening pass around UUID generation, static imports, centralized database logging, and dev-only simulation gating. |
+| 2026-07-09 | Phase 5: Production hardening | Code | Complete | Replaced weak DB ID generation, removed the Settings runtime `require()`, routed DB logging through the logger, and confined the Insights simulation trigger to dev mode. |
+| 2026-07-09 | Phase 5: Production hardening | Test | Complete | `npm run check` and `npm run test:production-gate` both passed after the refactor. |
+| 2026-07-09 | Phase 5: Production hardening | Audit | Complete | Audit confirmed the targeted runtime shortcuts were hardened without disturbing the validated domain path. |
+| 2026-07-09 | Phase 5: Production hardening | Review | Complete | Reviewer approved the scoped production-hardening changes and left broader app-wide console cleanup as optional follow-up. |
 
 ## Current State
 
-The latest completed task decomposed the History and Insights tabs by moving their core derived logic and scan-simulation behavior into dedicated feature helpers, while preserving current UI behavior and passing both `npm run check` and `npm run test:production-gate`.
+The latest completed task hardened the clearest runtime shortcuts by replacing weak DB ID generation, removing the Settings runtime `require()`, routing DB logging through the centralized logger, and confining the Insights simulation trigger to development mode, while passing both `npm run check` and `npm run test:production-gate`.
 
 ## Next Step
 
-Optional follow-up: visually verify both History and Insights on device and remove the remaining dead legacy Insights calculations if runtime behavior is fully confirmed.
+Optional follow-up: continue replacing broader app-level `console.*` usage with the centralized logger where those paths are meant to be part of the production runtime contract.

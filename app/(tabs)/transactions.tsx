@@ -14,7 +14,7 @@ import Svg, { Rect, Circle, Path, Line, Text as SvgText, G } from 'react-native-
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { typography, tokens, shadows, spacing, borderRadius } from '@/theme';
+import { typography, tokens, shadows, spacing, borderRadius, tactileTheme, buildAlphaColor } from '@/theme';
 import { useTransactionStore } from '@/stores/transaction-store';
 import { getMonthlyTotals } from '@/lib/database';
 import { getMonthRange } from '@/utils/date';
@@ -80,12 +80,20 @@ const ChevronRight = React.memo(() => (
 // Editorial Text-based Category Icon
 const CategoryIcon = React.memo(({ categoryName, merchantName }: { categoryName: string; merchantName: string | null }) => {
   const displayLetter = (merchantName || categoryName || 'O').charAt(0).toUpperCase();
-  const colors = ['#A86A2A', '#3E5A2A', '#AFA56A', '#745143', '#B7884E', '#8C9168'];
+  const colors = tactileTheme.initialPalette;
   const charCode = displayLetter.charCodeAt(0) || 0;
   const color = colors[charCode % colors.length];
 
   return (
-    <View style={[styles.txIcon, { backgroundColor: color + '15', borderColor: color + '30' }]}>
+    <View
+      style={[
+        styles.txIcon,
+        {
+          backgroundColor: buildAlphaColor(color, 0.08),
+          borderColor: buildAlphaColor(color, 0.18),
+        },
+      ]}
+    >
       <Text style={[styles.txIconText, { color }]}>{displayLetter}</Text>
     </View>
   );
@@ -989,7 +997,7 @@ const styles = StyleSheet.create({
   // Modals layout
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 12, 10, 0.75)',
+    backgroundColor: tactileTheme.overlayStronger,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

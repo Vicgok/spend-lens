@@ -164,6 +164,7 @@ export default function InsightsScreen() {
   const [showRisksTooltip, setShowRisksTooltip] = useState(false);
   const [showScanCompleteModal, setShowScanCompleteModal] = useState(false);
   const [selectedExpenseTrendKey, setSelectedExpenseTrendKey] = useState<string | null>(null);
+  const allowDevSimulation = __DEV__;
 
   // Animated values for pressable cards & tooltips
   const patternScale = useRef(new Animated.Value(1)).current;
@@ -835,10 +836,11 @@ export default function InsightsScreen() {
         renderRight={() => (
           <Pressable
             onPress={() => {
-              if (!isScanning) {
+              if (allowDevSimulation && !isScanning) {
                 runSmsSimulation();
               }
             }}
+            disabled={!allowDevSimulation}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <ReadingNotebookMascot width={95} height={76} />
@@ -885,17 +887,20 @@ export default function InsightsScreen() {
         <View style={styles.emptyCard}>
           <Pressable
             onPress={() => {
-              if (!isScanning) {
+              if (allowDevSimulation && !isScanning) {
                 runSmsSimulation();
               }
             }}
+            disabled={!allowDevSimulation}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <ReadingNotebookMascot width={150} height={130} />
           </Pressable>
           <Text style={styles.emptyTitle}>SpendLens is Learning</Text>
           <Text style={styles.emptySubtitle}>
-            Your money story will appear here as activity arrives. Tap the notebook mascot to simulate transactions!
+            {allowDevSimulation
+              ? 'Your money story will appear here as activity arrives. Tap the notebook mascot to simulate transactions!'
+              : 'Your money story will appear here as activity arrives.'}
           </Text>
         </View>
       ) : (

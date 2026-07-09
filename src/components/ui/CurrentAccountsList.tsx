@@ -7,18 +7,11 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, wit
 import { BANK_BRAND_COLORS, AccountIcon } from './BankLogo';
 import { formatCurrency } from '@/utils/currency';
 import { Account } from '@/types';
-import { typography } from '@/theme';
+import { tactileTheme, typography } from '@/theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const COLORS = {
-  surface: '#FFF8EE',
-  primary: '#745143',
-  secondary: '#54554B',
-  green: '#3E5A2A',
-  lightGreen: '#EEF4E6',
-  border: '#E8DDD0',
-};
+const COLORS = tactileTheme;
 
 // ─── CUSTOM PREMIUM ICONS ──────────────────────────────────────────────────
 

@@ -1,11 +1,9 @@
 import * as SQLite from 'expo-sqlite';
+import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/logger';
 
 function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return uuidv4();
 }
 
 import {
@@ -42,11 +40,13 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
       const hasBankId = columns.some((col) => col.name === 'bank_id');
       if (!hasBankId) {
         await database.execAsync('ALTER TABLE accounts ADD COLUMN bank_id TEXT');
-        console.log('Database migration: Added bank_id to accounts table');
+        logger.debug('Database migration: Added bank_id to accounts table');
       }
     }
   } catch (e) {
-    console.warn('Error running accounts migration:', e);
+    logger.warn('Error running accounts migration', {
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 
   try {
@@ -57,16 +57,18 @@ async function initializeDatabase(database: SQLite.SQLiteDatabase) {
 
       if (!hasDedupeGroupId) {
         await database.execAsync('ALTER TABLE transactions ADD COLUMN dedupe_group_id TEXT');
-        console.log('Database migration: Added dedupe_group_id to transactions table');
+        logger.debug('Database migration: Added dedupe_group_id to transactions table');
       }
 
       if (!hasDedupeVersion) {
         await database.execAsync('ALTER TABLE transactions ADD COLUMN dedupe_version TEXT');
-        console.log('Database migration: Added dedupe_version to transactions table');
+        logger.debug('Database migration: Added dedupe_version to transactions table');
       }
     }
   } catch (e) {
-    console.warn('Error running transactions dedupe migration:', e);
+    logger.warn('Error running transactions dedupe migration', {
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 
   await database.execAsync(`
@@ -863,9 +865,12 @@ export async function writeLog(event: string, message: string | null, details: a
       `INSERT INTO logs (id, event, message, details, timestamp) VALUES (?, ?, ?, ?, ?)`,
       id, event, message, detailsStr, timestamp
     );
-    console.log(`[LOG - ${event}] ${message}`);
+    logger.debug(`[LOG - ${event}] ${message ?? ''}`);
   } catch (e) {
-    console.error('Failed to write log to SQLite:', e);
+    logger.error('Failed to write log to SQLite', {
+      error: e instanceof Error ? e.message : String(e),
+      event,
+    });
   }
 }
 
@@ -916,7 +921,11 @@ export async function addPendingDetection(bankId: string, bankName: string): Pro
       await writeLog('ACCOUNT_NOT_FOUND', `Detected new untracked bank: ${bankName} (${bankId})`, { bankId, bankName });
     }
   } catch (e) {
-    console.error('Failed to insert pending bank detection:', e);
+    logger.error('Failed to insert pending bank detection', {
+      error: e instanceof Error ? e.message : String(e),
+      bankId,
+      bankName,
+    });
   }
 }
 

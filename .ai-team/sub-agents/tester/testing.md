@@ -2,16 +2,16 @@
 
 ## Task
 
-Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
+Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
 
 ## Acceptance Checks
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| History derivation extraction compiles | Passed | `transactions.tsx` now builds against the dedicated History presenter helpers without TypeScript regressions. |
-| Insights simulation and derivation extraction compiles | Passed | `insights.tsx` now builds against the dedicated Insights presenter and simulation helpers without TypeScript regressions. |
-| Cross-system regression gate still passes | Passed | The screen refactor did not disturb the parser -> categorizer -> insights production fixture path. |
-| Workspace typecheck passes | Passed | `npm run check` completed successfully after the Phase 3 implementation. |
+| Stronger UUID generation compiles | Passed | `src/lib/database.ts` builds cleanly after switching to the `uuid` dependency for generated IDs. |
+| Runtime shortcut removal compiles | Passed | Settings and Insights build cleanly after removing the runtime `require()` path and confining the simulation trigger. |
+| Cross-system regression gate still passes | Passed | The design-system refactor did not disturb the parser -> categorizer -> insights production fixture path. |
+| Workspace typecheck passes | Passed | `npm run check` completed successfully after the Phase 5 implementation. |
 
 ## Commands Run
 
@@ -20,10 +20,10 @@ Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the Hi
 
 ## Evidence for Audit
 
-- Source-level evidence that reusable feature seams now own History and Insights derived logic instead of the screens keeping it inline.
-- Clean TypeScript compilation after the screen decomposition changes.
+- Source-level evidence that runtime UUID generation, static imports, logger usage, and development-mode simulation gating now match the intended hardening scope.
+- Clean TypeScript compilation after the Phase 5 runtime changes.
 - A passing production-gate run confirming no cross-system domain regressions were introduced by the refactor.
 
 ## Result
 
-Passed the implementation validation set for the Phase 3 decomposition slice.
+Passed the implementation validation set for the Phase 5 production-hardening slice.

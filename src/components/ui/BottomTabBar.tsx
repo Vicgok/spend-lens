@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, Dimensions, Text, Animated } from 'react-n
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { router, usePathname } from 'expo-router';
 import { ROUTES } from '@/navigation/routes';
-import { typography } from '@/theme';
+import { tactileTheme, typography } from '@/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 const TAB_LABELS = ['Home', 'History', 'Insights', 'Settings', 'Add'] as const;
@@ -14,13 +14,7 @@ const TAB_ROUTES = [
   '/(tabs)/settings',
   ROUTES.addTransaction,
 ] as const;
-const TAB_BAR_COLORS = {
-  active: '#3E5A2A',
-  inactive: '#8E8A82',
-  surface: '#FFF8EE',
-  border: '#E6E1D8',
-  shadow: '#745143',
-} as const;
+const TAB_BAR_COLORS = tactileTheme.tabBar;
 
 interface TabBarButtonProps {
   isFocused: boolean;
