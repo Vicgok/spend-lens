@@ -1,9 +1,14 @@
 import * as SQLite from 'expo-sqlite';
-import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
 
+let idSequence = 0;
+
 function generateId(): string {
-  return uuidv4();
+  idSequence = (idSequence + 1) % 1000000;
+  const timePart = Date.now().toString(36);
+  const sequencePart = idSequence.toString(36).padStart(4, '0');
+  const randomPart = Math.random().toString(36).slice(2, 12);
+  return `${timePart}-${sequencePart}-${randomPart}`;
 }
 
 import {
