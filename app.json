@@ -2,7 +2,7 @@
   "expo": {
     "name": "SpendLens",
     "slug": "spendlens",
-    "version": "1.0.8",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "spendlens",
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.spendlens.tracker",
-      "versionCode": 8,
+      "versionCode": 2000001,
       "backgroundColor": "#0D1117",
       "permissions": [
         "android.permission.READ_SMS",
