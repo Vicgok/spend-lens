@@ -2,37 +2,38 @@
 
 ## Task
 
-Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
+Audit app responsiveness across different resolutions, screen sizes, notched devices, and punch-hole devices.
 
 ## Requirements Summary
 
-Phase 5 should address the clearest operational shortcuts still present in primary runtime paths without broadening into unrelated UX or architecture work. The highest-value slice is to strengthen database IDs, replace direct database `console.*` logging with the centralized logger, remove the Settings runtime `require()`, and keep the Insights simulation out of the normal production interaction path.
+Inspect the existing Expo/React Native app implementation for responsive layout behavior and safe-area/cutout handling. Produce an evidence-backed audit, not a code change, unless the audit exposes a concrete fix that is required before answering.
 
 ## Impacted Files
 
-- `src/lib/database.ts`
-- `src/lib/logger.ts`
-- `app/(tabs)/settings.tsx`
-- `app/(tabs)/insights.tsx`
-- `.ai-team/orchestrator/*.md`
-- `.ai-team/sub-agents/*.md`
+- `.ai-team/orchestrator/current-task.md`
+- `.ai-team/orchestrator/execution-status.md`
+- `.ai-team/sub-agents/planner/implementation-plan.md`
+- `.ai-team/sub-agents/auditor/audit.md`
+- `.ai-team/sub-agents/reviewer/review.md`
+- App source files under the route, component, and style directories will be inspected read-only.
 
 ## Plan
 
-1. Replace the `Math.random()`-based database ID helper with the existing `uuid` dependency.
-2. Route database migration/logging errors through the centralized logger instead of direct `console.*` calls.
-3. Replace the Settings clear-data runtime `require()` path with a static import.
-4. Confine the Insights simulation entry points to development mode so production users are not prompted to simulate transactions.
-5. Run `npm run check` and `npm run test:production-gate`, then record the results in `.ai-team`.
+1. Inspect project structure, package dependencies, app root layout, and safe-area providers.
+2. Inspect major route screens and shared components for fixed sizing, scroll behavior, viewport assumptions, and cutout-safe positioning.
+3. Review validation options available locally; run non-invasive checks if they are already project-supported and do not interfere with the ongoing build.
+4. Write an audit with evidence, findings, and recommendations.
+5. Run reviewer pass over audit completeness and update orchestrator status/progress/handoff.
 
 ## Acceptance Criteria
 
-- Database IDs no longer depend on `Math.random()`.
-- The Settings clear-data path no longer relies on a runtime `require()`.
-- The production-gate fixture path still passes after the runtime hardening changes.
-- The development-only Insights simulation is not exposed as a normal production affordance.
+- Safe-area and cutout handling is assessed with file-level evidence.
+- Responsive layout behavior is assessed across small phones, large phones, tablets, and web where relevant.
+- Findings distinguish verified implementation facts from risks or untested gaps.
+- Reviewer approves the audit before the final response.
 
 ## Risks
 
-- The repository still contains many app-level `console.*` calls outside this slice; this phase should focus on the database/runtime shortcut paths explicitly called out by the audit.
-- The Insights simulation still exists for development; this slice should confine it rather than delete the supporting code outright.
+- Without device screenshots or simulator testing, visual behavior can only be inferred from code.
+- The app may currently be building, so the audit should avoid starting competing long-running build/dev-server processes.
+- Some responsive risks may depend on runtime data volume, text scaling, or platform-specific header behavior.

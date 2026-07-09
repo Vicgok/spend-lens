@@ -2,28 +2,27 @@
 
 ## Task
 
-Implement Phase 5 only from the 2026-07-09 MVP readiness audit: harden production-facing runtime behavior by replacing weak ID generation, removing runtime-only shortcuts, and confining dev-only simulation behavior.
+Audit app responsiveness across different resolutions, screen sizes, notched devices, and punch-hole devices.
 
 ## Status
 
 Complete
 
+## Reviewer Feedback
+
+Approved. The audit is evidence-backed, scoped to responsiveness and safe-area behavior, and correctly records that device screenshots/simulator validation remain a follow-up gap.
+
 ## Requirements
 
-- Keep the implementation scoped to Phase 5 production hardening only.
-- Replace the `Math.random()`-based database ID generation with a stronger UUID source already present in dependencies.
-- Remove the runtime `require()` shortcut from the Settings clear-data path.
-- Replace direct database-layer `console.*` logging with the centralized logger.
-- Constrain the Insights screen simulation trigger so it is not exposed in the primary production user flow.
+- Inspect the actual app layout and styling implementation before answering.
+- Focus on safe-area behavior, device cutouts, small and large screen layouts, fixed dimensions, scrolling, and adaptive typography/spacing.
+- Keep the task audit-only unless a concrete remediation is required.
+- Record evidence-backed findings in the ai-team artifacts.
 - Keep `.ai-team/orchestrator/execution-status.md` accurate so the active role is visible during execution.
 
 ## Acceptance Criteria
 
-- Database IDs use a stronger UUID implementation.
-- Settings uses a static import for clear-data behavior instead of a runtime `require()`.
-- The touched runtime paths compile cleanly and still pass the production-gate fixture pack.
-- The development-only Insights simulation is no longer presented as a normal production interaction.
-
-## Reviewer Feedback
-
-Approved. The Phase 5 slice replaced the weakest runtime shortcuts with stronger production-facing behavior while keeping the validation set green.
+- The audit identifies current responsive strengths and risks with file-level evidence.
+- Device cutout handling is specifically assessed for notches and punch-hole devices.
+- Any unresolved gaps are called out clearly with recommended remediation.
+- Review approves the audit record before the final user response.

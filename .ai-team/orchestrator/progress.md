@@ -77,11 +77,14 @@
 | 2026-07-09 | Phase 5: Production hardening | Test | Complete | `npm run check` and `npm run test:production-gate` both passed after the refactor. |
 | 2026-07-09 | Phase 5: Production hardening | Audit | Complete | Audit confirmed the targeted runtime shortcuts were hardened without disturbing the validated domain path. |
 | 2026-07-09 | Phase 5: Production hardening | Review | Complete | Reviewer approved the scoped production-hardening changes and left broader app-wide console cleanup as optional follow-up. |
+| 2026-07-10 | Responsiveness and device cutout audit | Plan | Complete | Scoped safe-area, cutout, fixed-dimension, scroll, and tablet responsiveness inspection. |
+| 2026-07-10 | Responsiveness and device cutout audit | Audit | Complete | Static audit found strong top safe-area usage, scrollable primary screens, and follow-up risks around bottom insets, explicit root provider verification, tablet layout, and static dimensions. |
+| 2026-07-10 | Responsiveness and device cutout audit | Review | Complete | Reviewer approved the evidence-backed audit and noted simulator/device screenshot QA as the remaining validation gap. |
 
 ## Current State
 
-The latest completed task hardened the clearest runtime shortcuts by replacing weak DB ID generation, removing the Settings runtime `require()`, routing DB logging through the centralized logger, and confining the Insights simulation trigger to development mode, while passing both `npm run check` and `npm run test:production-gate`.
+The latest completed task audited responsiveness and device cutout handling. The app uses top safe-area insets and scrollable primary screens, but the floating tab bar and some bottom spacing use fixed values instead of bottom safe-area insets. Device screenshots remain the key validation gap.
 
 ## Next Step
 
-Optional follow-up: continue replacing broader app-level `console.*` usage with the centralized logger where those paths are meant to be part of the production runtime contract.
+Recommended follow-up: make the floating tab bar and bottom content clearance depend on `useSafeAreaInsets().bottom`, verify or add an explicit root `SafeAreaProvider`, and run screenshots on small phone, large notched iPhone, Android punch-hole/gesture-nav phone, and tablet/split-view viewport.

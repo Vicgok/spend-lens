@@ -4,7 +4,7 @@
 
 ### Task
 
-Implement Phase 5 production hardening from the 2026-07-09 MVP readiness audit.
+Audit app responsiveness across different resolutions, screen sizes, notched devices, and punch-hole devices.
 
 ### Status
 
@@ -12,20 +12,20 @@ Complete
 
 ### Completed
 
-- Replaced the database `Math.random()` UUID-like helper with the existing `uuid` dependency.
-- Replaced the Settings clear-data runtime `require()` with a static import.
-- Routed database migration/error logging through the centralized logger.
-- Confined the Insights simulation affordance to development mode so production users are no longer prompted to simulate transactions.
-- Verified the hardening pass with `npm run check` and `npm run test:production-gate`.
+- Reviewed Expo/React Native dependencies, app config, root layout, tab layout, primary tab screens, onboarding/secondary screens, modal/sheet primitives, and chart/card components.
+- Confirmed broad top safe-area usage through `useSafeAreaInsets()` across primary and secondary screens.
+- Confirmed main content is generally scrollable and uses bottom padding to avoid the floating tab bar.
+- Identified follow-up risks around fixed bottom tab-bar positioning, missing explicit root `SafeAreaProvider` verification, phone-first tablet layouts, static `Dimensions.get('window')` usage, and bottom sheet inset behavior.
+- Wrote and reviewed `.ai-team/sub-agents/auditor/audit.md`.
 
 ### Next Owner
 
-User
+User or Coder, if remediation is requested.
 
 ### Next Action
 
-Optionally continue broader app-level runtime logging cleanup where remaining `console.*` calls are intended to be production-facing rather than purely local development diagnostics.
+Recommended implementation follow-up: update the floating tab bar and screen bottom padding to use bottom safe-area insets, add or verify `SafeAreaProvider` at the root, then run a visual matrix on small phone, large notched iPhone, Android punch-hole/gesture-nav phone, and tablet/split-view viewport.
 
 ### Blockers
 
-None
+No blocker for the audit. Runtime visual validation was not performed because the user indicated an app build was already in progress.
