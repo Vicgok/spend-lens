@@ -23,6 +23,15 @@ import { formatTime } from '@/utils/date';
 import { getCategoryById } from '@/features/categorizer/categorizer';
 import { Transaction, TransactionType } from '@/types';
 import {
+  buildFinancialObservation,
+  buildHistoryChartData,
+  buildHistoryChartSummary,
+  buildHistoryMonthOptions,
+  buildTimelineAnalyticsData,
+  buildTransactionSections,
+  ChartMode,
+} from '@/features/history/presenter';
+import {
   HistorySkeleton,
   TabHeader,
   ReadingNotebookMascot,
@@ -47,160 +56,6 @@ const TABS: { label: string; value: TransactionType }[] = [
   { label: 'Income', value: 'income' },
   { label: 'Savings', value: 'transfer' }, // Map 'transfer' as 'savings'
 ];
-
-type ChartMode = 'day' | 'week' | 'month' | 'year';
-
-interface ChartDataPoint {
-  label: string;
-  fullLabel: string;
-  actual: number;
-  budget: number;
-  categories: string[];
-}
-
-const getTimelineAnalyticsData = (txs: Transaction[], mode: ChartMode, baseDate: Date): ChartDataPoint[] => {
-  const now = new Date();
-  const isCurrentMonth = baseDate.getFullYear() === now.getFullYear() && baseDate.getMonth() === now.getMonth();
-  const dRef = isCurrentMonth ? now : new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
-
-  if (mode === 'day') {
-    const list: ChartDataPoint[] = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const fullDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - i);
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      const dayEnd = dayStart + 24 * 60 * 60 * 1000;
-
-      const dayTxs = txs.filter(tx => {
-        const t = new Date(tx.date).getTime();
-        return t >= dayStart && t < dayEnd;
-      });
-
-      const actual = dayTxs.reduce((sum, tx) => sum + tx.amount, 0);
-      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-      const budget = isWeekend ? 1800 : 1000;
-
-      const categoryNames = Array.from(
-        new Set(
-          dayTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
-        )
-      ).slice(0, 2);
-
-      const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-      list.push({
-        label: dayNames[d.getDay()],
-        fullLabel: `${fullDayNames[d.getDay()]} ${formattedDate}`,
-        actual,
-        budget,
-        categories: categoryNames,
-      });
-    }
-    return list;
-  }
-
-  if (mode === 'week') {
-    const list: ChartDataPoint[] = [];
-    for (let i = 3; i >= 0; i--) {
-      const start = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7 + 7)).getTime();
-      const end = new Date(dRef.getFullYear(), dRef.getMonth(), dRef.getDate() - (i * 7)).getTime();
-
-      const weekTxs = txs.filter(tx => {
-        const t = new Date(tx.date).getTime();
-        return t >= start && t < end;
-      });
-
-      const actual = weekTxs.reduce((sum, tx) => sum + tx.amount, 0);
-      const budget = 8000;
-
-      const categoryNames = Array.from(
-        new Set(
-          weekTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
-        )
-      ).slice(0, 2);
-
-      list.push({
-        label: i === 0 ? 'This Wk' : `W-${i}`,
-        fullLabel: i === 0 ? 'Current Week' : `Week - ${i} Ago`,
-        actual,
-        budget,
-        categories: categoryNames,
-      });
-    }
-    return list;
-  }
-
-  if (mode === 'month') {
-    const list: ChartDataPoint[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(dRef.getFullYear(), dRef.getMonth() - i, 1);
-      const year = d.getFullYear();
-      const month = d.getMonth();
-
-      const monthStart = new Date(year, month, 1).getTime();
-      const monthEnd = new Date(year, month + 1, 1).getTime();
-
-      const monthTxs = txs.filter(tx => {
-        const t = new Date(tx.date).getTime();
-        return t >= monthStart && t < monthEnd;
-      });
-
-      const actual = monthTxs.reduce((sum, tx) => sum + tx.amount, 0);
-      const budget = 30000;
-
-      const categoryNames = Array.from(
-        new Set(
-          monthTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
-        )
-      ).slice(0, 2);
-
-      list.push({
-        label: d.toLocaleDateString('en-US', { month: 'short' }),
-        fullLabel: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        actual,
-        budget,
-        categories: categoryNames,
-      });
-    }
-    return list;
-  }
-
-  if (mode === 'year') {
-    const list: ChartDataPoint[] = [];
-    for (let i = 2; i >= 0; i--) {
-      const year = dRef.getFullYear() - i;
-      const yearStart = new Date(year, 0, 1).getTime();
-      const yearEnd = new Date(year + 1, 0, 1).getTime();
-
-      const yearTxs = txs.filter(tx => {
-        const t = new Date(tx.date).getTime();
-        return t >= yearStart && t < yearEnd;
-      });
-
-      const actual = yearTxs.reduce((sum, tx) => sum + tx.amount, 0);
-      const budget = 360000;
-
-      const categoryNames = Array.from(
-        new Set(
-          yearTxs.map(tx => getCategoryById(tx.categoryId || 'cat_uncategorized').name)
-        )
-      ).slice(0, 2);
-
-      list.push({
-        label: String(year),
-        fullLabel: `Year ${year}`,
-        actual,
-        budget,
-        categories: categoryNames,
-      });
-    }
-    return list;
-  }
-
-  return [];
-};
 
 // Search & Filter SVGs
 const SearchSvg = React.memo(() => (
@@ -265,7 +120,7 @@ export default function TransactionsScreen() {
   } = useTransactionStore();
 
   const timelineData = useMemo(() => {
-    return getTimelineAnalyticsData(transactions, chartMode, selectedMonth);
+    return buildTimelineAnalyticsData(transactions, chartMode, selectedMonth);
   }, [transactions, chartMode, selectedMonth]);
 
   const maxAmount = useMemo(() => {
@@ -285,49 +140,15 @@ export default function TransactionsScreen() {
   }, [timelineData, selectedDayIndex]);
 
   const chartData = useMemo(() => {
-    return timelineData.map((point) => {
-      return {
-        label: point.label,
-        value: point.actual,
-        target: point.budget,
-      };
-    });
+    return buildHistoryChartData(timelineData);
   }, [timelineData]);
 
   const chartSummary = useMemo(() => {
-    if (!selectedTimelinePoint) {
-      return {
-        amount: formatCurrency(0),
-        budget: formatCurrency(0),
-        deltaLabel: 'No activity',
-        categoryLabel: 'Add transactions to populate this period.',
-        statusTone: COLOR_SECONDARY_TEXT,
-      };
-    }
-
-    const delta = selectedTimelinePoint.actual - selectedTimelinePoint.budget;
-    const isOverTarget = delta > 0;
-
-    return {
-      amount: formatCurrency(selectedTimelinePoint.actual),
-      budget: formatCurrency(selectedTimelinePoint.budget),
-      deltaLabel:
-        selectedTimelinePoint.actual === 0
-          ? 'No activity'
-          : isOverTarget
-            ? `${formatCurrency(delta)} above target`
-            : `${formatCurrency(Math.abs(delta))} below target`,
-      categoryLabel:
-        selectedTimelinePoint.categories.length > 0
-          ? selectedTimelinePoint.categories.join(', ')
-          : 'No activity recorded',
-      statusTone:
-        selectedTimelinePoint.actual === 0
-          ? COLOR_SECONDARY_TEXT
-          : isOverTarget
-            ? COLOR_EXPENSE
-            : COLOR_FOREST_GREEN,
-    };
+    return buildHistoryChartSummary(selectedTimelinePoint, {
+      secondary: COLOR_SECONDARY_TEXT,
+      expense: COLOR_EXPENSE,
+      success: COLOR_FOREST_GREEN,
+    });
   }, [selectedTimelinePoint]);
 
   // Initial and reactive data fetching
@@ -391,83 +212,12 @@ export default function TransactionsScreen() {
     setRefreshing(false);
   }, [selectedMonth, activeTab, searchQuery, selectedCategory, fetchStats, loadTransactions]);
 
-  // Chronological Grouping Logic
-  const getGroupedSections = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const yesterday = today - 1000 * 60 * 60 * 24;
-    const startOfWeek = today - 1000 * 60 * 60 * 24 * 7;
-
-    const todayTxs: Transaction[] = [];
-    const yesterdayTxs: Transaction[] = [];
-    const thisWeekTxs: Transaction[] = [];
-    const earlierTxs: Transaction[] = [];
-
-    transactions.forEach((tx) => {
-      const txTime = new Date(tx.date).getTime();
-      if (txTime >= today) {
-        todayTxs.push(tx);
-      } else if (txTime >= yesterday) {
-        yesterdayTxs.push(tx);
-      } else if (txTime >= startOfWeek) {
-        thisWeekTxs.push(tx);
-      } else {
-        earlierTxs.push(tx);
-      }
-    });
-
-    const sections: { title: string; data: Transaction[] }[] = [];
-    if (todayTxs.length > 0) sections.push({ title: 'Today', data: todayTxs });
-    if (yesterdayTxs.length > 0) sections.push({ title: 'Yesterday', data: yesterdayTxs });
-    if (thisWeekTxs.length > 0) sections.push({ title: 'This Week', data: thisWeekTxs });
-    if (earlierTxs.length > 0) sections.push({ title: 'Earlier', data: earlierTxs });
-
-    return sections;
-  };
-
-  const sections = getGroupedSections();
-
-  // Dynamic Spending Observation
-  const getFinancialObservation = () => {
-    if (transactions.length === 0) {
-      return "No spending data available for observations yet.";
-    }
-
-    const categorySpending: Record<string, number> = {};
-    transactions
-      .filter(tx => tx.type === 'expense')
-      .forEach(tx => {
-        const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
-        categorySpending[category.name] = (categorySpending[category.name] || 0) + tx.amount;
-      });
-
-    const categoriesList = Object.keys(categorySpending);
-    if (categoriesList.length === 0) {
-      return "No expenses recorded this month.";
-    }
-
-    let maxCategory = categoriesList[0];
-    let maxAmt = categorySpending[maxCategory];
-    for (const cat of categoriesList) {
-      if (categorySpending[cat] > maxAmt) {
-        maxCategory = cat;
-        maxAmt = categorySpending[cat];
-      }
-    }
-
-    return `Most spending this month comes from ${maxCategory}.`;
-  };
-
-  // List of last 12 months for picker
-  const getMonthsList = () => {
-    const list = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      list.push(d);
-    }
-    return list;
-  };
+  const sections = useMemo(() => buildTransactionSections(transactions), [transactions]);
+  const financialObservation = useMemo(
+    () => buildFinancialObservation(transactions),
+    [transactions]
+  );
+  const monthOptions = useMemo(() => buildHistoryMonthOptions(), []);
 
   const renderTransaction = ({ item: tx }: { item: Transaction }) => {
     const category = getCategoryById(tx.categoryId || 'cat_uncategorized');
@@ -748,7 +498,7 @@ export default function TransactionsScreen() {
                     <View style={{ flex: 1.2, paddingRight: 8 }}>
                       <Text style={styles.cardTitle}>Financial Observation</Text>
                       <Text style={styles.observationText}>
-                        {getFinancialObservation()}
+                        {financialObservation}
                       </Text>
                     </View>
                     <View style={{ flex: 0.8, alignItems: 'flex-end' }}>
@@ -774,7 +524,7 @@ export default function TransactionsScreen() {
         title="Select Month"
       >
         <ScrollView style={styles.modalScroll}>
-          {getMonthsList().map((date, idx) => {
+          {monthOptions.map((date, idx) => {
             const isSelected =
               date.getFullYear() === selectedMonth.getFullYear() &&
               date.getMonth() === selectedMonth.getMonth();

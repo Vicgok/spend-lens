@@ -4,13 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography } from '@/theme';
 import { StatusBar } from 'expo-status-bar';
 import { useTransactionStore } from '@/stores/transaction-store';
-import { generateAllInsights } from '@/features/insights-engine/detector';
-import { calculateSalarySurvivalScore, calculateSalarySurvivalScoreFromSnapshot } from '@/features/insights-engine/formulas';
 import { formatCurrency } from '@/utils/currency';
 import {
-  buildDefaultInsightsScreenSectionsDisplay,
-  mapInsightsSnapshotToScreenSections,
-} from '@/features/insights-engine/presenter';
+  buildExpenseTrendChartData,
+  buildInsightsScreenData,
+} from '@/features/insights-screen/presenter';
+import { startInsightsSimulation } from '@/features/insights-screen/simulation';
 import Svg, { Circle, Path, Line, Rect, Polyline } from 'react-native-svg';
 import { Transaction } from '@/types';
 
@@ -25,8 +24,6 @@ const SCAN_STEPS = [
   { message: 'RUNNING BEHAVIORAL DETECTORS (IMPULSE, LEAKS, SUBSCRIPTIONS)...', progress: 0.9 },
   { message: 'INVESTIGATION COMPLETE. UPDATING BOARD IN REAL-TIME.', progress: 1.0 },
 ];
-
-const EXPENSE_TREND_DAYS = 14;
 
 // Reusable SVG Icons (No Emojis allowed by Rules)
 const ShieldIcon = React.memo(({ size = 18, color = '#3E5A2A' }: { size?: number; color?: string }) => (
@@ -149,22 +146,6 @@ const CheckCircleIcon = React.memo(({ size = 16, color = '#3E5A2A' }: { size?: n
   </Svg>
 ));
 
-function getLocalDateKey(dateInput: string | Date): string {
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function formatShortDay(date: Date): string {
-  return date.toLocaleDateString('en-IN', { weekday: 'short' });
-}
-
-function formatShortMonthDay(date: Date): string {
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-}
-
 export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
 
@@ -191,6 +172,7 @@ export default function InsightsScreen() {
   const healthTooltipAnim = useRef(new Animated.Value(0)).current;
   const risksInfoScale = useRef(new Animated.Value(1)).current;
   const risksTooltipAnim = useRef(new Animated.Value(0)).current;
+  const simulationCleanupRef = useRef<null | (() => void)>(null);
 
   const handlePatternPressIn = () => {
     Animated.spring(patternScale, {
@@ -289,354 +271,64 @@ export default function InsightsScreen() {
   const loadCategories = useTransactionStore((s) => s.loadCategories);
   const loadAccounts = useTransactionStore((s) => s.loadAccounts);
   const getTotalBalance = useTransactionStore((s) => s.getTotalBalance);
-
-  // Formulate active transactions list (prioritize dev-friendly temp dataset)
-  const activeTransactions = useMemo(() => {
-    return tempTransactions || transactions;
-  }, [tempTransactions, transactions]);
-
-  // Dynamic dev-friendly mock transactions generator
-  const generateMockTransactions = (): Transaction[] => {
-    const foodId = categories.find((c) => c.name.toLowerCase().includes('food') || c.name.toLowerCase().includes('dining'))?.id || 'mock-food';
-    const shopId = categories.find((c) => c.name.toLowerCase().includes('shop') || c.name.toLowerCase().includes('cloth'))?.id || 'mock-shop';
-
-    const now = new Date();
-    const getPastDate = (daysAgo: number, hour: number) => {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo, hour, 30);
-      return d.toISOString();
-    };
-
-    return [
-      // Income (Salary)
-      {
-        id: 'mock-inc-1',
-        accountId: 'mock-acc',
-        type: 'income',
-        amount: 60000,
-        categoryId: null,
-        merchant: 'Salary Pay',
-        description: 'Monthly salary credited',
-        date: getPastDate(10, 10),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: true,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Food Spends
-      {
-        id: 'mock-food-1',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 1250,
-        categoryId: foodId,
-        merchant: 'Zomato',
-        description: 'Dinner delivery',
-        date: getPastDate(2, 20), // Evening
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Money Leaks (4 transactions at Starbucks under 300)
-      {
-        id: 'mock-leak-1',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 280,
-        categoryId: foodId,
-        merchant: 'Starbucks',
-        description: 'Coffee spend',
-        date: getPastDate(1, 16),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      {
-        id: 'mock-leak-2',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 280,
-        categoryId: foodId,
-        merchant: 'Starbucks',
-        description: 'Coffee spend',
-        date: getPastDate(3, 16),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      {
-        id: 'mock-leak-3',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 280,
-        categoryId: foodId,
-        merchant: 'Starbucks',
-        description: 'Coffee spend',
-        date: getPastDate(5, 16),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      {
-        id: 'mock-leak-4',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 280,
-        categoryId: foodId,
-        merchant: 'Starbucks',
-        description: 'Coffee spend',
-        date: getPastDate(7, 16),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Weekend overspend spends
-      {
-        id: 'mock-weekend-1',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 4500,
-        categoryId: shopId,
-        merchant: 'Zara',
-        description: 'Weekend shopping spree',
-        date: (() => {
-          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          while (d.getDay() !== 6 && d.getDay() !== 0) {
-            d.setDate(d.getDate() - 1);
-          }
-          d.setHours(19, 0);
-          return d.toISOString();
-        })(),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Cash withdrawals on Friday
-      {
-        id: 'mock-cash-1',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 2000,
-        categoryId: null,
-        merchant: 'HDFC ATM',
-        description: 'Cash withdrawal ATM',
-        date: (() => {
-          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          while (d.getDay() !== 5) {
-            d.setDate(d.getDate() - 1);
-          }
-          d.setHours(18, 0);
-          return d.toISOString();
-        })(),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Spotify Subscription
-      {
-        id: 'mock-sub-1',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 129,
-        categoryId: null,
-        merchant: 'Spotify',
-        description: 'Spotify Premium subscription',
-        date: getPastDate(5, 12),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: true,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-      // Zara Shopping in previous month to calculate percent change
-      {
-        id: 'mock-weekend-prev',
-        accountId: 'mock-acc',
-        type: 'expense',
-        amount: 4000,
-        categoryId: shopId,
-        merchant: 'Zara',
-        description: 'Previous month shopping',
-        date: getPastDate(35, 15),
-        source: 'manual',
-        smsHash: null,
-        isRecurring: false,
-        tags: [],
-        createdAt: now.toISOString(),
-        syncedAt: null,
-      },
-    ];
+  const refreshSourceData = async () => {
+    await loadTransactions();
+    await loadCategories();
+    await loadAccounts();
   };
 
-  const runSmsSimulation = async () => {
-    setIsScanning(true);
-    setScanStep(0);
-
-    // Step-by-step progress simulation
-    setTimeout(() => setScanStep(1), 800);
-    setTimeout(() => setScanStep(2), 1600);
-    setTimeout(async () => {
-      setScanStep(3);
-      try {
-        // We load transactions and categories but do NOT write mock data to SQLite DB.
-        // This ensures the simulated analysis data remains temporary and is cleared on refresh.
-        await loadTransactions();
-        await loadCategories();
-        await loadAccounts();
-      } catch (err) {
-        console.error('Scan error:', err);
-      }
-    }, 2400);
-    setTimeout(() => setScanStep(4), 3200);
-    setTimeout(() => setScanStep(5), 4000);
-    setTimeout(() => {
-      setIsScanning(false);
-      // Dev Tweak: load temporary mock data
-      setTempTransactions(generateMockTransactions());
-      setShowScanCompleteModal(true);
-    }, 4800);
+  const runSmsSimulation = () => {
+    simulationCleanupRef.current?.();
+    simulationCleanupRef.current = startInsightsSimulation({
+      categories,
+      refreshSourceData,
+      onStart: () => {
+        setIsScanning(true);
+        setScanStep(0);
+      },
+      onStepChange: setScanStep,
+      onComplete: (mockTransactions) => {
+        setIsScanning(false);
+        setTempTransactions(mockTransactions);
+        setShowScanCompleteModal(true);
+      },
+    });
   };
 
   // Pull-to-refresh handler: clears temporary mock transactions and reloads database
   const onRefresh = async () => {
     setRefreshing(true);
     setTempTransactions(null);
-    await loadTransactions();
-    await loadCategories();
-    await loadAccounts();
+    await refreshSourceData();
     setRefreshing(false);
   };
 
   useEffect(() => {
-    loadTransactions();
-    loadCategories();
-    loadAccounts();
+    refreshSourceData();
+    return () => {
+      simulationCleanupRef.current?.();
+    };
   }, []);
 
   const currentBalance = getTotalBalance();
-  const survivalScore = insightsSnapshot
-    ? calculateSalarySurvivalScoreFromSnapshot(insightsSnapshot)
-    : calculateSalarySurvivalScore(activeTransactions);
-
-  const detectedInsights = useMemo(() => {
-    return generateAllInsights(activeTransactions, categories, currentBalance);
-  }, [activeTransactions, categories, currentBalance]);
-
-  const snapshotSections = insightsSnapshot
-    ? mapInsightsSnapshotToScreenSections(insightsSnapshot)
-    : buildDefaultInsightsScreenSectionsDisplay();
-
-  // Survival score status and explanation
-  const scoreStatus = useMemo(() => {
-    if (survivalScore >= 90) return { label: 'Excellent', text: 'Your spending looks stable and I detected no unusual activity this week.' };
-    if (survivalScore >= 70) return { label: 'Healthy', text: 'Your financial cushion looks healthy, keep supporting your key saving goals.' };
-    if (survivalScore >= 50) return { label: 'Watch Closely', text: 'Discretionary spending is rising, check your recent transaction spikes.' };
-    return { label: 'Needs Attention', text: 'High expenditure rate detected. Consider slowing down non-essential spend immediately.' };
-  }, [survivalScore]);
-
-  const expenseTrend = useMemo(() => {
-    const expenses = activeTransactions.filter((transaction) => transaction.type === 'expense');
-    const totalsByDay = new Map<string, number>();
-
-    expenses.forEach((transaction) => {
-      const key = getLocalDateKey(transaction.date);
-      totalsByDay.set(key, (totalsByDay.get(key) || 0) + transaction.amount);
-    });
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const points = Array.from({ length: EXPENSE_TREND_DAYS }, (_, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (EXPENSE_TREND_DAYS - 1 - index));
-      const key = getLocalDateKey(date);
-      return {
-        key,
-        date,
-        amount: Math.round(totalsByDay.get(key) || 0),
-        shortDay: formatShortDay(date),
-        shortDate: formatShortMonthDay(date),
-      };
-    });
-
-    const maxAmount = Math.max(...points.map((point) => point.amount), 0);
-    const totalAmount = points.reduce((sum, point) => sum + point.amount, 0);
-    const activeDays = points.filter((point) => point.amount > 0).length;
-    const averageAmount = activeDays > 0 ? Math.round(totalAmount / activeDays) : 0;
-    const chartHeight = 214;
-    const chartWidth = 320;
-    const leftPadding = 12;
-    const rightPadding = 12;
-    const topPadding = 18;
-    const bottomPadding = 24;
-    const usableWidth = chartWidth - leftPadding - rightPadding;
-    const usableHeight = chartHeight - topPadding - bottomPadding;
-
-    const plottedPoints = points.map((point, index) => {
-      const x = leftPadding + (usableWidth * index) / Math.max(points.length - 1, 1);
-      const normalized = maxAmount > 0 ? point.amount / maxAmount : 0;
-      const y = topPadding + usableHeight - normalized * usableHeight;
-      return {
-        ...point,
-        x,
-        y,
-      };
-    });
-
-    const linePath = plottedPoints
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-      .join(' ');
-    const areaPath = plottedPoints.length
-      ? `${linePath} L ${plottedPoints[plottedPoints.length - 1].x} ${chartHeight - bottomPadding} L ${plottedPoints[0].x} ${chartHeight - bottomPadding} Z`
-      : '';
-    const peakPoint = plottedPoints.reduce<(typeof plottedPoints)[number] | null>((peak, point) => {
-      if (!peak || point.amount > peak.amount) {
-        return point;
-      }
-      return peak;
-    }, null);
-    const latestPoint = plottedPoints[plottedPoints.length - 1] || null;
-    const nonZeroLatestPoint = [...plottedPoints].reverse().find((point) => point.amount > 0) || latestPoint;
-
-    return {
-      points: plottedPoints,
-      maxAmount,
-      totalAmount,
-      activeDays,
-      averageAmount,
-      peakPoint,
-      latestPoint,
-      defaultPoint: nonZeroLatestPoint,
-      chartHeight,
-      chartWidth,
-      bottomPadding,
-      linePath,
-      areaPath,
-    };
-  }, [activeTransactions]);
+  const {
+    activeTransactions,
+    survivalScore,
+    detectedInsights,
+    snapshotSections,
+    scoreStatus,
+    expenseTrend,
+  } = useMemo(
+    () =>
+      buildInsightsScreenData({
+        transactions,
+        tempTransactions,
+        categories,
+        insightsSnapshot,
+        currentBalance,
+      }),
+    [transactions, tempTransactions, categories, insightsSnapshot, currentBalance]
+  );
 
   useEffect(() => {
     const availableKeys = new Set(expenseTrend.points.map((point) => point.key));
@@ -654,11 +346,7 @@ export default function InsightsScreen() {
   }, [expenseTrend, selectedExpenseTrendKey]);
 
   const expenseTrendChartData = useMemo(() => {
-    return expenseTrend.points.map((point) => ({
-      key: point.key,
-      label: point.shortDay,
-      value: point.amount,
-    }));
+    return buildExpenseTrendChartData(expenseTrend);
   }, [expenseTrend]);
 
   // Section 3: Spending Pattern calculation
@@ -1352,7 +1040,7 @@ export default function InsightsScreen() {
               <View style={styles.expenseTrendHeader}>
                 <View style={styles.expenseTrendHeaderCopy}>
                   <Text style={styles.sectionTitle}>Expense Trend</Text>
-                  <Text style={styles.expenseTrendSubtext}>Last {EXPENSE_TREND_DAYS} days of outgoing money.</Text>
+                  <Text style={styles.expenseTrendSubtext}>Last {expenseTrend.points.length} days of outgoing money.</Text>
                 </View>
                 <View style={styles.expenseTrendPill}>
                   <Text style={styles.expenseTrendPillText}>Track daily</Text>

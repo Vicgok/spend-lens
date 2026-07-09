@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 2 only from the MVP readiness audit: unify the app shell and semantic theme layer around the tactile light design already used across the main tabs.
+Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
 
 ## Approved Plan Reference
 
@@ -10,17 +10,21 @@ Implement Phase 2 only from the MVP readiness audit: unify the app shell and sem
 
 ## Changes Made
 
-- Updated `src/theme/colors.ts` so `colors.light` now exposes tactile-aligned backgrounds, surfaces, card treatments, borders, muted text, and shell styling.
-- Updated `src/stores/settings-store.ts` so the default and hydration fallback theme mode is `light`.
-- Simplified `app/_layout.tsx` so the main app shell background comes from the provider theme instead of separate tactile route overrides, while preserving the onboarding and categories special cases.
-- Aligned the transaction detail route transition background with `theme.background` so detail presentation follows the active semantic theme.
+- Added `src/features/history/presenter.ts` to own History timeline chart derivation, chart-summary formatting, chronological section grouping, month option generation, and observation text.
+- Refactored `app/(tabs)/transactions.tsx` to consume the new History presenter helpers instead of keeping those derivations inline.
+- Added `src/features/insights-screen/presenter.ts` to own active-transaction selection, survival-score derivation, snapshot/display wiring, and expense-trend preparation.
+- Added `src/features/insights-screen/simulation.ts` to own the mock scan orchestration and temporary mock-transaction generation used by the Insights tab.
+- Refactored `app/(tabs)/insights.tsx` to consume the new Insights presenter and simulation helpers while preserving the existing visual flow and scan modal behavior.
 
 ## Files Updated
 
-- `src/theme/colors.ts`
-- `src/stores/settings-store.ts`
-- `app/_layout.tsx`
+- `src/features/history/presenter.ts`
+- `src/features/insights-screen/presenter.ts`
+- `src/features/insights-screen/simulation.ts`
+- `app/(tabs)/transactions.tsx`
+- `app/(tabs)/insights.tsx`
 
 ## Notes
 
-- This implementation intentionally stayed within Phase 2 and did not attempt the broader component extraction and screen-boundary cleanup deferred to later audit phases.
+- This implementation stayed within the Phase 3 decomposition slice and did not widen into theme migration, production-hardening, or visual redesign work.
+- The Insights screen still contains some older inline legacy calculations that are no longer part of the rendered contract; they are a follow-up cleanup candidate rather than a blocker for this slice.

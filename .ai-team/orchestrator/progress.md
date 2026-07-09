@@ -62,11 +62,16 @@
 | 2026-07-09 | Insights area chart tap interaction and theme alignment | Test | Complete | `npm run check` passed after the shared area chart integration and selection wiring. |
 | 2026-07-09 | Insights area chart tap interaction and theme alignment | Audit | Complete | Audit confirmed the new shared chart uses chart-kit v2, keeps the existing selected-point flow, and applies app-theme colors instead of isolated chart styling. |
 | 2026-07-09 | Insights area chart tap interaction and theme alignment | Review | Complete | Reviewer approved the scoped Insights chart migration and tap interaction behavior. |
+| 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Plan | Complete | Scoped a narrow decomposition slice with separate file ownership for History and Insights helper extraction. |
+| 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Code | Complete | Added dedicated History and Insights feature presenters plus scan-simulation helper and refactored both tabs to consume them. |
+| 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Test | Complete | `npm run check` and `npm run test:production-gate` both passed after the refactor. |
+| 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Audit | Complete | Audit confirmed the extraction seams reduce screen ownership without expanding into later-phase hardening work. |
+| 2026-07-09 | Phase 3: Screen decomposition for History and Insights | Review | Complete | Reviewer approved the scoped decomposition and noted optional legacy Insights cleanup as a non-blocking follow-up. |
 
 ## Current State
 
-The latest completed task migrated the Insights expense-trend chart onto a shared `react-native-chart-kit` v2 area chart with app-theme styling and direct tap selection, while preserving the existing card content and passing `npm run check`.
+The latest completed task decomposed the History and Insights tabs by moving their core derived logic and scan-simulation behavior into dedicated feature helpers, while preserving current UI behavior and passing both `npm run check` and `npm run test:production-gate`.
 
 ## Next Step
 
-Optional follow-up: visually verify both History and Insights charts on device and remove any now-dead legacy Insights chart math if the screen behavior is fully confirmed.
+Optional follow-up: visually verify both History and Insights on device and remove the remaining dead legacy Insights calculations if runtime behavior is fully confirmed.

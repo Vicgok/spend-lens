@@ -2,34 +2,37 @@
 
 ## Task
 
-Implement Phase 2 only from the MVP readiness audit: unify the app shell and semantic theme layer around the tactile light design already used across the main tabs.
+Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
 
 ## Requirements Summary
 
-Phase 2 should address the highest-value design-system inconsistency next: the provider theme, default settings state, and app-shell backgrounds disagree about what the primary light theme is. The fix should make the provider's semantic light palette match the tactile UI already used in production screens and should remove unnecessary shell overrides for the main tabs.
+Phase 3 should reduce the monolithic risk in `transactions.tsx` and `insights.tsx` without broadening into visual redesign or production-hardening work. The highest-value slice is to move screen-local derivation, grouping, chart prep, and dev-simulation/controller logic behind dedicated feature seams while preserving the current UI contract.
 
 ## Impacted Files
 
-- `src/theme/colors.ts`
-- `src/stores/settings-store.ts`
-- `app/_layout.tsx`
+- `app/(tabs)/transactions.tsx`
+- `app/(tabs)/insights.tsx`
+- `src/features/history/*`
+- `src/features/insights-screen/*`
 - `.ai-team/orchestrator/*.md`
 - `.ai-team/sub-agents/*.md`
 
 ## Plan
 
-1. Align `colors.light` with the tactile app surfaces, borders, and text roles already used throughout the tabs.
-2. Change the settings-store default and hydration fallback theme mode to `light`.
-3. Remove route-level app-shell background overrides for the main tactile tabs so the provider theme is the source of truth.
-4. Run `npm run check` and record the result in `.ai-team`.
+1. Create a History feature seam that owns timeline chart derivation, section grouping, month options, and observation text.
+2. Refactor `app/(tabs)/transactions.tsx` to consume the extracted History helpers while keeping the presentational structure stable.
+3. Create an Insights feature seam that owns temporary scan-data generation, scan orchestration helpers, and primary derived analytics helpers.
+4. Refactor `app/(tabs)/insights.tsx` to consume the extracted Insights helpers while keeping the presentational structure stable.
+5. Run `npm run check` and record the result in `.ai-team`.
 
 ## Acceptance Criteria
 
-- The semantic light theme matches the tactile design language closely enough for shared shell usage.
-- Fresh settings hydration defaults to light mode.
-- Main tab route backgrounds come from the provider theme instead of tactile hardcodes.
-- The screen compiles cleanly after the Phase 2 changes.
+- The History screen delegates its core derivation seams to a dedicated feature module.
+- The Insights screen delegates its simulation/controller and major derivation seams to dedicated feature modules.
+- No concurrent implementation lane edits the same file.
+- The screen compiles cleanly after the Phase 3 changes.
 
 ## Risks
 
-- Some screens still use direct `tokens.colors` or local hardcodes, so this phase should stop at provider/app-shell unification instead of attempting a full component migration.
+- Both screens are large and carry UI-specific inline icons/styles, so this phase should stop at logic decomposition instead of forcing a full presentational component breakup.
+- The Insights screen still contains dev simulation behavior by design; this phase should isolate it structurally, not remove it.

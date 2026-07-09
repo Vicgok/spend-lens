@@ -4,7 +4,7 @@
 
 ### Task
 
-Redesign the History chart with a premium vertical bar chart using `react-native-chart-kit` as the base and `react-native-svg` for custom rounded target and stacked bar rendering.
+Implement Phase 3 screen decomposition for the History and Insights tabs from the 2026-07-09 MVP readiness audit.
 
 ### Status
 
@@ -12,10 +12,10 @@ Complete
 
 ### Completed
 
-- Installed `react-native-chart-kit`, `@chart-kit/pro`, and `react-native-svg` with `--legacy-peer-deps` after `@chart-kit/pro` reported a React peer-version conflict.
-- Rebuilt `StackedWeeklyBarChart` to use `react-native-chart-kit/v2` as the chart base with custom SVG `Rect` rendering for the target bar and stacked foreground fills.
-- Updated the History screen integration to pass the new `value` and `target` shape into the redesigned shared chart.
-- Verified the redesign with `npm run check`.
+- Added `src/features/history/presenter.ts` and moved History timeline, grouping, month-option, and observation derivations behind that seam.
+- Added `src/features/insights-screen/presenter.ts` and `src/features/insights-screen/simulation.ts` to own Insights-derived data preparation and scan-simulation timing.
+- Refactored both `app/(tabs)/transactions.tsx` and `app/(tabs)/insights.tsx` to consume the new feature seams while preserving the existing screen flow.
+- Verified the refactor with `npm run check` and `npm run test:production-gate`.
 
 ### Next Owner
 
@@ -23,7 +23,7 @@ User
 
 ### Next Action
 
-Perform runtime visual QA on device or simulator and decide whether the hidden legacy SVG block in `transactions.tsx` should be removed in a dedicated cleanup pass.
+Perform runtime visual QA on device or simulator and decide whether to remove the remaining dead legacy Insights calculation block in a follow-up cleanup pass.
 
 ### Blockers
 

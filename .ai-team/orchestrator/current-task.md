@@ -2,7 +2,7 @@
 
 ## Task
 
-Implement Phase 2 only from the MVP readiness audit: unify the app shell and semantic theme layer around the tactile light design already used across the main tabs.
+Implement Phase 3 only from the 2026-07-09 MVP readiness audit: decompose the History and Insights tab screens by extracting screen-local derived logic and simulation/controller behavior into reusable seams without changing the intended UI behavior.
 
 ## Status
 
@@ -10,19 +10,20 @@ Complete
 
 ## Requirements
 
-- Align the provider-backed light theme palette with the tactile surfaces, borders, and text already used in the product UI.
-- Make the light tactile theme the default app mode for fresh settings hydration.
-- Remove route-level shell background overrides for the main app tabs where the provider theme should be authoritative.
-- Keep the fix scoped to Phase 2 only.
+- Keep the implementation scoped to Phase 3 screen decomposition only.
+- Extract non-UI derived logic from `app/(tabs)/transactions.tsx` into dedicated feature helpers.
+- Extract non-UI derived logic and scan-simulation/controller behavior from `app/(tabs)/insights.tsx` into dedicated feature helpers or hooks.
+- Preserve the current rendered contract and tactile visual behavior for both screens.
+- Use explicit file partitioning so the History and Insights decomposition lanes do not edit the same source files in parallel.
 - Keep `.ai-team/orchestrator/execution-status.md` accurate so the active role is visible during execution.
 
 ## Acceptance Criteria
 
-- The app shell background and navigation theme resolve from the provider theme for the main tactile tabs.
-- A fresh app session defaults to the tactile light theme instead of the mismatched dark mode.
-- The semantic light theme exposes tactile-aligned background, surface, border, and text colors.
+- `transactions.tsx` no longer owns its core timeline/grouping/observation derivation inline.
+- `insights.tsx` no longer owns its mock scan dataset generation and primary derived analytics inline.
+- New helper seams live outside the screen modules and are reusable/testable by structure.
 - The workspace compiles cleanly after the change.
 
 ## Reviewer Feedback
 
-Approved. Phase 2 stayed focused on theme unification at the provider and app-shell layer without spilling into broader screen decomposition work.
+Approved. The Phase 3 slice moved reusable History and Insights logic behind dedicated feature seams without widening scope, and the current validation set stayed green.
